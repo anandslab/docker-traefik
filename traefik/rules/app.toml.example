@@ -1,0 +1,32 @@
+# Replace APPNAME, LAN-IP, PORT, example.com
+[backends]
+  [backends.backend-APPNAME]
+    [backends.backend-APPNAME.servers]
+      [backends.backend-APPNAME.servers.server-APPNAME-ext]
+        url = "http://LAN-IP:PORT"
+        weight = 0
+[frontends]
+  [frontends.frontend-APPNAME]
+    backend = "backend-APPNAME"
+    passHostHeader = true
+    [frontends.frontend-APPNAME.routes]
+          [frontends.frontend-APPNAME.routes.route-APPNAME-ext]
+        rule = "Host:APPNAME.example.com"
+    [frontends.frontend-APPNAME.headers]
+      SSLRedirect = true
+      SSLHost = "APPNAME.example.com"
+      SSLForceHost = true
+      STSSeconds = 315360000
+      STSIncludeSubdomains = true
+      STSPreload = true
+      forceSTSHeader = true
+      frameDeny = true
+      contentTypeNosniff = true
+      browserXSSFilter = true
+      customFrameOptionsValue="allow-from https:example.com"
+    [frontends.frontend-APPNAME.auth]
+      headerField = "X-WebAuth-User"
+      [frontends.frontend-APPNAME.auth.forward]
+        address = "http://oauth:4181"
+        trustForwardHeader = true
+        authResponseHeaders = ["X-Forwarded-User"]
