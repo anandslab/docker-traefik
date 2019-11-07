@@ -1,9 +1,21 @@
-# INSTRUCTIONS
-# All variables ${XXX} come from .env file stored in the same place as docker-compose.yml. Restrict permissions to .env file (recommended: 640)
+<h2>Description</h2>
+This is the updated Docker-Compose repo of all the media and home server apps described in the following guides on our website:
 
-########################### NETWORKS
-########################### SERVICES
-############################# FRONTENDS
+Docker Media Server - https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/
+Traefik Reverse Proxy - https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/
+Docker with Google OAuth2 - https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/
+
+<h3>But what about Traefik 2.0?</h3>
+At this point this stack is built on Traefik 1.0. As we move ours to Traefik 2.0, we will publish a new repository. 
+
+Having said that, Traefik 1.7.16 (the final release in v1) still works great for the purposes of a media / home server stack. Traefik 2.0 is significantly different requiring a major rework of your files. Therefore, if you are already on Traefik v1, we do not see a need to upgrade to v2 at this point. 
+
+If you are starting out, you may start with Traefik 2.0. However, documentation, community knowledge, and support for Traefik 2.0 is still quite limited at this time.
+
+<h2>What apps does this stack include?</h2>
+We will try to keep this repo up-to-date. Here are the apps currently included in our stack:
+
+<h3>############################# FRONTENDS</h3>
 # Traefik - Reverse Proxy
 # OAuth - Forward Authentication
 # Portainer - Container Management
@@ -54,3 +66,8 @@
 ############################# MAINTENANCE
 # Ouroboros - Automatic Docker Container Updates
 # Docker-GC - Automatic Docker Garbage Collection 
+
+<h2>Usage</h2>
+All variables (ie. ${XXX}) in docker-compose.yml come from .env file stored in the same place as docker-compose.yml. Restrict permissions to .env file (recommended: 640)
+
+An example .env file is included in the repo. You may rename it from .env.exmaple to .env, edit the variables to your situation before starting the containers. 
