@@ -99,3 +99,4 @@ First, install Docker and Docker Compose, as described in our <a href="https://w
 5. Edit variables in `.env` file. All variables (ie. ${XXX}) in docker-compose.yml come from `.env` file stored in the same place as docker-compose.yml. 
 6. Ensure good permissions for the `.env` file (recommended: 640).
 7. Start and stop your docker stack as described in our [Docker Media Server guide](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/).
+8. Optionally, put non-docker apps behind Traefik proxy by renaming `traefik\rules\app.toml.example` to `traefik\rules\app.toml` and editing its contents.
