@@ -93,9 +93,9 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 First, install Docker and Docker Compose, as described in our <a href="https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/">Docker Media Server guide</a>. 
 
 1. Clone the repo.
-2. Rename `traefik\traefik.toml.example` to `traefik\traefik.toml` and edit it to reflect your situation. Edit domain name. DNS Challenge is enabled by default for cloudflare (edit this if needed).
-3. Rename the included `.env.example` to `.env`.
-4. Edit variables in `.env` file. All variables (ie. ${XXX}) in docker-compose.yml come from `.env` file stored in the same place as docker-compose.yml. 
-5. Ensure good permissions for the `.env` file (recommended: 640).
-6. If you enable or use HTTP Basic Authentication then rename `.htpasswd.example` to `.htpasswd` in the folder "shared" and add username and hashed password to it. 
+2. Rename `traefik\traefik.toml.example` to `traefik\traefik.toml` and edit it to reflect your situation. Edit domain name. DNS Challenge is enabled by default for cloudflare (edit this if needed). Use the [Traefik Reverse Proxy guide](https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/) for help with this.
+3. If you enable or use HTTP Basic Authentication then rename `.htpasswd.example` to `.htpasswd` in the folder "shared" and add username and hashed password to it. 
+4. Rename the included `.env.example` to `.env`.
+5. Edit variables in `.env` file. All variables (ie. ${XXX}) in docker-compose.yml come from `.env` file stored in the same place as docker-compose.yml. 
+6. Ensure good permissions for the `.env` file (recommended: 640).
 7. Start and stop your docker stack as described in our [Docker Media Server guide](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/).
