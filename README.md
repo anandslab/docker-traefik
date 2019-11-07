@@ -1,12 +1,10 @@
 # Description
 This is the updated docker-compose repo of all the media and home server apps described in the following guides on our website:
 
-<p>
-<ul>
-  <li>Docker Media Server - https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/</li>
-<li>Traefik Reverse Proxy - https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/</li>
-<li>Docker with Google OAuth2 - https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/</li>
-</ul>
+* Docker Media Server - [https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/)
+* Traefik Reverse Proxy - [https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/](https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/).
+* Docker with Google OAuth2 - [https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/)(https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/).
+
 </p>
 
 ## But what about Traefik 2.0?
@@ -20,95 +18,82 @@ This is the updated docker-compose repo of all the media and home server apps de
 We will try to keep this repo up-to-date. For now, here are the apps currently included in our stack:
 
 ### FRONTENDS
-<ul>
-<li>Traefik - Reverse Proxy</li>
-<li>OAuth - Forward Authentication</li>
-<li>Portainer - Container Management</li>
-<li>Organizr - Unified Frontend</li>
-<li>Heimdall - Unified Frontend Alternative</li>
-</ul>
+
+* Traefik - Reverse Proxy
+* OAuth - Forward Authentication
+* Portainer - Container Management
+* Organizr - Unified Frontend
+* Heimdall - Unified Frontend Alternative
 
 ### SMART HOME
-<ul>
-<li>HA-Dockermon - Manage Docker containers in Home Assistant </li>
-<li>Mosquitto - MQTT Broker</li>
-<li>ZoneMinder - Video Surveillance </li>
-</ul>
+
+* HA-Dockermon - Manage Docker containers in Home Assistant 
+* Mosquitto - MQTT Broker
+* ZoneMinder - Video Surveillance 
 
 ### DATABASE
-<ul>
-<li>phpMyAdmin - Database management</li>
-<li>InfluxDB - Database for sensor data</li>
-<li>Grafana - Graphical data visualization for InfluxDB data</li>
-</ul>
+
+* phpMyAdmin - Database management
+* InfluxDB - Database for sensor data
+* Grafana - Graphical data visualization for InfluxDB data
 
 ### INDEXERS
-<ul>
-<li>Jackett - Torrent proxy</li>
-<li>NZBHydra2 - NZB meta search</li>
-</ul>
+
+* Jackett - Torrent proxy
+* NZBHydra2 - NZB meta search
 
 ### PVRS
-<ul>
-<li>Lidarr - Music Management</li>
-<li>Radarr - Movie management</li>
-<li>Sonarr - TV Shows management</li>
-</ul>
+
+* Lidarr - Music Management
+* Radarr - Movie management
+* Sonarr - TV Shows management
 
 ### DOWNLOADERS
-<ul>
-<li>jDownloader - Download management</li>
-<li>SABnzbd - Binary newsgrabber (NZB downloader)</li>
-<li>qBittorrent - Torrent downloader</li>
-<li>TransmissionBT - Torrent Downloader</li>
-</ul>
+
+* jDownloader - Download management
+* SABnzbd - Binary newsgrabber (NZB downloader)
+* qBittorrent - Torrent downloader
+* TransmissionBT - Torrent Downloader
 
 ### MEDIA SERVER
-<ul>
-<li>Plex - Media Server</li>
-<li>Emby - Media Server</li>
-<li>Tautulli - Previously PlexPy. Plex statistics and monitoring</li>
-<li>Plex-Sync - For Syncing watched status between plex servers </li>
-</ul>
+
+* Plex - Media Server
+* Emby - Media Server
+* Tautulli - Previously PlexPy. Plex statistics and monitoring
+* Plex-Sync - For Syncing watched status between plex servers 
 
 ### MEDIA FILE MANAGEMENT
-<ul>
-<li>Bazarr - Subtitle Management</li>
-<li>Picard - Music Library Tagging and Management</li>
-<li>Handbrake - Video Conversion (Transcoding and compression)</li>
-<li>MKVToolNix - Video Editing (Remuxing - changing media container while keeping original source quality)</li>
-<li>MakeMKV - Video Editing (Ripping from Disks)</li>
-<li>FileBot - File renamer</li>
-</ul>
+
+* Bazarr - Subtitle Management
+* Picard - Music Library Tagging and Management
+* Handbrake - Video Conversion (Transcoding and compression)
+* MKVToolNix - Video Editing (Remuxing - changing media container while keeping original source quality)
+* MakeMKV - Video Editing (Ripping from Disks)
+* FileBot - File renamer
 
 ### SYSTEM
-<ul>
-<li>Firefox - Web Broswer
-<li>Glances - System Information</li>
-<li>Logarr - Log Management</li>
-<li>Monitorr - Webfront to display the status of any webapp or service</li>
-<li>APCUPSD - APC UPS Management</li>
-<li>qDirStat - Directory Statistics</li>
-<li>Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser </li>
-<li>Guacamole Daemon - Needed for Guacamole</li>
-<li>IPVanish - VPN for container traffic</li>
-</ul>
+
+* Firefox - Web Broswer
+* Glances - System Information
+* Logarr - Log Management
+* Monitorr - Webfront to display the status of any webapp or service
+* APCUPSD - APC UPS Management
+* qDirStat - Directory Statistics
+* Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser 
+* Guacamole Daemon - Needed for Guacamole
+* IPVanish - VPN for container traffic
 
 ### MAINTENANCE
-<ul>
-<li>Ouroboros - Automatic Docker Container Updates</li>
-<li>Docker-GC - Automatic Docker Garbage Collection</li>
-</ul>
+
+* Ouroboros - Automatic Docker Container Updates
+* Docker-GC - Automatic Docker Garbage Collection
 
 # Usage
 
 First, install Docker and Docker Compose, as described in our <a href="https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/">Docker Media Server guide</a>. 
 
-<ol>
-  <li>Clone the repo</li>
-  <li>Rename .env.example to .env</li>
-  <li>Edit variables in .env file</li>
-  
-All variables (ie. ${XXX}) in docker-compose.yml come from .env file stored in the same place as docker-compose.yml. Restrict permissions to .env file (recommended: 640)
-
-An example .env file is included in the repo. You may rename it from .env.exmaple to .env, edit the variables to your situation before starting the containers. 
+1. Clone the repo.
+2. Rename the included `.env.example` to `.env`.
+3. Edit variables in `.env` file. All variables (ie. ${XXX}) in docker-compose.yml come from `.env` file stored in the same place as docker-compose.yml. 
+4. Ensure good permissions for the `.env` file (recommended: 640).
+5. Start and stop your docker stack as described in our [Docker Media Server guide](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/).
