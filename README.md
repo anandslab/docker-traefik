@@ -96,7 +96,7 @@ First, install Docker and Docker Compose, as described in our <a href="https://w
 2. Rename `traefik\traefik.toml.example` to `traefik\traefik.toml` and edit it to reflect your situation. Edit domain name. DNS Challenge is enabled by default for cloudflare (edit this if needed). Use the [Traefik Reverse Proxy guide](https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/) for help with this.
 3. (Optional) Enable or use HTTP Basic Authentication by renaming `shared\.htpasswd.example` to `shared\.htpasswd` in the folder and adding username and hashed password to it. 
 4. Rename the included `.env.example` to `.env`.
-5. Edit variables in `.env` file. All variables (ie. ${XXX}) in docker-compose.yml come from `.env` file stored in the same place as docker-compose.yml. 
+5. Edit variables in `.env` file. All variables (ie. `${XXX}`) in docker-compose.yml come from `.env` file stored in the same place as docker-compose.yml. 
 6. Ensure good permissions for the `.env` file (recommended: 640).
 7. Start and stop your docker stack as described in our [Docker Media Server guide](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/).
 8. (Optional) Put non-docker apps behind Traefik proxy by renaming `traefik\rules\app.toml.example` to `traefik\rules\app.toml` and editing its contents.
