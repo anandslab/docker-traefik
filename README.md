@@ -1,4 +1,4 @@
-<h2>Description</h2>
+# Description
 This is the updated docker-compose repo of all the media and home server apps described in the following guides on our website:
 
 <p>
@@ -9,17 +9,17 @@ This is the updated docker-compose repo of all the media and home server apps de
 </ul>
 </p>
 
-<h3>But what about Traefik 2.0?</h3>
+## But what about Traefik 2.0?
 <p>At this point this stack is built on Traefik 1.0. As we move ours to Traefik 2.0, we will publish a new repository. </p>
 
 <p>Having said that, Traefik 1.7.16 (the final release in v1) still works great for the purposes of a media / home server stack. Traefik 2.0 is significantly different requiring a major rework of your files. Therefore, if you are already on Traefik v1, we do not see a need to upgrade to v2 at this point. </p>
 
 <p>If you are starting out, you may start with Traefik 2.0. However, documentation, community knowledge, and support for Traefik 2.0 is still quite limited at this time.</p>
 
-<h2>What apps are included in this stack?</h2>
-We will try to keep this repo up-to-date. Here are the apps currently included in our stack:
+## What apps are included in this stack?
+We will try to keep this repo up-to-date. For now, here are the apps currently included in our stack:
 
-<h3>FRONTENDS</h3>
+### FRONTENDS
 <ul>
 <li>Traefik - Reverse Proxy</li>
 <li>OAuth - Forward Authentication</li>
@@ -28,34 +28,34 @@ We will try to keep this repo up-to-date. Here are the apps currently included i
 <li>Heimdall - Unified Frontend Alternative</li>
 </ul>
 
-<h3>SMART HOME</h3>
+### SMART HOME
 <ul>
 <li>HA-Dockermon - Manage Docker containers in Home Assistant </li>
 <li>Mosquitto - MQTT Broker</li>
 <li>ZoneMinder - Video Surveillance </li>
 </ul>
 
-<h3>DATABASE</h3>
+### DATABASE
 <ul>
 <li>phpMyAdmin - Database management</li>
 <li>InfluxDB - Database for sensor data</li>
 <li>Grafana - Graphical data visualization for InfluxDB data</li>
 </ul>
 
-<h3>INDEXERS</h3>
+### INDEXERS
 <ul>
 <li>Jackett - Torrent proxy</li>
 <li>NZBHydra2 - NZB meta search</li>
 </ul>
 
-<h3>PVRS</h3>
+### PVRS
 <ul>
 <li>Lidarr - Music Management</li>
 <li>Radarr - Movie management</li>
 <li>Sonarr - TV Shows management</li>
 </ul>
 
-<h3>DOWNLOADERS</h3>
+### DOWNLOADERS
 <ul>
 <li>jDownloader - Download management</li>
 <li>SABnzbd - Binary newsgrabber (NZB downloader)</li>
@@ -63,7 +63,7 @@ We will try to keep this repo up-to-date. Here are the apps currently included i
 <li>TransmissionBT - Torrent Downloader</li>
 </ul>
 
-<h3>MEDIA SERVER</h3>
+### MEDIA SERVER
 <ul>
 <li>Plex - Media Server</li>
 <li>Emby - Media Server</li>
@@ -71,7 +71,7 @@ We will try to keep this repo up-to-date. Here are the apps currently included i
 <li>Plex-Sync - For Syncing watched status between plex servers </li>
 </ul>
 
-<h3>MEDIA FILE MANAGEMENT</h3>
+### MEDIA FILE MANAGEMENT
 <ul>
 <li>Bazarr - Subtitle Management</li>
 <li>Picard - Music Library Tagging and Management</li>
@@ -81,7 +81,7 @@ We will try to keep this repo up-to-date. Here are the apps currently included i
 <li>FileBot - File renamer</li>
 </ul>
 
-<h3>SYSTEM</h3>
+### SYSTEM
 <ul>
 <li>Firefox - Web Broswer
 <li>Glances - System Information</li>
@@ -94,13 +94,21 @@ We will try to keep this repo up-to-date. Here are the apps currently included i
 <li>IPVanish - VPN for container traffic</li>
 </ul>
 
-<h3>MAINTENANCE</h3>
+### MAINTENANCE
 <ul>
 <li>Ouroboros - Automatic Docker Container Updates</li>
 <li>Docker-GC - Automatic Docker Garbage Collection</li>
 </ul>
 
-<h2>Usage</h2>
+# Usage
+
+First, install Docker and Docker Compose, as described in our <a href="https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/">Docker Media Server guide</a>. 
+
+<ol>
+  <li>Clone the repo</li>
+  <li>Rename .env.example to .env</li>
+  <li>Edit variables in .env file</li>
+  
 All variables (ie. ${XXX}) in docker-compose.yml come from .env file stored in the same place as docker-compose.yml. Restrict permissions to .env file (recommended: 640)
 
 An example .env file is included in the repo. You may rename it from .env.exmaple to .env, edit the variables to your situation before starting the containers. 
