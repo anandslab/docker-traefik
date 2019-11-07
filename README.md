@@ -3,7 +3,7 @@ This is the updated docker-compose repo of all the media and home server apps de
 
 * Docker Media Server - [https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/)
 * Traefik Reverse Proxy - [https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/](https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/).
-* Docker with Google OAuth2 - [https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/)(https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/).
+* Docker with Google OAuth2 - [https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/](https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/).
 
 </p>
 
