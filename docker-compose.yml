@@ -122,7 +122,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${USERDIR}/docker/portainer/data:/data
-      - ${USERDIR}/docker/shared:/shared
     environment:
       TZ: ${TZ}
     labels:
@@ -265,7 +264,6 @@ services:
     volumes: 
       - ${USERDIR}/docker/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ${USERDIR}/docker/mosquitto/config/passwd:/mosquitto/config/passwd
-      - ${USERDIR}/docker/shared:/shared
     environment:
       PUID: ${PUID}
       PGID: ${PGID}
@@ -349,7 +347,6 @@ services:
 #      - mariadb:db
 #    volumes:
 #      - ${USERDIR}/docker/phpmyadmin:/etc/phpmyadmin
-#      - ${USERDIR}/docker/shared:/shared
     environment:
       PMA_HOST: ${DB_HOST}
       PMA_PORT: ${DB_PORT}
@@ -391,7 +388,6 @@ services:
     volumes:
 #      - ${USERDIR}/docker/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
       - ${USERDIR}/docker/influxdb/db:/var/lib/influxdb
-      - ${USERDIR}/docker/shared:/shared
 #    command: -config /etc/influxdb/influxdb.conf
 
 # Grafana - Graphical data visualization for InfluxDB data
@@ -410,9 +406,6 @@ services:
     user: "0"
     volumes:
       - ${USERDIR}/docker/grafana:/var/lib/grafana
-      - ${USERDIR}/docker/shared:/shared
-#    env_file:
-#      - ${USERDIR}/docker/env/env.grafana
     labels:
       traefik.enable: "true"
       traefik.backend: grafana
@@ -457,7 +450,6 @@ services:
       - ${USERDIR}/docker/jackett:/config
       - ${USERDIR}/Downloads:/downloads
       - "/etc/localtime:/etc/localtime:ro"
-      - ${USERDIR}/docker/shared:/shared
     environment:
       PUID: ${PUID}
       PGID: ${PGID}
@@ -500,7 +492,6 @@ services:
     volumes:
       - ${USERDIR}/docker/hydra2:/config
       - ${USERDIR}/Downloads:/downloads
-      - ${USERDIR}/docker/shared:/shared
     environment:
       PUID: ${PUID}
       PGID: ${PGID}
@@ -511,7 +502,7 @@ services:
       traefik.protocol: http
       traefik.port: 5076
       traefik.frontend.rule: Host:hydra.${DOMAINNAME}
-#     traefik.frontend.rule: Host:${DOMAINNAME}; PathPrefix: /hydra2
+#     traefik.frontend.rule: Host:${DOMAINNAME}; PathPrefix: /hydra
       traefik.frontend.headers.SSLHost: hydra.${DOMAINNAME}
       traefik.docker.network: traefik_proxy
       traefik.frontend.passHostHeader: "true"
@@ -548,7 +539,6 @@ services:
       - ${USERDIR}/Downloads:/downloads
       - /media/ds918/media/music:/music
       - "/etc/localtime:/etc/localtime:ro"
-      - ${USERDIR}/docker/shared:/shared
     environment:
       PUID: ${PUID}
       PGID: ${PGID}
@@ -593,12 +583,10 @@ services:
     volumes:
       - ${USERDIR}/docker/radarr:/config
       - ${USERDIR}/Downloads:/downloads
-      - /media/media:/media
-      - /media/ds918:/ds918
+      - /media:/nas
 #      - ${USERDIR}/docker/shared/mp4_automator:/config_mp4_automator
-      - /media/media/movies:/movies
+#      - /media/media/movies:/movies
       - "/etc/localtime:/etc/localtime:ro"
-      - ${USERDIR}/docker/shared:/shared
     environment:
       PUID: ${PUID}
       PGID: ${PGID}
@@ -643,12 +631,10 @@ services:
     volumes:
       - ${USERDIR}/docker/sonarr:/config
       - ${USERDIR}/Downloads:/downloads
-      - /media/media/tvshows:/tv
-      - /media/media:/media
-      - /media/ds918:/ds918
+#      - /media/media/tvshows:/tv
+      - /media:/nas
       - "/etc/localtime:/etc/localtime:ro"
 #      - "${USERDIR}/docker/shared/mp4_automator:/config_mp4_automator:rw"
-      - ${USERDIR}/docker/shared:/shared
     environment:
       PUID: ${PUID}
       PGID: ${PGID}
@@ -697,7 +683,6 @@ services:
     volumes:
       - ${USERDIR}/Downloads/completed:/output
       - ${USERDIR}/docker/jdownloader:/config
-      - ${USERDIR}/docker/shared:/shared
     environment:
       USER_ID: ${PUID}
       GROUP_ID: ${PGID}
@@ -747,8 +732,7 @@ services:
     volumes:
       - ${USERDIR}/docker/sabnzbd:/config
       - ${USERDIR}/Downloads:/downloads
-      - ${USERDIR}/Downloads/incomplete:/incomplete-downloads
-      - ${USERDIR}/docker/shared:/shared
+#      - ${USERDIR}/Downloads/incomplete:/incomplete-downloads
     environment:
       PUID: ${PUID}
       PGID: ${PGID}
@@ -798,7 +782,6 @@ services:
     volumes:
       - ${USERDIR}/docker/qbittorrent:/config
       - ${USERDIR}/Downloads:/downloads
-      - ${USERDIR}/docker/shared:/shared
     environment:
       PUID: ${PUID}
       PGID: ${PGID}
@@ -852,7 +835,6 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ${USERDIR}/docker/transmission-vpn/data:/data
       - ${USERDIR}/docker/transmission-vpn/config:/config
-      - ${USERDIR}/docker/shared:/shared
       - ${USERDIR}/Downloads:/downloads
     environment:
       OPENVPN_PROVIDER: IPVANISH
@@ -935,7 +917,7 @@ services:
       - ${USERDIR}/docker/plexms:/config
       - ${USERDIR}/Downloads:/Downloads
       - /media:/nas
-      - ${USERDIR}/docker/shared:/shared
+      - /dev/shm/transcode_plex:/transcode # Offload transcoding to RAM if you have enough RAM
     environment:
       TZ: ${TZ}
       HOSTNAME: "nucPlex"
@@ -981,10 +963,8 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ${USERDIR}/docker/embyms:/config
-      - ${USERDIR}/docker/embyms/transcode:/transcode      
-      - /media/media:/media
-      - /media/ds918:/ds918
-      - ${USERDIR}/docker/shared:/shared
+      - /dev/shm/transcode_emby:/transcode      
+      - /media:/nas
       - ${USERDIR}/Downloads:/downloads
     environment:
       TZ: ${TZ}
@@ -1029,7 +1009,6 @@ services:
     volumes:
       - ${USERDIR}/docker/tautulli/config:/config
       - ${USERDIR}/docker/tautulli/logs:/logs:ro
-      - ${USERDIR}/docker/shared:/shared
     environment:
       PUID: ${PUID}
       PGID: ${PGID}
@@ -1084,9 +1063,7 @@ services:
       - "${BAZARR_PORT}:6767"
     volumes:
       - ${USERDIR}/docker/bazarr:/config
-      - /media/media:/media
-      - /media/ds918:/ds918
-      - ${USERDIR}/docker/shared:/shared
+      - /media:/nas
     environment:
       PUID: ${PUID}
       PGID: ${PGID}
@@ -1127,10 +1104,9 @@ services:
 #    ports:
 #      - "${PICARD_PORT}:5800"
     volumes:
-      - ${USERDIR}/Downloads/picard:/wip:rw
+      - ${USERDIR}/Downloads/wip_media:/wip_media:rw
       - ${USERDIR}/docker/picard:/config:rw
       - /media/ds918/media/music:/music:rw
-      - ${USERDIR}/docker/shared:/shared
     environment:
       USER_ID: ${PUID}
       GROUP_ID: ${PGID}
@@ -1173,11 +1149,10 @@ services:
 #    ports:
 #      - "${HANDBRAKE_PORT}:5800"
     volumes:
-      - ${USERDIR}/docker/shared:/shared:rw
-      - ${USERDIR}/Downloads:/storage:ro
+      - ${USERDIR}/Downloads:/downloads:ro
       - ${USERDIR}/docker/handbrake/config:/config:rw
       - ${USERDIR}/docker/handbrake/watch:/watch:rw
-      - ${USERDIR}/docker/Downloads/wip_videos:/output:rw
+      - ${USERDIR}/Downloads/wip_media:/output:rw
     environment:
       USER_ID: ${PUID}
       GROUP_ID: ${PGID}
@@ -1224,8 +1199,7 @@ services:
 #    ports:
 #      - "${MKVTOOLNIX_PORT}:5800"
     volumes:
-      - ${USERDIR}/docker/shared:/shared:rw
-      - ${USERDIR}/Downloads:/Downloads:rw
+      - ${USERDIR}/Downloads:/downloads:rw
       - ${USERDIR}/docker/mkvtoolnix/config:/config:rw
     environment:
       USER_ID: ${PUID}
@@ -1272,10 +1246,9 @@ services:
 #    ports:
 #      - "${MAKEMKV_PORT}:5800"
     volumes:
-      - ${USERDIR}/docker/shared:/shared:rw
       - ${USERDIR}/Downloads:/Downloads:rw
       - ${USERDIR}/docker/makemkv/config:/config:rw
-      - ${USERDIR}/docker/Downloads/wip_videos:/output:rw
+      - ${USERDIR}/Downloads/wip_media:/output:rw
     environment:
       USER_ID: ${PUID}
       GROUP_ID: ${PGID}
@@ -1322,10 +1295,8 @@ services:
 #      - "${FILEBOT_PORT}:5800"
     volumes:
       - ${USERDIR}/docker/filebot:/config
-      - /media/media:/media
-      - /media/ds918:/ds918
+      - /media:/nas
       - ${USERDIR}/Downloads:/downloads
-      - ${USERDIR}/docker/shared:/shared
     environment:
       USER_ID: ${PUID}
       GROUP_ID: ${PGID}
@@ -1379,7 +1350,7 @@ services:
     volumes:
       - ${USERDIR}/docker/firefox:/config
       - ${USERDIR}/Downloads:/config/downloads
-      - /dev/shm:/dev/shm
+      - /dev/shm/firefox:/dev/shm
     environment:
       USER_ID: ${PUID}
       GROUP_ID: ${PGID}
@@ -1467,7 +1438,6 @@ services:
     volumes:
       - ${USERDIR}/docker/logarr/config:/config
       - ${USERDIR}/docker/logarr/logs:/var/log/logarrlogs
-      - ${USERDIR}/docker/shared:/shared
     environment:
       TZ: ${TZ}
     labels:
@@ -1506,7 +1476,6 @@ services:
 #      - "${MONITORR_PORT}:80"
     volumes:
       - ${USERDIR}/docker/monitorr:/app
-      - ${USERDIR}/docker/shared:/shared
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -1536,6 +1505,7 @@ services:
       traefik.frontend.auth.forward.trustForwardHeader: "true"
 
 # APCUPSD - APC UPS Management
+# create the apcupsd.conf file
   apcupsd:
     image: gersilex/apcupsd
     container_name: apcupsd
@@ -1552,7 +1522,6 @@ services:
       - ${USERDIR}/docker/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
       - ${USERDIR}/docker/apcupsd/doshutdown:/etc/apcupsd/doshutdown
       - ${USERDIR}/docker/apcupsd/apcupsd.events:/var/log/apcupsd.events
-      - ${USERDIR}/docker/shared:/shared
 
 # qDirStat - Directory Statistics
   qdirstat:
@@ -1565,11 +1534,9 @@ services:
 #    ports:
 #      - "${QDIRSTAT_PORT}:5800"
     volumes:
-      - ${USERDIR}/docker/shared:/shared:rw
       - ${USERDIR}:/storage:ro
       - ${USERDIR}/docker/qdirstat/config:/config:rw
-      - /media/media:/ds918_vol2
-      - /media/ds918:/ds918_vol1
+      - /media:/nas
     environment:
       USER_ID: ${PUID}
       GROUP_ID: ${PGID}

@@ -1,8 +1,11 @@
 # Changelog
 ## Planned: 
 * Add nut-upsd, mariadb/pma, HealthChecks, FileRun, smtp-to-telegram
-* Harmonize paths
 * Replace or remove Transmission/qBittorrent (duplicate functionality).
+
+## November 8, 2019
+* Harmonized paths and removed unused volumes
+* Moved Plex and Emby transcoding to /dev/shm (RAM)
 
 ## November 7, 2019
 * Added IPVanish VPN container. 
