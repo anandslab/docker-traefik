@@ -1,13 +1,17 @@
-<h2>Changelog</h2>
-#Future: Add nut-upsd, mariadb/pma, HealthChecks, FileRun, smtp-to-telegram
+# Changelog
+## Planned: 
+* Add nut-upsd, mariadb/pma, HealthChecks, FileRun, smtp-to-telegram
+* Harmonize paths
+* Replace or remove Transmission.
 
-#ToDo: Harmonize paths. Replace or remove Transmission.
+## November 7, 2019
+Added IPVanish VPN. Added VPN support for Jackett and qBittorrent
 
-#November 7, 2019 - Added IPVanish VPN. Added VPN support for Jackett and qBittorrent
+## November 4, 2019
+Added plex-sync to sync two plex servers. Added MakeMKV.
 
-#November 4, 2019 - Added plex-sync to sync two plex servers. Added MakeMKV.
-
-#October 28, 2019 - Added Plex, MKVToolNix, QDirStat
+## October 28, 2019
+Added Plex, MKVToolNix, QDirStat
 
 #October 24, 2019 - Added Picard, Handbrake, and Filebot
 
