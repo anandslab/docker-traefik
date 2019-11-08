@@ -96,6 +96,11 @@ Some of the containers are behind VPN for privacy and security. We have been usi
 
 Based on the docker-compose blocks for the above apps, you can almost any of the apps behind VPN. 
 
+## MariaDB 
+Some of the containers in docker-compose.yml (eg. ZoneMinder, Guacamole, phpMyAdmin, etc.) need MariaDB. At this point, an external MariaDB host is specified, with the assumption that you have MariaDB running elsewhere (eg. on your NAS).
+
+At some point, we will add a MariaDB container and use that as the database host. 
+
 # Usage
 
 First, install Docker and Docker Compose, as described in our <a href="https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/">Docker Media Server guide</a>. 
