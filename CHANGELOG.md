@@ -7,6 +7,10 @@
 ## November 7, 2019
 * Added IPVanish VPN container. 
 * Added VPN support for Jackett, qBittorrent, jDownloader, and Firefox.
+* Initial push to GitHub
+
+## November 6, 2019
+* Moved environmental variables to .env file
 
 ## November 4, 2019
 * Added plex-sync to sync two plex servers.
