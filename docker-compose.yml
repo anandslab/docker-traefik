@@ -444,7 +444,7 @@ services:
 #      - traefik_proxy
 #    ports: # Cannot specify if using network_mode: container. Specify in VPN container ports.
 #      - "${JACKETT_PORT}:9117"
-    network_mode: container:ipvanish
+    network_mode: service:ipvanish
     depends_on:
       - ipvanish
     volumes:
@@ -773,7 +773,7 @@ services:
     restart: unless-stopped
 #    networks: # Cannot specify if using network_mode: container
 #      - traefik_proxy # Cannot specify if using network_mode: container
-    network_mode: container:ipvanish
+    network_mode: service:ipvanish
 #    ports: # Cannot specify if using network_mode: container. Specify in VPN container ports.
 #      - "8168:8168"
 #      - "6881:6881"
@@ -1343,7 +1343,7 @@ services:
     restart: unless-stopped
 #    networks: # Cannot specify if using network_mode: container
 #      - traefik_proxy
-    network_mode: container:ipvanish
+    network_mode: service:ipvanish
 #    ports: # Cannot specify if using network_mode: container. Specify in VPN container ports.
 #      - "${FIREFOX_PORT}:5800"
     depends_on:
