@@ -264,6 +264,7 @@ services:
     volumes: 
       - ${USERDIR}/docker/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ${USERDIR}/docker/mosquitto/config/passwd:/mosquitto/config/passwd
+      - ${USERDIR}/docker/shared:/shared
     environment:
       PUID: ${PUID}
       PGID: ${PGID}
