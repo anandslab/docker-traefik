@@ -675,6 +675,7 @@ services:
     restart: unless-stopped
 #    networks: # Cannot specify if using network_mode: container
 #      - traefik_proxy
+    network_mode: service:ipvanish
 #    ports: # Cannot specify if using network_mode: container. Specify in VPN container ports.
 #      - "${JDOWNLOADER_PORT}:5800"
 #      - "5900:5900"
