@@ -13,6 +13,32 @@ services:
 
 ############################# FRONTENDS
 
+# IPVanish - VPN for container traffic
+  ipvanish:
+    image: rundqvist/ipvanish-tinyproxy
+    container_name: ipvanish
+    hostname: ipvanish
+    restart: always
+    ports:
+      - "${IPVANISH_PROXY_PORT}:8888"
+      - "${QBITTORRENT_PORT}:8168" #qbittorrent
+      - "${JACKETT_PORT}:9117" #jackett
+      - "${JDOWNLOADER_PORT}:5800" #jDownloader
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+    environment:
+      USERNAME: ${IPVANISH_USERNAME}
+      PASSWORD: ${IPVANISH_PASSWORD}
+      COUNTRY: CH
+      PNET: ${LOCAL_NETWORK}
+      RANDOMIZE: 'false'
+      PRIO_REMOTE: ${IPVANISH_REMOTE_SERVER}
+
 # Traefik - Reverse Proxy
 # Create traefik.toml and rules dir and acme dir before running container.
   traefik:
@@ -433,53 +459,6 @@ services:
 
 ############################# INDEXERS
 
-# Jackett - Torrent proxy
-# Set url_base in Jackett settings if using PathPrefix
-  jackett:
-    image: linuxserver/jackett
-    container_name: jackett
-#    hostname: jackett # Cannot specify if using network_mode: container
-    restart: unless-stopped
-#    networks: # Cannot specify if using network_mode: container
-#      - traefik_proxy
-#    ports: # Cannot specify if using network_mode: container. Specify in VPN container ports.
-#      - "${JACKETT_PORT}:9117"
-    network_mode: service:ipvanish
-    depends_on:
-      - ipvanish
-    volumes:
-      - ${USERDIR}/docker/jackett:/config
-      - ${USERDIR}/Downloads:/downloads
-      - "/etc/localtime:/etc/localtime:ro"
-    environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
-      TZ: ${TZ}
-    labels:
-      traefik.enable: "true"
-      traefik.backend: jackett
-      traefik.protocol: http
-      traefik.port: 9117
-      traefik.frontend.rule: Host:jackett.${DOMAINNAME}
-#     traefik.frontend.rule: Host:${DOMAINNAME}; PathPrefix: /jackett
-      traefik.frontend.headers.SSLHost: jackett.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
-      traefik.frontend.passHostHeader: "true"
-      traefik.frontend.headers.SSLForceHost: "true"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.headers.browserXSSFilter: "true"
-      traefik.frontend.headers.contentTypeNosniff: "true"
-      traefik.frontend.headers.forceSTSHeader: "true"
-      traefik.frontend.headers.STSSeconds: 315360000
-      traefik.frontend.headers.STSIncludeSubdomains: "true"
-      traefik.frontend.headers.STSPreload: "true"
-      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-      traefik.frontend.headers.frameDeny: "true"
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
-      traefik.frontend.auth.forward.address: "http://oauth:4181"
-      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-      traefik.frontend.auth.forward.trustForwardHeader: "true"
-
 # NZBHydra2 - NZB meta search
   hydra:
     image: linuxserver/hydra2
@@ -667,58 +646,6 @@ services:
 
 ############################# DOWNLOADERS
 
-# jDownloader - Download management
-  jdownloader:
-    image: jlesage/jdownloader-2
-    container_name: jdownloader
-#    hostname: jdownloader # Cannot specify if using network_mode: container
-    restart: unless-stopped
-#    networks: # Cannot specify if using network_mode: container
-#      - traefik_proxy
-    network_mode: service:ipvanish
-#    ports: # Cannot specify if using network_mode: container. Specify in VPN container ports.
-#      - "${JDOWNLOADER_PORT}:5800"
-#      - "5900:5900"
-#      - "3129:3129"
-    depends_on:
-      - ipvanish
-    volumes:
-      - ${USERDIR}/Downloads/completed:/output
-      - ${USERDIR}/docker/jdownloader:/config
-    environment:
-      USER_ID: ${PUID}
-      GROUP_ID: ${PGID}
-      TZ: ${TZ}
-      UMASK_SET: 002
-      KEEP_APP_RUNNIN: 1
-      CLEAN_TMP_DIR: 1
-      DISPLAY_WIDTH: 1600
-      DISPLAY_HEIGHT: 960
-      VNC_PASSWORD: ${JDOWN_VNC_PASSWD}
-    labels:
-      traefik.enable: "true"
-      traefik.backend: jdownloader
-      traefik.protocol: http
-      traefik.port: 5800
-      traefik.frontend.rule: Host:jdown.${DOMAINNAME}
-      traefik.frontend.headers.SSLHost: jdown.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
-      traefik.frontend.passHostHeader: "true"
-      traefik.frontend.headers.SSLForceHost: "true"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.headers.browserXSSFilter: "true"
-      traefik.frontend.headers.contentTypeNosniff: "true"
-      traefik.frontend.headers.forceSTSHeader: "true"
-      traefik.frontend.headers.STSSeconds: 315360000
-      traefik.frontend.headers.STSIncludeSubdomains: "true"
-      traefik.frontend.headers.STSPreload: "true"
-      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-      traefik.frontend.headers.frameDeny: "true"
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
-      traefik.frontend.auth.forward.address: "http://oauth:4181"
-      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-      traefik.frontend.auth.forward.trustForwardHeader: "true"
-
 # SABnzbd - Binary newsgrabber (NZB downloader)
 # Disable SABNnzbd's built-in HTTPS support for traefik proxy to work
 # Needs trailing / if using PathPrefix
@@ -748,56 +675,6 @@ services:
       traefik.frontend.rule: Host:sabnzbd.${DOMAINNAME}
 #     traefik.frontend.rule: Host:${DOMAINNAME}; PathPrefix: /sabnzbd
       traefik.frontend.headers.SSLHost: sabnzbd.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
-      traefik.frontend.passHostHeader: "true"
-      traefik.frontend.headers.SSLForceHost: "true"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.headers.browserXSSFilter: "true"
-      traefik.frontend.headers.contentTypeNosniff: "true"
-      traefik.frontend.headers.forceSTSHeader: "true"
-      traefik.frontend.headers.STSSeconds: 315360000
-      traefik.frontend.headers.STSIncludeSubdomains: "true"
-      traefik.frontend.headers.STSPreload: "true"
-      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-      traefik.frontend.headers.frameDeny: "true"
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
-      traefik.frontend.auth.forward.address: "http://oauth:4181"
-      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-      traefik.frontend.auth.forward.trustForwardHeader: "true"
-
-# qBittorrent - Torrent downloader
-# Needs trailing / if using PathPrefixStrip
-  qbittorrent:
-    image: linuxserver/qbittorrent
-    container_name: qbittorrent
-#    hostname: qbittorrent # Cannot specify if using network_mode: container
-    restart: unless-stopped
-#    networks: # Cannot specify if using network_mode: container
-#      - traefik_proxy # Cannot specify if using network_mode: container
-    network_mode: service:ipvanish
-#    ports: # Cannot specify if using network_mode: container. Specify in VPN container ports.
-#      - "8168:8168"
-#      - "6881:6881"
-#      - "6881:6881/udp"
-    depends_on:
-      - ipvanish
-    volumes:
-      - ${USERDIR}/docker/qbittorrent:/config
-      - ${USERDIR}/Downloads:/downloads
-    environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
-      TZ: ${TZ}
-      UMASK_SET: 002
-      WEBUI_PORT: 8168
-    labels:
-      traefik.enable: "true"
-      traefik.backend: qbittorrent 
-      traefik.protocol: http
-      traefik.port: 8168
-      traefik.frontend.rule: Host:qbit.${DOMAINNAME}
-#     traefik.frontend.rule: Host:${DOMAINNAME}; PathPrefix: /qbittorrent
-      traefik.frontend.headers.SSLHost: qbit.${DOMAINNAME}
       traefik.docker.network: traefik_proxy
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.headers.SSLForceHost: "true"
@@ -892,7 +769,7 @@ services:
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
       traefik.frontend.auth.forward.trustForwardHeader: "true"
-
+    
 ############################# MEDIA
 
 # Plex - Media Server
@@ -919,7 +796,7 @@ services:
       - ${USERDIR}/docker/plexms:/config
       - ${USERDIR}/Downloads:/Downloads
       - /media:/nas
-      - /dev/shm/transcode_plex:/transcode # Offload transcoding to RAM if you have enough RAM
+      - /dev/shm:/transcode # Offload transcoding to RAM if you have enough RAM
     environment:
       TZ: ${TZ}
       HOSTNAME: "nucPlex"
@@ -965,7 +842,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ${USERDIR}/docker/embyms:/config
-      - /dev/shm/transcode_emby:/transcode      
+      - /dev/shm:/transcode      
       - /media:/nas
       - ${USERDIR}/Downloads:/downloads
     environment:
@@ -1340,19 +1217,17 @@ services:
   firefox:
     image: jlesage/firefox
     container_name: firefox
-#    hostname: firefox # Cannot specify if using network_mode: container
+    hostname: firefox 
     restart: unless-stopped
-#    networks: # Cannot specify if using network_mode: container
-#      - traefik_proxy
-    network_mode: service:ipvanish
-#    ports: # Cannot specify if using network_mode: container. Specify in VPN container ports.
+    networks: 
+      - traefik_proxy
+#    ports: 
 #      - "${FIREFOX_PORT}:5800"
-    depends_on:
-      - ipvanish
     volumes:
       - ${USERDIR}/docker/firefox:/config
       - ${USERDIR}/Downloads:/config/downloads
-      - /dev/shm/firefox:/dev/shm
+      - /dev/shm:/dev/shm
+      - ${USERDIR}/docker/shared:/shared
     environment:
       USER_ID: ${PUID}
       GROUP_ID: ${PGID}
@@ -1627,32 +1502,6 @@ services:
     container_name: guacd
     hostname: guacd
     restart: unless-stopped
-
-# IPVanish - VPN for container traffic
-  ipvanish:
-    image: rundqvist/ipvanish-tinyproxy
-    container_name: ipvanish
-    hostname: ipvanish
-    restart: always
-    ports:
-      - "${IPVANISH_PROXY_PORT}:8888"
-      - "${QBITTORRENT_PORT}:8168" #qbittorrent
-      - "${JACKETT_PORT}:9117" #jackett
-      - "${JDOWNLOADER_PORT}:5800" #jDownloader
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun
-    dns:
-      - 1.1.1.1
-      - 1.0.0.1
-    environment:
-      USERNAME: ${IPVANISH_USERNAME}
-      PASSWORD: ${IPVANISH_PASSWORD}
-      COUNTRY: CH
-      PNET: ${LOCAL_NETWORK}
-      RANDOMIZE: 'false'
-      PRIO_REMOTE: ${IPVANISH_REMOTE_SERVER}
     
 ############################# MAINTENANCE
 
