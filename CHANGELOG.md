@@ -3,6 +3,10 @@
 * Add nut-upsd, mariadb/pma, HealthChecks, FileRun, smtp-to-telegram
 * Replace or remove Transmission/qBittorrent (duplicate functionality)
 
+## November 22, 2019
+* Replaced Emby with Jellyfin
+* Added Postgres database for StatPing
+
 ## November 21, 2019
 * Added Autoindex
 * Addded TellyTV for IPTV proxy for plex 

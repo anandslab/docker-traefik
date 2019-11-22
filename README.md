@@ -34,6 +34,7 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 
 * phpMyAdmin - Database management
 * InfluxDB - Database for sensor data
+* Postgres - Database
 * Grafana - Graphical data visualization for InfluxDB data
 * Varken - Monitor Plex, Sonarr, Radarr, and Other Data
 
@@ -58,7 +59,8 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 ### MEDIA SERVER
 
 * Plex - Media Server
-* Emby - Media Server
+* Jellyfin - Media Server
+* Emby - Media Server (OBSOLETE)
 * Tautulli - Previously PlexPy. Plex statistics and monitoring
 * Plex-Sync - For Syncing watched status between plex servers 
 * Telly Tv- IPTV proxy for Plex

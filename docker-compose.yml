@@ -428,6 +428,19 @@ services:
       - ${USERDIR}/docker/influxdb/db:/var/lib/influxdb
 #    command: -config /etc/influxdb/influxdb.conf
 
+# Postgres - Database
+  postgres:
+    image: postgres
+    container_name: postgres
+    hostname: postgres
+    restart: always
+    volumes:
+      - ${USERDIR}/docker/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${STATPING_DB_PASS}
+      POSTGRES_USER: ${STATPING_DB_USER}
+      POSTGRES_DB: ${STATPING_DB}
+
 # Grafana - Graphical data visualization for InfluxDB data
   grafana:
     image: grafana/grafana
@@ -907,35 +920,36 @@ services:
 #      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
 #      traefik.frontend.auth.forward.trustForwardHeader: "true"
 
-# Emby - Media Server
-  embyms:
-    image: emby/embyserver:latest
-    container_name: embyms
-    hostname: embyms
+# Jellyfin - Media Server
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    hostname: jellyfin
     restart: unless-stopped
     networks:
       - traefik_proxy
+      - default
+#    network_mode: container:vpn-rutorrent
     ports:
-      - "${EMBY_PORT}:8096/tcp"
-      - "8920:8920/tcp"
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ${USERDIR}/docker/embyms:/config
-      - ${USERDIR}/Downloads/emby_tmp:/transcode      
-      - /media:/nas
-      - ${USERDIR}/Downloads:/downloads
+      - "8096:8096"
+      - "8920:8920"
     environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
       TZ: ${TZ}
-      HOSTNAME: "nucEmby"
-      UID: ${PUID}
-      GID: ${PGID}
+      UMASK_SET: 022
+    volumes:
+      - ${USERDIR}/docker/jellyfin:/config
+      - /dev/shm:/ram_transcode
+      - /media:/nas
+#      - /media:/nas:ro # Run in ro mode while upgrading JF
     labels:
       traefik.enable: "true"
-      traefik.backend: embyms
+      traefik.backend: jellyfin
       traefik.protocol: http
       traefik.port: 8096
-      traefik.frontend.rule: Host:nucemby.${DOMAINNAME}
-      traefik.frontend.headers.SSLHost: nucemby.${DOMAINNAME}
+      traefik.frontend.rule: Host:jelly.${DOMAINNAME}
+      traefik.frontend.headers.SSLHost: jelly.${DOMAINNAME}
       traefik.docker.network: traefik_proxy
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.headers.SSLForceHost: "true"
@@ -1614,25 +1628,22 @@ services:
     networks:
       - traefik_proxy
       - default
-#    ports:
-#      - "4480:8080"
+    ports:
+      - "${STATPING_PORT}:8080"
     volumes:
       - ${USERDIR}/docker/statping:/app
     environment:
-      DB_CONN: mysql
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
+      VIRTUAL_HOST: localhost
+      VIRTUAL_PORT: 8080
+      DB_CONN: postgres
+      DB_HOST: postgres
       DB_USER: ${STATPING_DB_USER}
       DB_PASS: ${STATPING_DB_PASS}
       DB_DATABASE: ${STATPING_DB}
       IS_DOCKER: "true"
       DISABLE_LOGS: "false"
-      NAME: Demo
-      DESCRIPTION: This is an awesome page
-      DOMAIN: https:${DOMAINNAME}
-      ADMIN_USER: admin
-      ADMIN_PASSWORD: admin
-      ADMIN_EMAIL: ${MY_EMAIL}
+      NAME: StatPing
+      DESCRIPTION: Monitor web services
     labels:
       traefik.enable: "true"
       traefik.backend: statping

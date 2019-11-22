@@ -1,0 +1,60 @@
+version: "3.7"
+
+################ THESE ARE APPS I USED TO USE BUT NOT ANYMORE ###########
+
+########################### NETWORKS
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy
+  default:
+    driver: bridge
+
+########################### SERVICES
+services:
+
+# Emby - Media Server
+  embyms:
+    image: emby/embyserver:latest
+    container_name: embyms
+    hostname: embyms
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+    ports:
+      - "${EMBY_PORT}:8096/tcp"
+      - "8920:8920/tcp"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${USERDIR}/docker/embyms:/config
+      - ${USERDIR}/Downloads/emby_tmp:/transcode      
+      - /media:/nas
+      - ${USERDIR}/Downloads:/downloads
+    environment:
+      TZ: ${TZ}
+      HOSTNAME: "nucEmby"
+      UID: ${PUID}
+      GID: ${PGID}
+    labels:
+      traefik.enable: "true"
+      traefik.backend: embyms
+      traefik.protocol: http
+      traefik.port: 8096
+      traefik.frontend.rule: Host:nucemby.${DOMAINNAME}
+      traefik.frontend.headers.SSLHost: nucemby.${DOMAINNAME}
+      traefik.docker.network: traefik_proxy
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.headers.SSLForceHost: "true"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.headers.browserXSSFilter: "true"
+      traefik.frontend.headers.contentTypeNosniff: "true"
+      traefik.frontend.headers.forceSTSHeader: "true"
+      traefik.frontend.headers.STSSeconds: 315360000
+      traefik.frontend.headers.STSIncludeSubdomains: "true"
+      traefik.frontend.headers.STSPreload: "true"
+      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+      traefik.frontend.headers.frameDeny: "true"
+      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+#      traefik.frontend.auth.forward.address: "http://oauth:4181"
+#      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+#      traefik.frontend.auth.forward.trustForwardHeader: "true"

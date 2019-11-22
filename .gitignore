@@ -3,6 +3,7 @@
 !.gitignore
 !docker-compose.yml
 !docker-compose-vpn.yml
+!docker-compose-obsolete.yml
 !.env.example
 !README.md
 !CHANGELOG.md
