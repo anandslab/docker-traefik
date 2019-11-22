@@ -19,7 +19,9 @@ services:
     image: linuxserver/jackett
     container_name: jackett
     restart: unless-stopped
-    network_mode: container:ipvanish
+    network_mode: container:transmission-vpn
+#    depends_on:
+#      -   transmission-vpn
     volumes:
       - ${USERDIR}/docker/jackett:/config
       - ${USERDIR}/Downloads:/downloads
@@ -58,7 +60,9 @@ services:
     image: jlesage/jdownloader-2
     container_name: jdownloader
     restart: unless-stopped
-    network_mode: container:ipvanish
+    network_mode: container:transmission-vpn
+#    depends_on:
+#      -   transmission-vpn
     volumes:
       - ${USERDIR}/Downloads/completed:/output
       - ${USERDIR}/docker/jdownloader:/config
@@ -102,7 +106,9 @@ services:
     image: linuxserver/qbittorrent
     container_name: qbittorrent
     restart: unless-stopped
-    network_mode: container:ipvanish
+    network_mode: container:transmission-vpn
+#    depends_on:
+#      -   transmission-vpn
     volumes:
       - ${USERDIR}/docker/qbittorrent:/config
       - ${USERDIR}/Downloads:/downloads
@@ -145,11 +151,11 @@ services:
     restart: unless-stopped
     networks: # Cannot specify if using network_mode: container
       - traefik_proxy # Cannot specify if using network_mode: container
-#    network_mode: container:ipvanish
+#    network_mode: container:transmission-vpn
     ports: # Cannot specify if using network_mode: container. Specify in VPN container ports.
       - "8199:8080"
 #    depends_on:
-#      - ipvanish
+#      -   transmission-vpn
     volumes:
 #      - ${USERDIR}/Downloads/wip_media:/tmp/youtube_dl
       - ${USERDIR}/docker/youtube-dl:/youtube_dl

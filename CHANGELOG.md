@@ -1,7 +1,14 @@
 # Changelog
 ## Planned: 
 * Add nut-upsd, mariadb/pma, HealthChecks, FileRun, smtp-to-telegram
-* Replace or remove Transmission/qBittorrent (duplicate functionality).
+* Replace or remove Transmission/qBittorrent (duplicate functionality)
+
+## November 21, 2019
+* Added Autoindex
+* Addded TellyTV for IPTV proxy for plex 
+* Added StatPing with Grafana Dashboard - not working yet
+* Separated VPN apps into different compose file
+* Removed IPVanish container and put vpn apps behind Transmission-VPN's network
 
 ## November 8, 2019
 * Harmonized paths and removed unused volumes
@@ -9,7 +16,7 @@
 
 ## November 7, 2019
 * Added IPVanish VPN container. 
-* Added VPN support for Jackett, qBittorrent, jDownloader, and Firefox.
+* Added VPN support for Jackett, qBittorrent, and jDownloader.
 * Initial push to GitHub
 
 ## November 6, 2019

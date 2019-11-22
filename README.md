@@ -22,6 +22,7 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 * Portainer - Container Management
 * Organizr - Unified Frontend
 * Heimdall - Unified Frontend Alternative
+* Autoindex - Plain text Index to All Files
 
 ### SMART HOME
 
@@ -34,6 +35,14 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 * phpMyAdmin - Database management
 * InfluxDB - Database for sensor data
 * Grafana - Graphical data visualization for InfluxDB data
+* Varken - Monitor Plex, Sonarr, Radarr, and Other Data
+
+### DOWNLOADERS
+
+* jDownloader - Download management
+* SABnzbd - Binary newsgrabber (NZB downloader)
+* qBittorrent - Torrent downloader
+* TransmissionBT - Torrent Downloader
 
 ### INDEXERS
 
@@ -46,19 +55,13 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 * Radarr - Movie management
 * Sonarr - TV Shows management
 
-### DOWNLOADERS
-
-* jDownloader - Download management
-* SABnzbd - Binary newsgrabber (NZB downloader)
-* qBittorrent - Torrent downloader
-* TransmissionBT - Torrent Downloader
-
 ### MEDIA SERVER
 
 * Plex - Media Server
 * Emby - Media Server
 * Tautulli - Previously PlexPy. Plex statistics and monitoring
 * Plex-Sync - For Syncing watched status between plex servers 
+* Telly Tv- IPTV proxy for Plex
 
 ### MEDIA FILE MANAGEMENT
 
@@ -79,7 +82,7 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 * qDirStat - Directory Statistics
 * Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser 
 * Guacamole Daemon - Needed for Guacamole
-* IPVanish - VPN for container traffic
+* StatPing - Status Page & Monitoring Server
 
 ### MAINTENANCE
 
@@ -92,7 +95,6 @@ Some of the containers are behind VPN for privacy and security. We have been usi
 * qBittorrent
 * Transmission BT
 * jDownloader
-* Firefox
 
 Based on the docker-compose blocks for the above apps, you can almost any of the apps behind VPN. 
 

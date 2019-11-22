@@ -13,32 +13,6 @@ services:
 
 ############################# FRONTENDS
 
-# IPVanish - VPN for container traffic
-  ipvanish:
-    image: rundqvist/ipvanish-tinyproxy
-    container_name: ipvanish
-    hostname: ipvanish
-    restart: always
-    ports:
-      - "${IPVANISH_PROXY_PORT}:8888"
-      - "${QBITTORRENT_PORT}:8168" #qbittorrent
-      - "${JACKETT_PORT}:9117" #jackett
-      - "${JDOWNLOADER_PORT}:5800" #jDownloader
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun
-    dns:
-      - 1.1.1.1
-      - 1.0.0.1
-    environment:
-      USERNAME: ${IPVANISH_USERNAME}
-      PASSWORD: ${IPVANISH_PASSWORD}
-      COUNTRY: CH
-      PNET: ${LOCAL_NETWORK}
-      RANDOMIZE: 'false'
-      PRIO_REMOTE: ${IPVANISH_REMOTE_SERVER}
-
 # Traefik - Reverse Proxy
 # Create traefik.toml and rules dir and acme dir before running container.
   traefik:
@@ -258,6 +232,43 @@ services:
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
       traefik.frontend.auth.forward.trustForwardHeader: "true"
 
+## Autoindex - Simple Directory Index
+  autoindex:
+    image: dceoy/nginx-autoindex
+    container_name: autoindex
+    hostname: autoindex
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "8015:80"
+    volumes:
+      - /media:/var/lib/nginx/html:ro # Location you want to index
+    labels:
+      traefik.enable: "true"
+      traefik.backend: autoindex
+      traefik.protocol: http
+      traefik.port: 80
+      traefik.frontend.rule: "Host:index.${DOMAINNAME}"
+      traefik.frontend.headers.SSLHost: index.${DOMAINNAME}
+      traefik.docker.network: traefik_proxy
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.headers.SSLForceHost: "true"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.headers.browserXSSFilter: "true"
+      traefik.frontend.headers.contentTypeNosniff: "true"
+      traefik.frontend.headers.forceSTSHeader: "true"
+      traefik.frontend.headers.STSSeconds: 315360000
+      traefik.frontend.headers.STSIncludeSubdomains: "true"
+      traefik.frontend.headers.STSPreload: "true"
+      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+      traefik.frontend.headers.frameDeny: "true"
+      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      traefik.frontend.auth.forward.address: "http://oauth:4181"
+      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+      traefik.frontend.auth.forward.trustForwardHeader: "true"
+      traefik.frontend.auth.basic.users: '${HTTP_USERNAME}:${HTTP_PASSWORD}'
+
 ############################# SMART HOME
 
 # HA-Dockermon - Manage Docker containers in Home Assistant 
@@ -433,6 +444,8 @@ services:
     user: "0"
     volumes:
       - ${USERDIR}/docker/grafana:/var/lib/grafana
+    environment:
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel" 
     labels:
       traefik.enable: "true"
       traefik.backend: grafana
@@ -440,6 +453,197 @@ services:
       traefik.port: 3000
       traefik.frontend.rule: Host:graf.${DOMAINNAME}
       traefik.frontend.headers.SSLHost: graf.${DOMAINNAME}
+      traefik.docker.network: traefik_proxy
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.headers.SSLForceHost: "true"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.headers.browserXSSFilter: "true"
+      traefik.frontend.headers.contentTypeNosniff: "true"
+      traefik.frontend.headers.forceSTSHeader: "true"
+      traefik.frontend.headers.STSSeconds: 315360000
+      traefik.frontend.headers.STSIncludeSubdomains: "true"
+      traefik.frontend.headers.STSPreload: "true"
+      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+      traefik.frontend.headers.frameDeny: "true"
+      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      traefik.frontend.auth.forward.address: "http://oauth:4181"
+      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+      traefik.frontend.auth.forward.trustForwardHeader: "true"
+
+# Varken - Monitor Plex, Sonarr, Radarr, and Other Data
+  varken:
+    image: boerderij/varken
+    hostname: varken
+    container_name: varken
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+      - default
+    volumes:
+      - ${USERDIR}/docker/varken:/config
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+      VRKN_GLOBAL_SONARR_SERVER_IDS: 1
+      VRKN_GLOBAL_RADARR_SERVER_IDS: 1
+      VRKN_GLOBAL_LIDARR_SERVER_IDS: "false"
+      VRKN_GLOBAL_TAUTULLI_SERVER_IDS: 1
+      VRKN_GLOBAL_OMBI_SERVER_IDS: "false"
+      VRKN_GLOBAL_SICKCHILL_SERVER_IDS: "false"
+      VRKN_GLOBAL_UNIFI_SERVER_IDS: 1
+      VRKN_INFLUXDB_URL: ${SERVER_IP}
+      VRKN_INFLUXDB_PORT: 8086
+      VRKN_INFLUXDB_SSL: "false"
+      VRKN_INFLUXDB_VERIFY_SSL: "false"
+      VRKN_INFLUXDB_USERNAME: ${VARKEN_USER}
+      VRKN_INFLUXDB_PASSWORD: ${VARKEN_PASS}
+      VRKN_TAUTULLI_1_URL: ${SERVER_IP}:${TAUTULLI_PORT}
+      VRKN_TAUTULLI_1_FALLBACK_IP: 1.1.1.1
+      VRKN_TAUTULLI_1_APIKEY: ${TAUTULLI_API_KEY}
+      VRKN_TAUTULLI_1_SSL: "false"
+      VRKN_TAUTULLI_1_VERIFY_SSL: "false"
+      VRKN_TAUTULLI_1_GET_ACTIVITY: "true"
+      VRKN_TAUTULLI_1_GET_ACTIVITY_RUN_SECONDS: 30
+      VRKN_TAUTULLI_1_GET_STATS: "true"
+      VRKN_TAUTULLI_1_GET_STATS_RUN_SECONDS: 3600
+      VRKN_SONARR_1_URL: ${SERVER_IP}:${SONARR_PORT}
+      VRKN_SONARR_1_APIKEY: ${SONARR_API_KEY}
+      VRKN_SONARR_1_SSL: "false"
+      VRKN_SONARR_1_VERIFY_SSL: "false"
+      VRKN_SONARR_1_MISSING_DAYS: 7
+      VRKN_SONARR_1_MISSING_DAYS_RUN_SECONDS: 300
+      VRKN_SONARR_1_FUTURE_DAYS: 1
+      VRKN_SONARR_1_FUTURE_DAYS_RUN_SECONDS: 300
+      VRKN_SONARR_1_QUEUE: "true"
+      VRKN_SONARR_1_QUEUE_RUN_SECONDS: 300
+      VRKN_RADARR_1_URL: ${SERVER_IP}:${RADARR_PORT}
+      VRKN_RADARR_1_APIKEY: ${RADARR_API_KEY}
+      VRKN_RADARR_1_SSL: "false"
+      VRKN_RADARR_1_VERIFY_SSL: "false"
+      VRKN_RADARR_1_QUEUE: "true"
+      VRKN_RADARR_1_QUEUE_RUN_SECONDS: 300
+      VRKN_RADARR_1_GET_MISSING: "true"
+      VRKN_RADARR_1_GET_MISSING_RUN_SECONDS: 300
+      VRKN_UNIFI_1_URL: ${UNIFI_HOST}
+      VRKN_UNIFI_1_USERNAME: ${UNIFI_USER}
+      VRKN_UNIFI_1_PASSWORD: ${UNIFI_PASS}
+      VRKN_UNIFI_1_SITE: default
+      VRKN_UNIFI_1_USG_NAME: USG
+      VRKN_UNIFI_1_SSL: "true"
+      VRKN_UNIFI_1_VERIFY_SSL: "false"
+      VRKN_UNIFI_1_GET_USG_STATS_RUN_SECONDS: 300
+
+############################# DOWNLOADERS
+
+# TransmissionBT - Torrent Downloader
+# ONLY ACCESSIBLE THROUGH https://domain.com/transmission/web/ if using PathPrefix
+  transmission-vpn:
+    image: haugene/transmission-openvpn
+    container_name: transmission-vpn
+    hostname: transmission
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+      - default
+    ports:
+      - "${TRANSMISSION_PORT}:9091"
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${USERDIR}/docker/transmission-vpn/data:/data
+      - ${USERDIR}/docker/transmission-vpn/config:/config
+      - ${USERDIR}/Downloads:/downloads
+    environment:
+      OPENVPN_PROVIDER: IPVANISH
+      OPENVPN_USERNAME: ${IPVANISH_USERNAME}
+      OPENVPN_PASSWORD: ${IPVANISH_PASSWORD}
+      OPENVPN_CONFIG: "ipvanish-CH-Zurich-zrh-c07"
+      OPENVPN_OPTS: --inactive 3600 --ping 10 --ping-exit 60
+      LOCAL_NETWORK: "${LOCAL_NETWORK}"
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+      UMASK_SET: 002
+      TRANSMISSION_RPC_AUTHENTICATION_REQUIRED: "true"
+      TRANSMISSION_RPC_HOST_WHITELIST: "127.0.0.1,$SERVER_IP"
+      TRANSMISSION_RPC_PASSWORD: ${TRANSMISSION_RPC_PASSWORD}
+      TRANSMISSION_RPC_USERNAME: ${TRANSMISSION_RPC_USERNAME}
+      TRANSMISSION_UMASK: 002
+      TRANSMISSION_RATIO_LIMIT: 0.01
+      TRANSMISSION_RATIO_LIMIT_ENABLED: "true"
+      TRANSMISSION_ALT_SPEED_DOWN: 2000
+      TRANSMISSION_ALT_SPEED_ENABLED: "true"
+      TRANSMISSION_ALT_SPEED_UP: 15
+      TRANSMISSION_SPEED_LIMIT_DOWN: 6000
+      TRANSMISSION_SPEED_LIMIT_DOWN_ENABLED: "true"
+      TRANSMISSION_SPEED_LIMIT_UP: 30
+      TRANSMISSION_SPEED_LIMIT_UP_ENABLED: "true"
+      TRANSMISSION_INCOMPLETE_DIR: /downloads/incomplete
+      TRANSMISSION_INCOMPLETE_DIR_ENABLED: "true"
+      TRANSMISSION_WATCH_DIR: /downloads
+      TRANSMISSION_WATCH_DIR_ENABLED: "true"
+      TRANSMISSION_DOWNLOAD_DIR: /downloads/completed
+    labels:
+      traefik.enable: "true"
+      traefik.backend: transmission-vpn
+      traefik.protocol: http
+      traefik.port: 9091
+      traefik.frontend.rule: Host:trans.${DOMAINNAME}
+#     traefik.frontend.rule: Host:${DOMAINNAME}; PathPrefix: /transmission
+      traefik.frontend.headers.SSLHost: trans.${DOMAINNAME}
+      traefik.docker.network: traefik_proxy
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.headers.SSLForceHost: "true"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.headers.browserXSSFilter: "true"
+      traefik.frontend.headers.contentTypeNosniff: "true"
+      traefik.frontend.headers.forceSTSHeader: "true"
+      traefik.frontend.headers.STSSeconds: 315360000
+      traefik.frontend.headers.STSIncludeSubdomains: "true"
+      traefik.frontend.headers.STSPreload: "true"
+      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+      traefik.frontend.headers.frameDeny: "true"
+      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      traefik.frontend.auth.forward.address: "http://oauth:4181"
+      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+      traefik.frontend.auth.forward.trustForwardHeader: "true"
+
+# SABnzbd - Binary newsgrabber (NZB downloader)
+# Disable SABNnzbd's built-in HTTPS support for traefik proxy to work
+# Needs trailing / if using PathPrefix
+  sabnzbd:
+    image: linuxserver/sabnzbd
+    container_name: sabnzbd
+    hostname: sabnzbd
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+    ports:
+      - "${SABNZBD_PORT}:8080"
+    volumes:
+      - ${USERDIR}/docker/sabnzbd:/config
+      - ${USERDIR}/Downloads:/downloads
+#      - ${USERDIR}/Downloads/incomplete:/incomplete-downloads
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+      UMASK_SET: 002
+    labels:
+      traefik.enable: "true"
+      traefik.backend: sabnzbd
+      traefik.protocol: http
+      traefik.port: 8080
+      traefik.frontend.rule: Host:sabnzbd.${DOMAINNAME}
+#     traefik.frontend.rule: Host:${DOMAINNAME}; PathPrefix: /sabnzbd
+      traefik.frontend.headers.SSLHost: sabnzbd.${DOMAINNAME}
       traefik.docker.network: traefik_proxy
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.headers.SSLForceHost: "true"
@@ -644,137 +848,11 @@ services:
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
       traefik.frontend.auth.forward.trustForwardHeader: "true"
 
-############################# DOWNLOADERS
-
-# SABnzbd - Binary newsgrabber (NZB downloader)
-# Disable SABNnzbd's built-in HTTPS support for traefik proxy to work
-# Needs trailing / if using PathPrefix
-  sabnzbd:
-    image: linuxserver/sabnzbd
-    container_name: sabnzbd
-    hostname: sabnzbd
-    restart: unless-stopped
-    networks:
-      - traefik_proxy
-    ports:
-      - "${SABNZBD_PORT}:8080"
-    volumes:
-      - ${USERDIR}/docker/sabnzbd:/config
-      - ${USERDIR}/Downloads:/downloads
-#      - ${USERDIR}/Downloads/incomplete:/incomplete-downloads
-    environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
-      TZ: ${TZ}
-      UMASK_SET: 002
-    labels:
-      traefik.enable: "true"
-      traefik.backend: sabnzbd
-      traefik.protocol: http
-      traefik.port: 8080
-      traefik.frontend.rule: Host:sabnzbd.${DOMAINNAME}
-#     traefik.frontend.rule: Host:${DOMAINNAME}; PathPrefix: /sabnzbd
-      traefik.frontend.headers.SSLHost: sabnzbd.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
-      traefik.frontend.passHostHeader: "true"
-      traefik.frontend.headers.SSLForceHost: "true"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.headers.browserXSSFilter: "true"
-      traefik.frontend.headers.contentTypeNosniff: "true"
-      traefik.frontend.headers.forceSTSHeader: "true"
-      traefik.frontend.headers.STSSeconds: 315360000
-      traefik.frontend.headers.STSIncludeSubdomains: "true"
-      traefik.frontend.headers.STSPreload: "true"
-      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-      traefik.frontend.headers.frameDeny: "true"
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
-      traefik.frontend.auth.forward.address: "http://oauth:4181"
-      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-      traefik.frontend.auth.forward.trustForwardHeader: "true"
-
-# TransmissionBT - Torrent Downloader
-# ONLY ACCESSIBLE THROUGH https://domain.com/transmission/web/ if using PathPrefix
-  transmission-vpn:
-    image: haugene/transmission-openvpn
-    container_name: transmission-vpn
-    hostname: transmission
-    restart: unless-stopped
-    networks:
-      - traefik_proxy
-    ports:
-      - "${TRANSMISSION_PORT}:9091"
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun
-    dns:
-      - 1.1.1.1
-      - 1.0.0.1
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ${USERDIR}/docker/transmission-vpn/data:/data
-      - ${USERDIR}/docker/transmission-vpn/config:/config
-      - ${USERDIR}/Downloads:/downloads
-    environment:
-      OPENVPN_PROVIDER: IPVANISH
-      OPENVPN_USERNAME: ${IPVANISH_USERNAME}
-      OPENVPN_PASSWORD: ${IPVANISH_PASSWORD}
-      OPENVPN_CONFIG: "ipvanish-CH-Zurich-zrh-c07"
-      OPENVPN_OPTS: --inactive 3600 --ping 10 --ping-exit 60
-      LOCAL_NETWORK: "${LOCAL_NETWORK}"
-      PUID: ${PUID}
-      PGID: ${PGID}
-      TZ: ${TZ}
-      UMASK_SET: 002
-      TRANSMISSION_RPC_AUTHENTICATION_REQUIRED: "true"
-      TRANSMISSION_RPC_HOST_WHITELIST: "127.0.0.1,$SERVER_IP"
-      TRANSMISSION_RPC_PASSWORD: ${TRANSMISSION_RPC_PASSWORD}
-      TRANSMISSION_RPC_USERNAME: ${TRANSMISSION_RPC_USERNAME}
-      TRANSMISSION_UMASK: 002
-      TRANSMISSION_RATIO_LIMIT: 0.01
-      TRANSMISSION_RATIO_LIMIT_ENABLED: "true"
-      TRANSMISSION_ALT_SPEED_DOWN: 2000
-      TRANSMISSION_ALT_SPEED_ENABLED: "true"
-      TRANSMISSION_ALT_SPEED_UP: 15
-      TRANSMISSION_SPEED_LIMIT_DOWN: 6000
-      TRANSMISSION_SPEED_LIMIT_DOWN_ENABLED: "true"
-      TRANSMISSION_SPEED_LIMIT_UP: 30
-      TRANSMISSION_SPEED_LIMIT_UP_ENABLED: "true"
-      TRANSMISSION_INCOMPLETE_DIR: /downloads/incomplete
-      TRANSMISSION_INCOMPLETE_DIR_ENABLED: "true"
-      TRANSMISSION_WATCH_DIR: /downloads
-      TRANSMISSION_WATCH_DIR_ENABLED: "true"
-      TRANSMISSION_DOWNLOAD_DIR: /downloads/completed
-    labels:
-      traefik.enable: "true"
-      traefik.backend: transmission-vpn
-      traefik.protocol: http
-      traefik.port: 9091
-      traefik.frontend.rule: Host:trans.${DOMAINNAME}
-#     traefik.frontend.rule: Host:${DOMAINNAME}; PathPrefix: /transmission
-      traefik.frontend.headers.SSLHost: trans.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
-      traefik.frontend.passHostHeader: "true"
-      traefik.frontend.headers.SSLForceHost: "true"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.headers.browserXSSFilter: "true"
-      traefik.frontend.headers.contentTypeNosniff: "true"
-      traefik.frontend.headers.forceSTSHeader: "true"
-      traefik.frontend.headers.STSSeconds: 315360000
-      traefik.frontend.headers.STSIncludeSubdomains: "true"
-      traefik.frontend.headers.STSPreload: "true"
-      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-      traefik.frontend.headers.frameDeny: "true"
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
-      traefik.frontend.auth.forward.address: "http://oauth:4181"
-      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-      traefik.frontend.auth.forward.trustForwardHeader: "true"
-    
 ############################# MEDIA
 
 # Plex - Media Server
   plexms:
-    image: plexinc/pms-docker:plexpass
+    image: plexinc/pms-docker:public
     container_name: plexms
     hostname: plexms
     restart: unless-stopped
@@ -797,6 +875,7 @@ services:
       - ${USERDIR}/Downloads:/Downloads
       - /media:/nas
       - /dev/shm:/transcode # Offload transcoding to RAM if you have enough RAM
+#      - ${USERDIR}/Downloads/plex_tmp:/transcode
     environment:
       TZ: ${TZ}
       HOSTNAME: "nucPlex"
@@ -842,7 +921,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ${USERDIR}/docker/embyms:/config
-      - /dev/shm:/transcode      
+      - ${USERDIR}/Downloads/emby_tmp:/transcode      
       - /media:/nas
       - ${USERDIR}/Downloads:/downloads
     environment:
@@ -925,7 +1004,25 @@ services:
       INITIAL_RUN: "true"
 #      DRY_RUN: 0
       CRON_SCHEDULE: '*/5 * * * *'
-      SECTION_MAPS: ${SYN_PLEX}/${SYN_PLEX_HOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_HOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_TVSHOWS} ${NUC_PLEX}/${NUC_PLEX_TVSHOWS} | ${SYN_PLEX}/${SYN_PLEX_BOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_BOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_KOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_KOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_TOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_TOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_DOCMOVIES} ${NUC_PLEX}/${NUC_PLEX_DOCMOVIES} | ${SYN_PLEX}/${SYN_PLEX_DOCSHOWS} ${NUC_PLEX}/${NUC_PLEX_DOCSHOWS} | ${SYN_PLEX}/${SYN_PLEX_KIDSMOVIES} ${NUC_PLEX}/${NUC_PLEX_KIDSMOVIES}
+      SECTION_MAPS: ${SYN_PLEX}/${SYN_PLEX_HOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_HOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_TVSHOWS} ${NUC_PLEX}/${NUC_PLEX_TVSHOWS} | ${SYN_PLEX}/${SYN_PLEX_BOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_BOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_KOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_KOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_TOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_TOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_DOCMOVIES} ${NUC_PLEX}/${NUC_PLEX_DOCMOVIES} | ${SYN_PLEX}/${SYN_PLEX_DOCSHOWS} ${NUC_PLEX}/${NUC_PLEX_DOCSHOWS} | ${SYN_PLEX}/${SYN_PLEX_KIDSMOVIES} ${NUC_PLEX}/${NUC_PLEX_KIDSMOVIES} | ${SYN_PLEX}/${SYN_PLEX_INTERNATIONAL} ${NUC_PLEX}/${NUC_PLEX_INTERNATIONAL}
+    restart: unless-stopped
+
+# Telly Tv- IPTV proxy for Plex
+# https://hub.docker.com/r/tellytv/telly
+# https://github.com/tellytv/telly/wiki/Docker-Walkthrough%3A-Linux-with-config-file
+# https://github.com/tellytv/telly/wiki/Adding-Telly-to-Plex
+# Telly uses port 6077
+# In plex, the DVR IP will be http://HostIP:6077
+# EPG data will be at http://HostIP:6077/epg.xml
+  tellytv:
+    image: tellytv/telly:dev-ffmpeg
+    container_name: tellytv
+    hostname: tellytv
+    environment:
+      - TZ=${TZ}
+    network_mode: host
+    volumes:
+      - ${USERDIR}/docker/telly/telly.config.toml:/etc/telly/telly.config.toml
     restart: unless-stopped
 
 ############################# MEDIA FILE MANAGEMENT
@@ -986,6 +1083,7 @@ services:
       - ${USERDIR}/Downloads/wip_media:/wip_media:rw
       - ${USERDIR}/docker/picard:/config:rw
       - /media/ds918/media/music:/music:rw
+      - /dev/shm:/dev/shm
     environment:
       USER_ID: ${PUID}
       GROUP_ID: ${PGID}
@@ -1128,6 +1226,7 @@ services:
       - ${USERDIR}/Downloads:/Downloads:rw
       - ${USERDIR}/docker/makemkv/config:/config:rw
       - ${USERDIR}/Downloads/wip_media:/output:rw
+      - /dev/shm:/dev/shm
     environment:
       USER_ID: ${PUID}
       GROUP_ID: ${PGID}
@@ -1225,7 +1324,7 @@ services:
 #      - "${FIREFOX_PORT}:5800"
     volumes:
       - ${USERDIR}/docker/firefox:/config
-      - ${USERDIR}/Downloads:/config/downloads
+      - ${USERDIR}/Downloads/completed:/config/downloads
       - /dev/shm:/dev/shm
       - ${USERDIR}/docker/shared:/shared
     environment:
@@ -1268,16 +1367,19 @@ services:
     hostname: glances
     container_name: glances
     restart: unless-stopped
+    privileged: true
+#    network_mode: host
     networks:
       - traefik_proxy
 #    ports:
 #      - "${GLANCES_PORT}:61208"
     pid: host
     volumes:
-#      - glances_config:/glances/conf # Use this if you want to add a glances.conf file
+      - ${USERDIR}/docker/glances/glances.conf:/glances/conf/glances.conf # Use this if you want to add a glances.conf file
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
-      GLANCES_OPT: -w
+#      GLANCES_OPT: "-C /glances/conf/glances.conf --quiet --export influxdb"
+      GLANCES_OPT: "-w"
     labels:
       traefik.enable: "true"
       traefik.backend: glances
@@ -1502,7 +1604,59 @@ services:
     container_name: guacd
     hostname: guacd
     restart: unless-stopped
-    
+
+# StatPing - Status Page & Monitoring Server
+  statping:
+    image: hunterlong/statping
+    container_name: statping
+    hostname: statping
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+      - default
+#    ports:
+#      - "4480:8080"
+    volumes:
+      - ${USERDIR}/docker/statping:/app
+    environment:
+      DB_CONN: mysql
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${STATPING_DB_USER}
+      DB_PASS: ${STATPING_DB_PASS}
+      DB_DATABASE: ${STATPING_DB}
+      IS_DOCKER: "true"
+      DISABLE_LOGS: "false"
+      NAME: Demo
+      DESCRIPTION: This is an awesome page
+      DOMAIN: https:${DOMAINNAME}
+      ADMIN_USER: admin
+      ADMIN_PASSWORD: admin
+      ADMIN_EMAIL: ${MY_EMAIL}
+    labels:
+      traefik.enable: "true"
+      traefik.backend: statping
+      traefik.protocol: http
+      traefik.port: 8080
+      traefik.frontend.rule: "Host:statping.${DOMAINNAME}"
+      traefik.frontend.headers.SSLHost: statping.${DOMAINNAME}
+      traefik.docker.network: traefik_proxy
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.headers.SSLForceHost: "true"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.headers.browserXSSFilter: "true"
+      traefik.frontend.headers.contentTypeNosniff: "true"
+      traefik.frontend.headers.forceSTSHeader: "true"
+      traefik.frontend.headers.STSSeconds: 315360000
+      traefik.frontend.headers.STSIncludeSubdomains: "true"
+      traefik.frontend.headers.STSPreload: "true"
+      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+      traefik.frontend.headers.frameDeny: "true"
+      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      traefik.frontend.auth.forward.address: "http://oauth:4181"
+      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+      traefik.frontend.auth.forward.trustForwardHeader: "true"
+
 ############################# MAINTENANCE
 
 # Ouroboros - Automatic Docker Container Updates
@@ -1521,7 +1675,7 @@ services:
       LOG_LEVEL: debug
       SELF_UPDATE: "true"
       CLEANUP: "true"
-      IGNORE: traefik influxdb hassio_dns homeassistant hassio_supervisor addon_core_check_config addon_62c7908d_autobackup
+      IGNORE: traefik influxdb hassio_dns homeassistant hassio_supervisor addon_core_check_config addon_62c7908d_autobackup plexms
       NOTIFIERS: 'tgram://${TGRAM_BOT_TOKEN}/${TGRAM_CHAT_ID}/'
 
 # Docker-GC - Automatic Docker Garbage Collection 
