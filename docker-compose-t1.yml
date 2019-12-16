@@ -58,7 +58,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
 #      traefik.frontend.auth.basic.users: '${HTTP_USERNAME}:${HTTP_PASSWORD}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
@@ -102,7 +102,7 @@ services:
       traefik.frontend.headers.STSSeconds: 315360000
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
       traefik.frontend.auth.forward.trustForwardHeader: "true"
@@ -143,7 +143,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -184,7 +184,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -225,7 +225,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -261,7 +261,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -358,7 +358,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -407,7 +407,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -476,7 +476,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -621,7 +621,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -667,7 +667,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -711,7 +711,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -758,7 +758,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}' 
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -806,7 +806,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -854,7 +854,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -913,7 +913,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
 #      traefik.frontend.auth.forward.address: "http://oauth:4181"
 #      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -960,7 +960,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
 #      traefik.frontend.auth.forward.address: "http://oauth:4181"
 #      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -1003,7 +1003,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -1078,7 +1078,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -1124,7 +1124,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -1174,7 +1174,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -1221,7 +1221,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -1270,7 +1270,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -1319,7 +1319,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -1370,7 +1370,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -1413,7 +1413,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -1452,7 +1452,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -1520,7 +1520,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -1568,7 +1568,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
@@ -1624,7 +1624,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true"
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
 #      traefik.frontend.auth.forward.address: "http://oauth:4181"
 #      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
