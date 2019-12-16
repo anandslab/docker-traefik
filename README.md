@@ -6,13 +6,15 @@ This is the updated docker-compose repo of all the media and home server apps de
 * Docker with Google OAuth2 - [https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/](https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/)
 
 ## But what about Traefik 2.0?
-<p><strong>Update (December 16, 2019):</strong> First draft of Traefik 2.1 setup pushed to the repository. At this point, it works for most of the apps. Still a lot to be figured out and optimized. Look for a detailed guide on our website in the coming days. </p>
+<p><strong>Update (December 16, 2019):</strong> First draft of Traefik 2.1 setup pushed to the repository (docker-compose-t2.yml and docker-compose-t2-vpn.yml). At this point, it works for most of the apps. Still a lot to be figured out and optimized. Look for a detailed guide on our website in the coming days.</p>
 
+<blockquote>
 <p>At this point this stack is built on Traefik 1. As we move ours to Traefik 2, we will publish a new repository. </p>
 
 <p>Having said that, Traefik 1.7.16 (the final release in v1) still works great for the purposes of a media / home server stack. Traefik 2.0 is significantly different requiring a major rework of your files. Therefore, if you are already on Traefik v1, we do not see a need to upgrade to v2 at this point. </p>
 
 <p>If you are starting out, you may start with Traefik 2.0. However, documentation, community knowledge, and support for Traefik 2.0 is still quite limited at this time.</p>
+</blockquote>
 
 ## What apps are included in this stack?
 We will try to keep this repo up-to-date. For now, here are the apps currently included in our stack:
