@@ -1,0 +1,111 @@
+version: "3.7"
+
+########################### NETWORKS
+networks:
+  t2_proxy:
+    external:
+      name: t2_proxy
+  default:
+    driver: bridge
+
+########################### SERVICES
+services:
+
+############################# FRONTENDS
+
+# Jackett - Torrent proxy
+# Set url_base in Jackett settings if using PathPrefix
+  jackett:
+    image: linuxserver/jackett
+    container_name: jackett
+    restart: unless-stopped
+    network_mode: container:transmission-vpn
+#    depends_on:
+#      -   transmission-vpn
+    volumes:
+      - ${USERDIR}/docker/jackett:/config
+      - ${USERDIR}/Downloads:/downloads
+      - "/etc/localtime:/etc/localtime:ro"
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.jackett-rtr.entrypoints=https"
+      - "traefik.http.routers.jackett-rtr.rule=Host(`jackett.$DOMAINNAME`)"
+      - "traefik.http.routers.jackett-rtr.tls=true"
+      - "traefik.http.routers.jackett-rtr.tls.certresolver=dns-cloudflare"
+      ## Middlewares
+      - "traefik.http.routers.jackett-rtr.middlewares=noauth-chain@file"
+      ## HTTP Services
+      - "traefik.http.routers.jackett-rtr.service=jackett-svc"
+      - "traefik.http.services.jackett-svc.loadbalancer.server.port=9117"
+
+# jDownloader - Download management
+  jdownloader:
+    image: jlesage/jdownloader-2
+    container_name: jdownloader
+    restart: unless-stopped
+#    network_mode: container:transmission-vpn
+    networks:
+      - t2_proxy
+#    depends_on:
+#      -   transmission-vpn
+    volumes:
+      - ${USERDIR}/Downloads/completed:/output
+      - ${USERDIR}/docker/jdownloader:/config
+    environment:
+      USER_ID: ${PUID}
+      GROUP_ID: ${PGID}
+      TZ: ${TZ}
+      UMASK_SET: 002
+      KEEP_APP_RUNNIN: 1
+      CLEAN_TMP_DIR: 1
+      DISPLAY_WIDTH: 1600
+      DISPLAY_HEIGHT: 960
+      VNC_PASSWORD: ${JDOWN_VNC_PASSWD}
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.jdownloader-rtr.entrypoints=https"
+      - "traefik.http.routers.jdownloader-rtr.rule=Host(`jdown.$DOMAINNAME`)"
+      - "traefik.http.routers.jdownloader-rtr.tls=true"
+      - "traefik.http.routers.jdownloader-rtr.tls.certresolver=dns-cloudflare"
+      ## Middlewares
+      - "traefik.http.routers.jdownloader-rtr.middlewares=secure-chain@file"
+      ## HTTP Services
+      - "traefik.http.routers.jdownloader-rtr.service=jdownloader-svc"
+      - "traefik.http.services.jdownloader-svc.loadbalancer.server.port=5800"
+
+# qBittorrent - Torrent downloader
+# Needs trailing / if using PathPrefixStrip
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent
+    restart: unless-stopped
+    network_mode: container:transmission-vpn
+#    depends_on:
+#      -   transmission-vpn
+    volumes:
+      - ${USERDIR}/docker/qbittorrent:/config
+      - ${USERDIR}/Downloads:/downloads
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+      UMASK_SET: 002
+      WEBUI_PORT: 8168
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.jdownloader-rtr.entrypoints=https"
+      - "traefik.http.routers.jdownloader-rtr.rule=Host(`qbit.$DOMAINNAME`)"
+      - "traefik.http.routers.jdownloader-rtr.tls=true"
+      - "traefik.http.routers.jdownloader-rtr.tls.certresolver=dns-cloudflare"
+      ## Middlewares
+      - "traefik.http.routers.jdownloader-rtr.middlewares=noauth-chain@file"
+      ## HTTP Services
+      - "traefik.http.routers.jdownloader-rtr.service=jdownloader-svc"
+      - "traefik.http.services.jdownloader-svc.loadbalancer.server.port=8168"

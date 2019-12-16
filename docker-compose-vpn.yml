@@ -51,9 +51,9 @@ services:
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
       traefik.frontend.headers.frameDeny: "true"
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
-      traefik.frontend.auth.forward.address: "http://oauth:4181"
-      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-      traefik.frontend.auth.forward.trustForwardHeader: "true"
+#      traefik.frontend.auth.forward.address: "http://oauth:4181"
+#      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+#      traefik.frontend.auth.forward.trustForwardHeader: "true"
 
 # jDownloader - Download management
   jdownloader:
@@ -142,49 +142,3 @@ services:
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
       traefik.frontend.auth.forward.trustForwardHeader: "true"
-
-# YouTube DL - YouTube downloader
-  youtube-dl:
-    image: kmb32123/youtube-dl-server
-    container_name: youtube-dl
-#    hostname: youtube-dl # Cannot specify if using network_mode: container
-    restart: unless-stopped
-    networks: # Cannot specify if using network_mode: container
-      - traefik_proxy # Cannot specify if using network_mode: container
-#    network_mode: container:transmission-vpn
-    ports: # Cannot specify if using network_mode: container. Specify in VPN container ports.
-      - "8199:8080"
-#    depends_on:
-#      -   transmission-vpn
-    volumes:
-#      - ${USERDIR}/Downloads/wip_media:/tmp/youtube_dl
-      - ${USERDIR}/docker/youtube-dl:/youtube_dl
-#      - ${USERDIR}/docker/youtube-dl/youtube-dl-webui.conf:/etc/youtube-dl-webui.conf
-#    environment:
-#      PUID: ${PUID}
-#      PGID: ${PGID}
-#      TZ: ${TZ}
-#      YDL_SERVER_PORT: 8199
-    labels:
-      traefik.enable: "true"
-      traefik.backend: youtube-dl 
-      traefik.protocol: http
-      traefik.port: 8080
-      traefik.frontend.rule: Host:youdl.${DOMAINNAME}
-      traefik.frontend.headers.SSLHost: youdl.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
-      traefik.frontend.passHostHeader: "true"
-      traefik.frontend.headers.SSLForceHost: "true"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.headers.browserXSSFilter: "true"
-      traefik.frontend.headers.contentTypeNosniff: "true"
-      traefik.frontend.headers.forceSTSHeader: "true"
-      traefik.frontend.headers.STSSeconds: 315360000
-      traefik.frontend.headers.STSIncludeSubdomains: "true"
-      traefik.frontend.headers.STSPreload: "true"
-      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-      traefik.frontend.headers.frameDeny: "true"
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
-#      traefik.frontend.auth.forward.address: "http://oauth:4181"
-#      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-#      traefik.frontend.auth.forward.trustForwardHeader: "true"

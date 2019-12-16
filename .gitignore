@@ -4,6 +4,9 @@
 !docker-compose.yml
 !docker-compose-vpn.yml
 !docker-compose-obsolete.yml
+!docker-compose-t2.yml
+!docker-compose-t2-vpn.yml
+!docker-compose-obsolete.yml
 !.env.example
 !README.md
 !CHANGELOG.md
@@ -20,4 +23,15 @@ shared/*
 !picard
 picard/*
 !picard/*.example
+!traefik2
+traefik2/*
+!traefik2/*.example
+!traefik2/rules
+traefik2/rules/*
+!traefik2/rules/*.example
+!traefik2/rules/oauth.toml
+!traefik2/rules/basic-chain.toml
+!traefik2/rules/secure-chain.toml
+!traefik2/rules/noauth-chain.toml
+!traefik2/rules/rate-limit.toml
 

@@ -1,0 +1,3 @@
+[http.middlewares]
+  [http.middlewares.basic-chain.chain]
+    middlewares = [ "rate-limit", "secure-headers", "basic-auth"]

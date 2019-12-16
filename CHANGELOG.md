@@ -3,6 +3,11 @@
 * Add nut-upsd, mariadb/pma, HealthChecks, FileRun, smtp-to-telegram
 * Replace or remove Transmission/qBittorrent (duplicate functionality)
 
+## December 16, 2019
+* Significant changes - too many to list
+* Included first draft of Traefik 2.1 setup
+* Removed monitorr (use statping instead)
+
 ## November 22, 2019
 * Replaced Emby with Jellyfin
 * Added Postgres database for StatPing

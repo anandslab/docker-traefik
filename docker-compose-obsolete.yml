@@ -58,3 +58,43 @@ services:
 #      traefik.frontend.auth.forward.address: "http://oauth:4181"
 #      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
 #      traefik.frontend.auth.forward.trustForwardHeader: "true"
+
+# Monitorr - Webfront to display the status of any webapp or service
+  monitorr:
+    image: monitorr/monitorr
+    container_name: monitorr
+    hostname: monitorr
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "${MONITORR_PORT}:80"
+    volumes:
+      - ${USERDIR}/docker/monitorr:/app
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    labels:
+      traefik.enable: "true"
+      traefik.backend: monitorr
+      traefik.protocol: http
+      traefik.port: 80
+      traefik.frontend.rule: Host:monitorr.${DOMAINNAME}
+      traefik.frontend.headers.SSLHost: monitorr.${DOMAINNAME}
+      traefik.docker.network: traefik_proxy
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.headers.SSLForceHost: "true"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.headers.browserXSSFilter: "true"
+      traefik.frontend.headers.contentTypeNosniff: "true"
+      traefik.frontend.headers.forceSTSHeader: "true"
+      traefik.frontend.headers.STSSeconds: 315360000
+      traefik.frontend.headers.STSIncludeSubdomains: "true"
+      traefik.frontend.headers.STSPreload: "true"
+      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+#      traefik.frontend.headers.frameDeny: "true"
+      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      traefik.frontend.auth.forward.address: "http://oauth:4181"
+      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+      traefik.frontend.auth.forward.trustForwardHeader: "true"
