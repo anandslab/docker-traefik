@@ -4,6 +4,7 @@
 !docker-compose-t1.yml
 !docker-compose-t1-vpn.yml
 !docker-compose-t1-obsolete.yml
+!docker-compose-t1-swarm.yml
 !docker-compose-t2.yml
 !docker-compose-t2-vpn.yml
 !docker-compose-t2-obsolete.yml

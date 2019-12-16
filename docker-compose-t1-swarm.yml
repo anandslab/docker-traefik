@@ -1,0 +1,1068 @@
+# CAUTION: THIS COMPOSE FILE FOR DOCKER SWARM MODE IS NOT BEING ACTIVELY WORKED. MOST OF THE SERVICES LISTED HERE WORK BUT NOT GUARANTEED.
+
+version: '3.7'
+
+services:
+  traefik:
+    hostname: traefik
+    image: traefik:latest
+    command: 
+      #- "storeconfig" #This is the push to consul, secondary traefik must be created and interfaced to this traefik. Remove this traefik's open ports, it shuts down once consul is messaged.
+      - "--logLevel=INFO"
+      - "--InsecureSkipVerify=true" #for unifi controller to not throw internal server error message
+      - "--api"
+      - "--api.entrypoint=apiport"
+      - "--defaultentrypoints=http,https"
+      - "--entrypoints=Name:http Address::80 Redirect.EntryPoint:https"
+      - "--entrypoints=Name:https Address::443 TLS TLS.SniStrict:true TLS.MinVersion:VersionTLS12 CipherSuites:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256"
+      - "--entrypoints=Name:apiport Address::8080"
+      - "--file"
+      - "--file.directory=/etc/traefik/rules/"
+      - "--file.watch=true"
+      - "--acme"
+      - "--acme.storage=/etc/traefik/acme/acme.json"
+      - "--acme.entryPoint=https"
+# not yet ready?
+#      - "--acme.TLS-ALPN-01=true"
+      - "--acme.dnsChallenge=true"
+      - "--acme.dnsChallenge.provider=cloudflare"
+      - "--acme.dnsChallenge.delayBeforeCheck=60"
+      - "--acme.dnsChallenge.resolvers=1.1.1.1,1.0.0.1"
+      - "--acme.onHostRule=true"
+      - "--acme.email=admin@${DOMAINNAME}"
+      - "--acme.acmeLogging=true"
+      - "--acme.domains=${DOMAINNAME},*.${DOMAINNAME},"
+      - "--acme.KeyType=RSA4096"
+#Let's Encrypt's staging server,
+#caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--docker"
+      - "--docker.swarmMode"
+      - "--docker.domain=${DOMAINNAME}"
+      - "--docker.watch"
+      - "--docker.exposedbydefault=false"
+      #- "--consul"
+      #- "--consul.endpoint=consul:8500"
+      #- "--consul.prefix=traefik"
+      - "--retry"
+      - "resolvers=[192,168.1.1:53,1.1.1.1:53,]"
+    environment:
+      TZ: ${TZ}
+      CF_API_EMAIL: ${CLOUDFLARE_EMAIL}
+      CF_API_KEY: ${CLOUDFLARE_API_KEY}
+    ports:
+      - target: 80
+        published: 80
+      - target: 443
+        published: 443
+      - target: 8080
+        published: 8145
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${USERDIR}/docker/traefik-swarm:/etc/traefik
+      - ${USERDIR}/docker/shared:/shared
+      #- ${USERDIR}/docker/traefik-swarm/traefik.log:/traefik.log
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+      labels:
+        traefik.enable: "true"
+        traefik.docker.network: traefik
+        traefik.backend: traefik
+        traefik.protocol: http
+        traefik.port: 8080
+        traefik.frontend.rule: Host:traefik.${DOMAINNAME}
+        traefik.frontend.entryPoint: http
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.priority: 1
+        traefik.frontend.passHostHeader: "true"
+        traefik.frontend.headers.SSLForceHost: "true"
+        traefik.frontend.headers.SSLHost: traefik.${DOMAINNAME}
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+##        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+        traefik.frontend.auth.basic.users: ${HTTP_USERNAME}:${HTTP_PASSWORD}
+        #traefik.frontend.auth.forward.address: http://oauth:4181
+        #traefik.frontend.auth.basic.users: xxx:xxx
+
+  unifi:
+    hostname: unifi
+    image: linuxserver/unifi:latest
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+    ports:
+      - target: 3478
+        published: 3478
+        protocol: udp
+        mode: host
+      - target: 10001
+        published: 10001
+        protocol: udp
+        mode: host
+      - target: 8080
+        published: 8080
+        protocol: tcp
+        mode: host
+      - target: 8081
+        published: 8081
+        protocol: tcp
+        mode: host
+      - target: 8443
+        published: 8147
+        protocol: tcp
+        mode: host
+      - target: 8880
+        published: 8880
+        protocol: tcp
+        mode: host
+      - target: 6789
+        published: 6789
+        protocol: tcp
+        mode: host
+    volumes:
+      - ${USERDIR}/docker/unifi:/config
+      - ${USERDIR}/docker/shared:/shared
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.tags: "frontend"
+        traefik.frontend.passHostHeader: "true"
+        traefik.admin.backend: unifi
+        traefik.admin.frontend.rule: Host:unifi.${DOMAINNAME}
+        traefik.admin.port: 8443
+        traefik.admin.protocol: https
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+#        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.priority: 1
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+#HEIMDALL 8148
+  heimdall:
+    image: "linuxserver/heimdall"
+    hostname: heimdall
+    volumes:
+      - ${USERDIR}/docker/heimdall:/config
+    ports:
+      - "8148:80"
+#      - "443:443"      
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.rule: Host:heim.${DOMAINNAME}
+        traefik.port: 80
+        traefik.protocol: http
+        traefik.frontend.priority: 1
+        traefik.backend: heimdall
+        traefik.docker.network: traefik
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+        traefik.frontend.passHostHeader: 'true'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+#GUACAMOLE 8149
+  guacamole:
+    hostname: guacamole
+    image: guacamole/guacamole
+    ports:
+      - 8149:8080
+    environment:
+    #using single quotation around env variables did not work
+      - GUACD_HOSTNAME=guacd
+      - MYSQL_HOSTNAME=${DB_HOST}
+      - MYSQL_PORT=${DB_PORT}
+      - MYSQL_DATABASE=guacamole
+      - MYSQL_USER=${GUAC_MYSQL_USER}
+      - MYSQL_PASSWORD=${GUAC_MYSQL_PASSWORD}
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.rule: Host:guac.${DOMAINNAME}
+        traefik.port: 8080
+        traefik.protocol: http
+        traefik.frontend.priority: 1
+        traefik.backend: guacamole
+        traefik.docker.network: traefik
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+        traefik.frontend.passHostHeader: 'true'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+################## DATABASES ##############################################
+
+#PHPMYADMIN 8155
+# Create a new user with admin priv as in notes. root user did not work.
+  phpmyadmin:
+    hostname: phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - 8155:80
+    environment:
+      - PMA_HOST=${DB_HOST}
+      - PMA_PORT=${DB_PORT}
+#      - PMA_ARBITRARY=1
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+#    volumes:
+#      - ${USERDIR}/docker/phpmyadmin:/etc/phpmyadmin
+#      - ${USERDIR}/docker/shared:/shared
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.rule: Host:pma.${DOMAINNAME}
+        traefik.port: 80
+        traefik.protocol: http
+        traefik.frontend.priority: 1
+        traefik.backend: phpmyadmin
+        traefik.docker.network: traefik
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+        traefik.frontend.passHostHeader: 'true'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+#INFLUXDB 8154
+#create influxdb.conf
+  influxdb:
+    hostname: influxdb
+    image: influxdb
+    volumes:
+#      - ${USERDIR}/docker/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
+      - ${USERDIR}/docker/influxdb/db:/var/lib/influxdb
+      - ${USERDIR}/docker/shared:/shared
+#    command: -config /etc/influxdb/influxdb.conf
+    ports:
+      - "8086:8086"
+      - "8083:8083"
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "false"
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+#GRAFANA 8157
+  grafana:
+    hostname: grafana
+    image: grafana/grafana
+    volumes:
+      - ${USERDIR}/docker/grafana:/var/lib/grafana
+      - ${USERDIR}/docker/shared:/shared
+    ports:
+      - "8158:3000"
+    user: "0"
+#    env_file:
+#      - ${USERDIR}/docker/env/env.grafana
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.rule: Host:graf.${DOMAINNAME}
+        traefik.port: 3000
+        traefik.protocol: http
+        traefik.frontend.priority: 1
+        traefik.backend: grafana
+        traefik.docker.network: traefik
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+        traefik.frontend.passHostHeader: 'true'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+################## SMART HOME ##############################################
+
+#MOSQUITTO MQTT BROKER 8152
+# Create mosquitto.conf, passwd, mosquitto.log files  and set permissions to 775 user:docker
+  mosquitto:
+    image: "eclipse-mosquitto"
+    hostname: mosquitto
+    volumes: 
+      - ${USERDIR}/docker/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ${USERDIR}/docker/mosquitto/config/passwd:/mosquitto/config/passwd
+#      - ${USERDIR}/docker/mosquitto/log/mosquitto.log:/mosquitto/log/mosquitto.log
+#      - ${USERDIR}/docker/mosquitto/data:/mosquitto/data
+      - ${USERDIR}/docker/shared:/shared
+    ports:
+      - "1883:1883" #http
+#      - "8158:9001" #websockets
+      - "8152:8883" #https
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "false"
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+  zoneminder:
+    hostname: zoneminder
+#    image: adc3c7a0ca0a
+    image: quantumobject/docker-zoneminder
+#    privileged: true
+    ports:
+      - "8154:80"
+      - "8156:443"
+      - "9000:9000"
+    volumes:
+      - /var/empty
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/docker/zoneminder/backups:/var/backups
+      - ${USERDIR}/docker/zoneminder/zoneminder:/var/cache/zoneminder
+      - ${USERDIR}/docker/zoneminder/config:/config
+      - type: tmpfs
+        target: /dev/shm
+    environment:
+      - SHMEM="50%"
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - PHP_TZ=${TZ}
+      - ZM_DB_HOST=192.168.1.254
+      - ZM_DB_PORT=${DB_PORT}
+      #needed to create the initial tables etc. In addition need database zm, username zmuser, and password zmpass - cannot change zm, zmuser, or zmpass
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_ROOT=${USER}
+#    shm_size: 4096m
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.rule: Host:zone.${DOMAINNAME}
+        traefik.port: 80
+        traefik.protocol: http
+        traefik.frontend.priority: 1
+        traefik.backend: zoneminder
+        traefik.docker.network: traefik
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+        traefik.frontend.passHostHeader: 'true'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+#################### DOWNLOADERS ############################################
+
+#SABNZBD 8166
+# Disable SABNnzbd's built-in HTTPS support for traefik proxy to work
+# Needs trailing / if using PathPrefix
+  sabnzbd:
+    image: "linuxserver/sabnzbd"
+    hostname: sabnzbd
+    volumes:
+      - ${USERDIR}/docker/sabnzbd:/config
+      - ${USERDIR}/Downloads:/downloads
+      - ${USERDIR}/Downloads/incomplete:/incomplete-downloads
+      - ${USERDIR}/docker/shared:/shared
+    ports:
+      - "8166:8080"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.rule: Host:sab.${DOMAINNAME}
+        traefik.port: 8080
+        traefik.protocol: http
+        traefik.frontend.priority: 1
+        traefik.backend: sabnzbd
+        traefik.docker.network: traefik
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+        traefik.frontend.passHostHeader: 'true'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+#qBittorrent 8168
+# Needs trailing / if using PathPrefixStrip
+  qbittorrent:
+    hostname: qbittorrent
+    image: "linuxserver/qbittorrent"
+    volumes:
+      - ${USERDIR}/docker/qbittorrent:/config
+      - ${USERDIR}/Downloads:/downloads
+      - ${USERDIR}/docker/shared:/shared
+    ports:
+      - "8168:8168"
+      - "6881:6881"
+      - "6881:6881/udp"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK_SET=002
+      - WEBUI_PORT=8168
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.rule: Host:qbit.${DOMAINNAME}
+        traefik.port: 8168
+        traefik.protocol: http
+        traefik.frontend.priority: 1
+        traefik.backend: qbittorrent
+        traefik.docker.network: traefik
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+        traefik.frontend.passHostHeader: 'true'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+#################### PVRS ############################################
+#RADARR 8164
+# Set url_base in radarr settings if using PathPrefix
+  radarr:
+#    image: "aront/radarr"
+    image: "linuxserver/radarr"
+    hostname: radarr
+    volumes:
+      - ${USERDIR}/docker/radarr:/config
+      - ${USERDIR}/Downloads:/downloads
+      - /media/media:/media
+      - /media/ds918:/ds918
+#      - ${USERDIR}/docker/shared/mp4_automator:/config_mp4_automator
+      - /media/media/movies:/movies
+      - "/etc/localtime:/etc/localtime:ro"
+    ports:
+      - "8164:7878"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.rule: Host:radarr.${DOMAINNAME}
+        traefik.port: 7878
+        traefik.protocol: http
+        traefik.frontend.priority: 1
+        traefik.backend: radarr
+        traefik.docker.network: traefik
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+        traefik.frontend.passHostHeader: 'true'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+#SONARR 8167
+# Set url_base in sonarr settings if using PathPrefix
+  sonarr:
+#    image: "aront/sonarr"
+    image: "linuxserver/sonarr"
+    hostname: sonarr
+    volumes:
+      - ${USERDIR}/docker/sonarr:/config
+      - ${USERDIR}/Downloads:/downloads
+      - /media/media/tvshows:/tv
+      - /media/media:/media
+      - /media/ds918:/ds918
+      - "/etc/localtime:/etc/localtime:ro"
+#      - "${USERDIR}/docker/shared/mp4_automator:/config_mp4_automator:rw"
+    ports:
+      - "8167:8989"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.rule: Host:sonarr.${DOMAINNAME}
+        traefik.port: 8989
+        traefik.protocol: http
+        traefik.frontend.priority: 1
+        traefik.backend: sonarr
+        traefik.docker.network: traefik
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+        traefik.frontend.passHostHeader: 'true'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+#LIDARR 8163
+# Set url_base in lidarr settings if using PathPrefix
+  lidarr:
+    image: "linuxserver/lidarr"
+    hostname: lidarr
+    volumes:
+      - ${USERDIR}/docker/lidarr:/config
+      - ${USERDIR}/Downloads:/downloads
+      - /media/ds918/media/music:/music
+      - "/etc/localtime:/etc/localtime:ro"
+      - ${USERDIR}/docker/shared:/shared
+    ports:
+      - "8163:8686"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.rule: Host:lidarr.${DOMAINNAME}
+        traefik.port: 8686
+        traefik.protocol: http
+        traefik.frontend.priority: 1
+        traefik.backend: lidarr
+        traefik.docker.network: traefik
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+        traefik.frontend.passHostHeader: 'true'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+####################### INDEXERS #########################################
+#JACKETT 8161
+# Set url_base in Jackett settings if using PathPrefix
+  jackett:
+    image: "linuxserver/jackett"
+    hostname: jackett
+    volumes:
+      - ${USERDIR}/docker/jackett:/config
+      - ${USERDIR}/Downloads:/downloads
+      - "/etc/localtime:/etc/localtime:ro"
+      - ${USERDIR}/docker/shared:/shared
+    ports:
+      - "8161:9117"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.rule: Host:jackett.${DOMAINNAME}
+        traefik.port: 9117
+        traefik.protocol: http
+        traefik.frontend.priority: 1
+        traefik.backend: jackett
+        traefik.docker.network: traefik
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+        traefik.frontend.passHostHeader: 'true'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+#HYDRA 8165
+# Set base_url in Hydra settings if using PathPrefix
+  hydra:
+    image: "linuxserver/hydra"
+    hostname: hydra
+    volumes:
+      - ${USERDIR}/docker/hydra:/config
+      - ${USERDIR}/Downloads:/downloads
+      - ${USERDIR}/docker/shared:/shared
+    ports:
+      - "8165:5075"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ} 
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.rule: Host:hydra.${DOMAINNAME}
+        traefik.port: 5075
+        traefik.protocol: http
+        traefik.frontend.priority: 1
+        traefik.backend: hydra
+        traefik.docker.network: traefik
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+        traefik.frontend.passHostHeader: 'true'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+##################### MEDIA SERVER ###########################################
+
+#EMBY 
+  embyms:
+    hostname: embyms
+    image: emby/embyserver:latest
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${USERDIR}/docker/embyms:/config
+      - ${USERDIR}/docker/embyms/transcode:/transcode      
+      - /media/media:/media
+      - /media/ds918:/ds918
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/Downloads:/downloads
+    ports:
+      - "8096:8096/tcp"
+      - "8920:8920/tcp"
+    environment:
+      - TZ=${TZ}
+      - HOSTNAME="zEmby"
+      - UID=${PUID}
+      - GID=${PGID}
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.rule: Host:emby.${DOMAINNAME}
+        traefik.port: 8096
+        traefik.protocol: http
+        traefik.frontend.priority: 1
+        traefik.backend: embyms
+        traefik.docker.network: traefik
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+        traefik.frontend.passHostHeader: 'true'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+#TAUTULLI / PLEXPY 8170
+# Set HTTP Root in Tautulli settings if using PathPrefix
+  tautulli:
+    hostname: tautulli
+    image: linuxserver/tautulli
+    volumes:
+      - ${USERDIR}/docker/tautulli/config:/config
+      - ${USERDIR}/docker/tautulli/logs:/logs:ro
+      - ${USERDIR}/docker/shared:/shared
+    ports:
+      - "8170:8181"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.rule: Host:tautulli.${DOMAINNAME}
+        traefik.port: 8181
+        traefik.protocol: http
+        traefik.frontend.priority: 1
+        traefik.backend: tautulli
+        traefik.docker.network: traefik
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+        traefik.frontend.passHostHeader: 'true'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+#BAZARR 8162
+  bazarr:
+    hostname: bazarr
+    image: linuxserver/bazarr
+    volumes:
+      - ${USERDIR}/docker/bazarr:/config
+      - /media/media:/media
+      - /media/ds918:/ds918
+      - ${USERDIR}/docker/shared:/shared
+    ports:
+      - "8162:6767"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+        traefik.frontend.redirect.entryPoint: https
+        traefik.frontend.rule: Host:bazarr.${DOMAINNAME}
+        traefik.port: 6767
+        traefik.protocol: http
+        traefik.frontend.priority: 1
+        traefik.backend: bazarr
+        traefik.docker.network: traefik
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.STSSeconds: 315360000
+        traefik.frontend.headers.browserXSSFilter: "true"
+        traefik.frontend.headers.contentTypeNosniff: "true"
+        traefik.frontend.headers.forceSTSHeader: "true"
+        traefik.frontend.headers.SSLHost: ${DOMAINNAME}
+        traefik.frontend.headers.STSIncludeSubdomains: "true"
+        traefik.frontend.headers.STSPreload: "true"
+#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
+        traefik.frontend.passHostHeader: 'true'
+#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+##################### MAINTENANCE ###########################################
+
+# auto update swarm services
+  shepherd:
+    image: mazzolino/shepherd
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - SLEEP_TIME="60m"
+    deploy:
+      placement:
+        constraints:
+        - node.role == manager
+
+#GUACAMOLE DAEMON
+  guacd:
+    hostname: guacd
+    image: guacamole/guacd
+    networks:
+      - traefik
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.enable: "false"
+      update_config:
+        delay: 30s
+      restart_policy:
+        condition: on-failure
+      placement:
+#        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
+
+########################### NETWORKS ############################
+networks:
+  traefik:
+    name: traefik
+    external: true
