@@ -11,7 +11,7 @@ This is the updated docker-compose repo of all the media and home server apps de
 ### Traefik 1
 * docker-compose-t1.yml
 * docker-compose-t1-vpn.yml
-* docker-compose-t1-obsolete.yml
+* docker-compose-t1-obsolete.yml (Apps that we do not use anymore)
 
 ### Traefik 1 - Docker Swarm Mode
 * docker-compose-t1-swarm.yml
