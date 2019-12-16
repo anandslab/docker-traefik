@@ -6,6 +6,7 @@
 ## December 16, 2019
 * Significant changes - too many to list
 * Included first draft of Traefik 2.1 setup
+* Included a draft of Traefik 1 in Docker Swarm mode
 * Removed monitorr (use statping instead)
 
 ## November 22, 2019
