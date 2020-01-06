@@ -33,7 +33,7 @@ services:
        - 1.1.1.1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${USERDIR}/docker/traefik:/etc/traefik
+      - ${USERDIR}/docker/traefik1:/etc/traefik
       - ${USERDIR}/docker/shared:/shared
     environment:
       CF_API_EMAIL: ${CLOUDFLARE_EMAIL}
@@ -768,7 +768,7 @@ services:
 # Set url_base in radarr settings if using PathPrefix
   radarr:
 #    image: aront/radarr #for mp4_automator support
-    image: linuxserver/radarr
+    image: linuxserver/radarr:preview
     container_name: radarr
     hostname: radarr
     restart: unless-stopped
@@ -816,7 +816,7 @@ services:
 # Set url_base in sonarr settings if using PathPrefix
   sonarr:
 #    image: aront/sonarr  #for mp4_automator support
-    image: linuxserver/sonarr
+    image: linuxserver/sonarr:preview
     container_name: sonarr
     hostname: sonarr
     restart: unless-stopped

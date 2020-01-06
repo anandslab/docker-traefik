@@ -58,9 +58,9 @@ services:
         published: 8145
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${USERDIR}/docker/traefik-swarm:/etc/traefik
+      - ${USERDIR}/docker/traefik1-swarm:/etc/traefik
       - ${USERDIR}/docker/shared:/shared
-      #- ${USERDIR}/docker/traefik-swarm/traefik.log:/traefik.log
+      #- ${USERDIR}/docker/traefik1-swarm/traefik.log:/traefik.log
     networks:
       - traefik
     deploy:

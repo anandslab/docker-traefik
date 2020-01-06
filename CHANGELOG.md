@@ -3,6 +3,10 @@
 * Add nut-upsd, mariadb/pma, HealthChecks, FileRun, smtp-to-telegram
 * Replace or remove Transmission/qBittorrent (duplicate functionality)
 
+## January 6, 2020
+* Switched radarr and sonarr to "preview" tag to use the new low resource UI.
+* Renamed Traefik 1 folder from "traefik" to "traefik1"
+
 ## December 16, 2019
 * Significant changes - too many to list
 * Included first draft of Traefik 2.1 setup

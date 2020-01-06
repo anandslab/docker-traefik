@@ -228,8 +228,8 @@ services:
     restart: always
     networks:
       - t2_proxy
-#    ports:
-#      - "80:80"
+    ports:
+      - "8141:80"
     volumes:
       - $USERDIR/docker/heimdall:/config
     environment:
@@ -692,7 +692,7 @@ services:
 # Set url_base in radarr settings if using PathPrefix
   radarr:
 #    image: aront/radarr #for mp4_automator support
-    image: linuxserver/radarr
+    image: linuxserver/radarr:preview
     container_name: radarr
     hostname: radarr
     restart: unless-stopped
@@ -728,7 +728,7 @@ services:
 # Set url_base in sonarr settings if using PathPrefix
   sonarr:
 #    image: aront/sonarr  #for mp4_automator support
-    image: linuxserver/sonarr
+    image: linuxserver/sonarr:preview
     container_name: sonarr
     hostname: sonarr
     restart: unless-stopped
