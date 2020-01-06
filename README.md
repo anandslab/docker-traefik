@@ -123,6 +123,7 @@ At some point, we will add a MariaDB container and use that as the database host
 
 # Usage
 
+## Installation
 First, install Docker and Docker Compose, as described in our <a href="https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/">Docker Media Server guide</a>. 
 
 1. Clone the repo.
@@ -141,3 +142,23 @@ First, install Docker and Docker Compose, as described in our <a href="https://w
 5. Edit `docker-compose.yml` to include only the services you want or add additional services to it. Be sure to read the comments for each app and create any required files.
 6. Start and stop your docker stack as described in our [Docker Media Server guide](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/).
 7. (Optional) Put non-docker apps behind Traefik proxy by renaming `traefik\rules\app.toml.example` to `traefik\rules\app.toml` and editing its contents.
+
+## Starting and Stopping 
+I use bash_aliases to simplify starting and stopping containers/stack. Included is an example of bash_aliases I use (replace USER with your Linux username). Here are some examples:
+
+* 1up/2up - Create network and start Docker Traefik 1/2 stack
+* 1down/2down - Stop Docker Traefik 1/2 stack
+* dcup1/dcup2 - Start Docker Traefik 1/2 stack
+* dcup1v/dcup2v - Start Docker Trafik 1/2 VPN stack
+* dcdown1/dcdown2 - Stop Docker Traefik 1/2 stack
+* dcdown1v/dcdown2v - Stop Docker Traefik 1/2 VPN stack
+* dcrec1/dcrec2 - Start or recreate a specific service
+* dcstop1/dcstop2 - Stop a specific service
+* dcrestart1/dcrestart2 - Restart a specific service
+* dclogs1/dclogs1v/dclogs2/dclogs2v - See real-time logs for the corresponding stack or service
+* dcpull1/dcpull1v/dcpull2/dcpull2v - Pull new images for the corresponding stack or service
+
+
+
+
+

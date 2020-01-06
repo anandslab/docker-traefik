@@ -1,6 +1,7 @@
 *
 */
 !.gitignore
+!.bash_aliases.example
 !docker-compose-t1.yml
 !docker-compose-t1-vpn.yml
 !docker-compose-t1-obsolete.yml
