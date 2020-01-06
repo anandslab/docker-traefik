@@ -144,7 +144,7 @@ First, install Docker and Docker Compose, as described in our <a href="https://w
 7. (Optional) Put non-docker apps behind Traefik proxy by renaming `traefik\rules\app.toml.example` to `traefik\rules\app.toml` and editing its contents.
 
 ## Starting and Stopping 
-I use bash_aliases to simplify starting and stopping containers/stack. Included is an example of bash_aliases I use (replace USER with your Linux username). Here are some examples:
+I use bash_aliases to simplify starting and stopping containers/stack. Included in the repo is an example of bash_aliases I use (replace USER with your Linux username). Here are some examples:
 
 * 1up/2up - Create network and start Docker Traefik 1/2 stack
 * 1down/2down - Stop Docker Traefik 1/2 stack
