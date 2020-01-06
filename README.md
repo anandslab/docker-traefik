@@ -146,8 +146,8 @@ First, install Docker and Docker Compose, as described in our <a href="https://w
 ## Starting and Stopping 
 I use bash_aliases to simplify starting and stopping containers/stack. Included in the repo is an example of bash_aliases I use (replace USER with your Linux username). Here are some example alias commands:
 
-* <strong>1up</strong> or <strong>2up</strong> - Create network and start Docker Traefik 1 or 2 stack
-* <strong>1down</strong> or <strong>2down</strong> - Stop Docker Traefik 1 or 2 stack
+* <strong>dc1up</strong> or <strong>dc2up</strong> - Create network and start Docker Traefik 1 or 2 stack
+* <strong>dc1down</strong> or <strong>dc2down</strong> - Stop Docker Traefik 1 or 2 stack
 * <strong>dcup1</strong> or <strong>dcup2</strong> - Start Docker Traefik 1 or 2 stack
 * <strong>dcup1v</strong> or <strong>dcup2v</strong> - Start Docker Trafik 1 or 2 VPN stack
 * <strong>dcdown1</strong> or <strong>dcdown2</strong> - Stop Docker Traefik 1 or 2 stack
