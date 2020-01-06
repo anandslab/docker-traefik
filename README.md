@@ -146,17 +146,17 @@ First, install Docker and Docker Compose, as described in our <a href="https://w
 ## Starting and Stopping 
 I use bash_aliases to simplify starting and stopping containers/stack. Included in the repo is an example of bash_aliases I use (replace USER with your Linux username). Here are some examples:
 
-* 1up/2up - Create network and start Docker Traefik 1/2 stack
-* 1down/2down - Stop Docker Traefik 1/2 stack
-* dcup1/dcup2 - Start Docker Traefik 1/2 stack
-* dcup1v/dcup2v - Start Docker Trafik 1/2 VPN stack
-* dcdown1/dcdown2 - Stop Docker Traefik 1/2 stack
-* dcdown1v/dcdown2v - Stop Docker Traefik 1/2 VPN stack
-* dcrec1/dcrec2 - Start or recreate a specific service
-* dcstop1/dcstop2 - Stop a specific service
-* dcrestart1/dcrestart2 - Restart a specific service
-* dclogs1/dclogs1v/dclogs2/dclogs2v - See real-time logs for the corresponding stack or service
-* dcpull1/dcpull1v/dcpull2/dcpull2v - Pull new images for the corresponding stack or service
+* <strong>1up</strong> or <strong>2up</strong> - Create network and start Docker Traefik 1 or 2 stack
+* <strong>1down</strong> or <strong>2down</strong> - Stop Docker Traefik 1 or 2 stack
+* <strong>dcup1</strong> or <strong>dcup2</strong> - Start Docker Traefik 1 or 2 stack
+* <strong>dcup1v</strong> or <strong>dcup2v</strong> - Start Docker Trafik 1 or 2 VPN stack
+* <strong>dcdown1</strong> or <strong>dcdown2</strong> - Stop Docker Traefik 1 or 2 stack
+* <strong>dcdown1v</strong> or <strong>dcdown2v</strong> - Stop Docker Traefik 1 or 2 VPN stack
+* <strong>dcrec1</strong> or <strong>dcrec2</strong> - Start or recreate a specific service
+* <strong>dcstop1</strong> or <strong>dcstop2</strong> - Stop a specific service
+* <strong>dcrestart1</strong> or <strong>dcrestart2</strong> - Restart a specific service
+* <strong>dclogs1</strong> or <strong>dclogs1v</strong> or <strong>dclogs2</strong> or <strong>dclogs2v</strong> - See real-time logs for the corresponding stack or service
+* <strong>dcpull1</strong> or <strong>dcpull1v</strong> or <strong>dcpull2</strong> or <strong>dcpull2v</strong> - Pull new images for the corresponding stack or service
 
 
 
