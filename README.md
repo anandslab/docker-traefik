@@ -45,14 +45,16 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 * HA-Dockermon - Manage Docker containers in Home Assistant 
 * Mosquitto - MQTT Broker
 * ZoneMinder - Video Surveillance 
+* MiFlora - MiFlora MQTT Daemon (MiFlora Plant Sensors)
 
 ### DATABASE
 
 * phpMyAdmin - Database management
+* MariaDB - MySQL Database
 * InfluxDB - Database for sensor data
 * Postgres - Database
 * Grafana - Graphical data visualization for InfluxDB data
-* Varken - Monitor Plex, Sonarr, Radarr, and Other Data
+* Varken - Monitor Plex, Sonarr, Radarr, and Other Data (OBSOLETE)
 
 ### DOWNLOADERS
 
@@ -74,6 +76,7 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 
 ### MEDIA SERVER
 
+* AirSonic - Music Server
 * Plex - Media Server
 * Jellyfin - Media Server
 * Emby - Media Server (OBSOLETE)

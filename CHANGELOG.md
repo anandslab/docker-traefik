@@ -4,8 +4,8 @@
 * Replace or remove Transmission/qBittorrent (duplicate functionality)
 
 ## January 7, 2020
-* Added MiFlora MQTT Daemon to monitor plant status and MariaDB
-* Few other minor changes
+* Added MiFlora MQTT Daemon to monitor plant status, AirSonic, and MariaDB
+* Obsoleted Varken
 
 ## January 6, 2020
 * Switched radarr and sonarr to "preview" tag to use the new low resource UI.
