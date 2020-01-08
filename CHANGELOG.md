@@ -3,6 +3,10 @@
 * Add nut-upsd, mariadb/pma, HealthChecks, FileRun, smtp-to-telegram
 * Replace or remove Transmission/qBittorrent (duplicate functionality)
 
+## January 7, 2020
+* Added MiFlora MQTT Daemon to monitor plant status and MariaDB
+* Few other minor changes
+
 ## January 6, 2020
 * Switched radarr and sonarr to "preview" tag to use the new low resource UI.
 * Renamed Traefik 1 folder from "traefik" to "traefik1"

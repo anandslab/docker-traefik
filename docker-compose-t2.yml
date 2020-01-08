@@ -15,6 +15,7 @@ services:
 
 # Traefik - Reverse Proxy
 # docker network create --gateway 192.168.90.1 --subnet 192.168.90.0/24 t2_proxy
+# Subnet range 192.168.0.0/16 covers 192.168.0.0 to 192.168.255.255
 # touch $USERDIR/traefik2/acme/acme.json
 # chmod 600 $USERDIR/traefik2/acme/acme.json
 # touch $USERDIR/traefik2/traefik.log
@@ -293,6 +294,7 @@ services:
 
 # Mosquitto - MQTT Broker
 # Create mosquitto.conf, passwd, mosquitto.log files  and set permissions to 775 user:docker
+# dexec mosquitto /bin/sh -> mosquitto_passwd -b /mosquitto/config/passwd username passwd
   mosquitto:
     image: eclipse-mosquitto
     container_name: mosquitto
@@ -301,7 +303,7 @@ services:
     ports:
       - "${MOSQUITTO_HTTP_PORT}:1883" #http
 #      - "9001:9001" #websockets
-      - "${MOSQUITTO_HTTPS_PORT}:8883" #https
+#      - "${MOSQUITTO_HTTPS_PORT}:8883" #https
     volumes: 
       - ${USERDIR}/docker/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ${USERDIR}/docker/mosquitto/config/passwd:/mosquitto/config/passwd
@@ -358,7 +360,40 @@ services:
       - "traefik.http.routers.zoneminder-rtr.service=zoneminder-svc"
       - "traefik.http.services.zoneminder-svc.loadbalancer.server.port=80"
 
+# MiFlora MQTT Daemon - BT to MQTT Daemon for MiFlora Sensors
+  miflora:
+    image: raymondmm/miflora-mqtt
+    container_name: miflora-mqtt
+    hostname: miflora
+    environment:
+      - TZ=${TZ}
+    network_mode: host
+#    user: "0"    
+    volumes:
+      - ${USERDIR}/docker/miflora-mqtt/config:/config
+    restart: unless-stopped
+
 ############################# DATABASE
+
+# MariaDB - MySQL Database
+  mariadb:
+    container_name: mariadb
+    image: linuxserver/mariadb:latest
+    restart: always
+    networks:
+      - default
+#      - traefik_proxy:
+#          ipv4_address: 192.168.50.250 
+    ports:
+      - "3306:3306"
+    volumes:
+      - $USERDIR/docker/mariadb/data:/config
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
 
 # InfluxDB - Database for sensor data
 # Create influxdb.conf
@@ -761,6 +796,40 @@ services:
       - "traefik.http.services.sonarr-svc.loadbalancer.server.port=8989"
 
 ############################# MEDIA
+
+# AirSonic - Music Server
+  airsonic:
+    container_name: airsonic
+    image: linuxserver/airsonic:latest
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "4040:4040"
+    volumes:
+      - /media:/nas:ro
+      - $USERDIR/docker/airsonic/podcasts:/podcasts
+      - $USERDIR/docker/airsonic/playlists:/playlists
+      - $USERDIR/docker/airsonic/config:/config
+#      - $USERDIR/docker/airsonic/config:/app/airsonic/config #Used to change log level for debugging
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - JAVA_OPTS=-Dserver.use-forward-headers=true
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.airsonic-rtr.entrypoints=https"
+      - "traefik.http.routers.airsonic-rtr.rule=Host(`airsonic.$DOMAINNAME`)"
+      - "traefik.http.routers.airsonic-rtr.tls=true"
+      - "traefik.http.routers.airsonic-rtr.tls.certresolver=dns-cloudflare"
+      ## Middlewares
+      - "traefik.http.routers.airsonic-rtr.middlewares=secure-chain@file"
+      ## HTTP Services
+      - "traefik.http.routers.airsonic-rtr.service=airsonic-svc"
+      - "traefik.http.services.airsonic-svc.loadbalancer.server.port=4040"
 
 # Plex - Media Server
   plexms:
