@@ -874,8 +874,8 @@ services:
     restart: unless-stopped
     networks:
       - traefik_proxy
-#    ports:
-#      - "4040:4040"
+    ports:
+      - "${AIRSONIC_PORT}:4040"
     volumes:
       - /media:/nas:ro
       - $USERDIR/docker/airsonic/podcasts:/podcasts
@@ -908,9 +908,9 @@ services:
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
 #      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
-      traefik.frontend.auth.forward.address: "http://oauth:4181"
-      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-      traefik.frontend.auth.forward.trustForwardHeader: "true"
+#      traefik.frontend.auth.forward.address: "http://oauth:4181"
+#      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+#      traefik.frontend.auth.forward.trustForwardHeader: "true"
       
 # Plex - Media Server
   plexms:
@@ -1070,25 +1070,45 @@ services:
       SECTION_MAPS: ${SYN_PLEX}/${SYN_PLEX_HOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_HOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_TVSHOWS} ${NUC_PLEX}/${NUC_PLEX_TVSHOWS} | ${SYN_PLEX}/${SYN_PLEX_BOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_BOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_KOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_KOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_TOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_TOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_DOCMOVIES} ${NUC_PLEX}/${NUC_PLEX_DOCMOVIES} | ${SYN_PLEX}/${SYN_PLEX_DOCSHOWS} ${NUC_PLEX}/${NUC_PLEX_DOCSHOWS} | ${SYN_PLEX}/${SYN_PLEX_KIDSMOVIES} ${NUC_PLEX}/${NUC_PLEX_KIDSMOVIES} | ${SYN_PLEX}/${SYN_PLEX_INTERNATIONAL} ${NUC_PLEX}/${NUC_PLEX_INTERNATIONAL}
     restart: unless-stopped
 
-# Telly Tv- IPTV proxy for Plex
-# https://hub.docker.com/r/tellytv/telly
-# https://github.com/tellytv/telly/wiki/Docker-Walkthrough%3A-Linux-with-config-file
-# https://github.com/tellytv/telly/wiki/Adding-Telly-to-Plex
-# Telly uses port 6077
-# In plex, the DVR IP will be http://HostIP:6077
-# EPG data will be at http://HostIP:6077/epg.xml
-  tellytv:
-    image: tellytv/telly:dev-ffmpeg
-    container_name: tellytv
-    hostname: tellytv
+# xTeve - IPTV proxy for Plex
+  xteve:
+    image: bl0m1/xtevedocker
+    container_name: xteve
+    hostname: xteve
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+      - default
     ports:
-      - "1900:1900/udp"
+      - "34400:34400"
     environment:
       - TZ=${TZ}
-    network_mode: host
     volumes:
-      - ${USERDIR}/docker/telly/telly.config.toml:/etc/telly/telly.config.toml
-    restart: unless-stopped
+      - ${USERDIR}/docker/xteve:/root/.xteve
+    labels:
+      traefik.enable: "true"
+      traefik.backend: xteve
+      traefik.protocol: http
+      traefik.port: 34400
+      traefik.frontend.rule: Host:xteve.${DOMAINNAME}
+      traefik.frontend.headers.SSLHost: xteve.${DOMAINNAME}
+      traefik.docker.network: traefik_proxy
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.headers.SSLForceHost: "true"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.headers.browserXSSFilter: "true"
+      traefik.frontend.headers.contentTypeNosniff: "true"
+      traefik.frontend.headers.forceSTSHeader: "true"
+      traefik.frontend.headers.STSSeconds: 315360000
+      traefik.frontend.headers.STSIncludeSubdomains: "true"
+      traefik.frontend.headers.STSPreload: "true"
+      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
+      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      traefik.frontend.auth.forward.address: "http://oauth:4181"
+      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+      traefik.frontend.auth.forward.trustForwardHeader: "true"
+
 
 ############################# MEDIA FILE MANAGEMENT
 

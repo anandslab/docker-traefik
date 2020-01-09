@@ -162,3 +162,24 @@ services:
       VRKN_UNIFI_1_SSL: "true"
       VRKN_UNIFI_1_VERIFY_SSL: "false"
       VRKN_UNIFI_1_GET_USG_STATS_RUN_SECONDS: 300
+
+# Telly Tv- IPTV proxy for Plex
+# https://hub.docker.com/r/tellytv/telly
+# https://github.com/tellytv/telly/wiki/Docker-Walkthrough%3A-Linux-with-config-file
+# https://github.com/tellytv/telly/wiki/Adding-Telly-to-Plex
+# Telly uses port 6077
+# In plex, the DVR IP will be http://HostIP:6077
+# EPG data will be at http://HostIP:6077/epg.xml
+# xTeve is better than TellyTV - Replaced on Jan 09, 2020
+  tellytv:
+    image: tellytv/telly:dev-ffmpeg
+    container_name: tellytv
+    hostname: tellytv
+    restart: unless-stopped
+    network_mode: host
+    ports:
+      - "1900:1900/udp"
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ${USERDIR}/docker/telly/telly.config.toml:/etc/telly/telly.config.toml

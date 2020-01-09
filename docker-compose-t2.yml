@@ -804,8 +804,8 @@ services:
     restart: unless-stopped
     networks:
       - traefik_proxy
-#    ports:
-#      - "4040:4040"
+    ports:
+      - "${AIRSONIC_PORT}:4040"
     volumes:
       - /media:/nas:ro
       - $USERDIR/docker/airsonic/podcasts:/podcasts
@@ -826,7 +826,7 @@ services:
       - "traefik.http.routers.airsonic-rtr.tls=true"
       - "traefik.http.routers.airsonic-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.airsonic-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.airsonic-rtr.middlewares=noauth-chain@file"
       ## HTTP Services
       - "traefik.http.routers.airsonic-rtr.service=airsonic-svc"
       - "traefik.http.services.airsonic-svc.loadbalancer.server.port=4040"
@@ -884,7 +884,6 @@ services:
     restart: unless-stopped
     networks:
       - t2_proxy
-#    network_mode: container:vpn-rutorrent
     ports:
       - "8096:8096"
       - "8920:8920"
@@ -953,25 +952,33 @@ services:
       SECTION_MAPS: ${SYN_PLEX}/${SYN_PLEX_HOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_HOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_TVSHOWS} ${NUC_PLEX}/${NUC_PLEX_TVSHOWS} | ${SYN_PLEX}/${SYN_PLEX_BOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_BOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_KOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_KOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_TOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_TOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_DOCMOVIES} ${NUC_PLEX}/${NUC_PLEX_DOCMOVIES} | ${SYN_PLEX}/${SYN_PLEX_DOCSHOWS} ${NUC_PLEX}/${NUC_PLEX_DOCSHOWS} | ${SYN_PLEX}/${SYN_PLEX_KIDSMOVIES} ${NUC_PLEX}/${NUC_PLEX_KIDSMOVIES} | ${SYN_PLEX}/${SYN_PLEX_INTERNATIONAL} ${NUC_PLEX}/${NUC_PLEX_INTERNATIONAL}
     restart: unless-stopped
 
-# Telly Tv- IPTV proxy for Plex
-# https://hub.docker.com/r/tellytv/telly
-# https://github.com/tellytv/telly/wiki/Docker-Walkthrough%3A-Linux-with-config-file
-# https://github.com/tellytv/telly/wiki/Adding-Telly-to-Plex
-# Telly uses port 6077
-# In plex, the DVR IP will be http://HostIP:6077
-# EPG data will be at http://HostIP:6077/epg.xml
-  tellytv:
-    image: tellytv/telly:dev-ffmpeg
-    container_name: tellytv
-    hostname: tellytv
+# xTeve - IPTV proxy for Plex
+  xteve:
+    image: bl0m1/xtevedocker
+    container_name: xteve
+    hostname: xteve
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+      - default
     ports:
-      - "1900:1900/udp"
+      - "34400:34400"
     environment:
       - TZ=${TZ}
-    network_mode: host
     volumes:
-      - ${USERDIR}/docker/telly/telly.config.toml:/etc/telly/telly.config.toml
-    restart: unless-stopped
+      - ${USERDIR}/docker/xteve:/root/.xteve
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.xteve-rtr.entrypoints=https"
+      - "traefik.http.routers.xteve-rtr.rule=Host(`xteve.$DOMAINNAME`)"
+      - "traefik.http.routers.xteve-rtr.tls=true"
+      - "traefik.http.routers.xteve-rtr.tls.certresolver=dns-cloudflare"
+      ## Middlewares
+      - "traefik.http.routers.xteve-rtr.middlewares=secure-chain@file"
+      ## HTTP Services
+      - "traefik.http.routers.xteve-rtr.service=xteve-svc"
+      - "traefik.http.services.xteve-svc.loadbalancer.server.port=8181"
 
 ############################# MEDIA FILE MANAGEMENT
 
