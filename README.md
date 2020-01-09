@@ -82,7 +82,8 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 * Emby - Media Server (OBSOLETE)
 * Tautulli - Previously PlexPy. Plex statistics and monitoring
 * Plex-Sync - For Syncing watched status between plex servers 
-* Telly Tv- IPTV proxy for Plex
+* TellyTv- IPTV proxy for Plex (OBSOLETE)
+* xTeve- IPTV proxy for Plex
 
 ### MEDIA FILE MANAGEMENT
 

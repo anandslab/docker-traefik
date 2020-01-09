@@ -3,6 +3,9 @@
 * Add nut-upsd, mariadb/pma, HealthChecks, FileRun, smtp-to-telegram
 * Replace or remove Transmission/qBittorrent (duplicate functionality)
 
+## January 9, 2020
+* Replace TellyTV with xTeve
+
 ## January 7, 2020
 * Added MiFlora MQTT Daemon to monitor plant status, AirSonic, and MariaDB
 * Obsoleted Varken
