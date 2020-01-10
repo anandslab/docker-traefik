@@ -910,6 +910,41 @@ services:
       - "traefik.http.routers.jellyfin-rtr.service=jellyfin-svc"
       - "traefik.http.services.jellyfin-svc.loadbalancer.server.port=8096"
 
+# Emby - Media Server
+  embyms:
+    image: emby/embyserver:latest
+    container_name: embyms
+    hostname: embyms
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+    ports:
+      - "${EMBY_PORT}:8096/tcp"
+      - "8921:8920/tcp"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${USERDIR}/docker/embyms:/config
+      - /dev/shm:/transcode      
+      - /media:/nas
+      - ${USERDIR}/Downloads:/downloads
+    environment:
+      TZ: ${TZ}
+      HOSTNAME: "nucEmby"
+      UID: ${PUID}
+      GID: ${PGID}
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.embyms-rtr.entrypoints=https"
+      - "traefik.http.routers.embyms-rtr.rule=Host(`nucplex.$DOMAINNAME`)"
+      - "traefik.http.routers.embyms-rtr.tls=true"
+      - "traefik.http.routers.embyms-rtr.tls.certresolver=dns-cloudflare"
+      ## Middlewares
+      - "traefik.http.routers.embyms-rtr.middlewares=noauth-chain@file"
+      ## HTTP Services
+      - "traefik.http.routers.embyms-rtr.service=embyms-svc"
+      - "traefik.http.services.embyms-svc.loadbalancer.server.port=8096"
+
 # Tautulli - Previously PlexPy. Plex statistics and monitoring
 # Set HTTP Root in Tautulli settings if using PathPrefix
   tautulli:
@@ -954,19 +989,27 @@ services:
 
 # xTeve - IPTV proxy for Plex
   xteve:
-    image: bl0m1/xtevedocker
+    image: alturismo/xteve
     container_name: xteve
     hostname: xteve
     restart: unless-stopped
+#    network_mode: host
     networks:
       - traefik_proxy
       - default
     ports:
       - "34400:34400"
+      - "1901:1900"
+#    user: "0"
+#    logging:
+#      options:
+#        max-size: "10m"
+#        max-files: 3
     environment:
-      - TZ=${TZ}
+      TZ: ${TZ}
     volumes:
-      - ${USERDIR}/docker/xteve:/root/.xteve
+      - ${USERDIR}/docker/xteve:/config:rw
+      - /dev/shm:/tmp/xteve
     labels:
       - "traefik.enable=true"
       ## HTTP Routers

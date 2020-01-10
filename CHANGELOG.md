@@ -5,6 +5,7 @@
 
 ## January 9, 2020
 * Replace TellyTV with xTeve
+* Re-added Emby for Testing
 
 ## January 7, 2020
 * Added MiFlora MQTT Daemon to monitor plant status, AirSonic, and MariaDB

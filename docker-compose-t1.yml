@@ -926,7 +926,7 @@ services:
       - "3005:3005/tcp"
       - "8324:8324/tcp"
       - "32469:32469/tcp"
-      - "1900:1900/udp"
+      - "1900:1900/udp" #conflict with xTeVe
       - "32410:32410/udp"
       - "32412:32412/udp"
       - "32413:32413/udp"
@@ -1070,21 +1070,75 @@ services:
       SECTION_MAPS: ${SYN_PLEX}/${SYN_PLEX_HOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_HOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_TVSHOWS} ${NUC_PLEX}/${NUC_PLEX_TVSHOWS} | ${SYN_PLEX}/${SYN_PLEX_BOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_BOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_KOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_KOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_TOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_TOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_DOCMOVIES} ${NUC_PLEX}/${NUC_PLEX_DOCMOVIES} | ${SYN_PLEX}/${SYN_PLEX_DOCSHOWS} ${NUC_PLEX}/${NUC_PLEX_DOCSHOWS} | ${SYN_PLEX}/${SYN_PLEX_KIDSMOVIES} ${NUC_PLEX}/${NUC_PLEX_KIDSMOVIES} | ${SYN_PLEX}/${SYN_PLEX_INTERNATIONAL} ${NUC_PLEX}/${NUC_PLEX_INTERNATIONAL}
     restart: unless-stopped
 
+# Emby - Media Server
+  embyms:
+    image: emby/embyserver:latest
+    container_name: embyms
+    hostname: embyms
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+    ports:
+      - "${EMBY_PORT}:8096/tcp"
+      - "8921:8920/tcp"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${USERDIR}/docker/embyms:/config
+      - /dev/shm:/transcode      
+      - /media:/nas
+      - ${USERDIR}/Downloads:/downloads
+    environment:
+      TZ: ${TZ}
+      HOSTNAME: "nucEmby"
+      UID: ${PUID}
+      GID: ${PGID}
+    labels:
+      traefik.enable: "true"
+      traefik.backend: embyms
+      traefik.protocol: http
+      traefik.port: 8096
+      traefik.frontend.rule: Host:nucemby.${DOMAINNAME}
+      traefik.frontend.headers.SSLHost: nucemby.${DOMAINNAME}
+      traefik.docker.network: traefik_proxy
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.headers.SSLForceHost: "true"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.headers.browserXSSFilter: "true"
+      traefik.frontend.headers.contentTypeNosniff: "true"
+      traefik.frontend.headers.forceSTSHeader: "true"
+      traefik.frontend.headers.STSSeconds: 315360000
+      traefik.frontend.headers.STSIncludeSubdomains: "true"
+      traefik.frontend.headers.STSPreload: "true"
+      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
+      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+#      traefik.frontend.auth.forward.address: "http://oauth:4181"
+#      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+#      traefik.frontend.auth.forward.trustForwardHeader: "true"
+
 # xTeve - IPTV proxy for Plex
   xteve:
-    image: bl0m1/xtevedocker
+    image: alturismo/xteve
     container_name: xteve
     hostname: xteve
     restart: unless-stopped
+#    network_mode: host
     networks:
       - traefik_proxy
       - default
     ports:
       - "34400:34400"
+      - "1901:1900"
+#    user: "0"
+#    logging:
+#      options:
+#        max-size: "10m"
+#        max-files: 3
     environment:
-      - TZ=${TZ}
+      TZ: ${TZ}
     volumes:
-      - ${USERDIR}/docker/xteve:/root/.xteve
+      - ${USERDIR}/docker/xteve:/config:rw
+      - /dev/shm:/tmp/xteve
     labels:
       traefik.enable: "true"
       traefik.backend: xteve
