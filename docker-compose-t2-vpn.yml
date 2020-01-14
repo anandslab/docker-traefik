@@ -18,7 +18,7 @@ services:
   jackett:
     image: linuxserver/jackett
     container_name: jackett
-    restart: unless-stopped
+    restart: always
     network_mode: container:transmission-vpn
 #    depends_on:
 #      -   transmission-vpn
@@ -47,7 +47,7 @@ services:
   jdownloader:
     image: jlesage/jdownloader-2
     container_name: jdownloader
-    restart: unless-stopped
+    restart: always
 #    network_mode: container:transmission-vpn
     networks:
       - t2_proxy
@@ -84,7 +84,7 @@ services:
   qbittorrent:
     image: linuxserver/qbittorrent
     container_name: qbittorrent
-    restart: unless-stopped
+    restart: always
     network_mode: container:transmission-vpn
 #    depends_on:
 #      -   transmission-vpn

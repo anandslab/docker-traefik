@@ -3,6 +3,9 @@
 * Add nut-upsd, mariadb/pma, HealthChecks, FileRun, smtp-to-telegram
 * Replace or remove Transmission/qBittorrent (duplicate functionality)
 
+## January 14, 2020
+* Added dozzle, smokeping, Traefik-Home, and VSCode Server - Thanks github.com/thefrenchmatt
+
 ## January 9, 2020
 * Replace TellyTV with xTeve
 * Re-added Emby for Testing

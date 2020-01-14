@@ -885,7 +885,7 @@ services:
     networks:
       - t2_proxy
     ports:
-      - "8096:8096"
+      - "${JELLYFIN_PORT}:8096"
       - "8920:8920"
     environment:
       PUID: ${PUID}

@@ -19,6 +19,7 @@ This is the updated docker-compose repo of all the media and home server apps de
 ### Traefik 2
 * docker-compose-t2.yml
 * docker-compose-t2-vpn.yml
+* docker-compose-t2-obsolete.yml (Apps that we do not use anymore)
 
 <blockquote>
 <p>At this point we still prefer Traefik  1. As we move ours to Traefik 2, we will publish a new repository. </p>
