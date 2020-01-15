@@ -1764,8 +1764,10 @@ services:
 #    ports:
 #      - "${DOZZLE_PORT}:8080"
     environment:
-      - DOZZLE_TAILSIZE=100
-#      - DOZZLE_FILTER='status:running'
+      DOZZLE_LEVEL: info
+      DOZZLE_TAILSIZE: 300
+      DOZZLE_FILTER: "status=running"
+#      DOZZLE_FILTER: "label=log_me" # limits logs displayed to containers with this label
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     labels:

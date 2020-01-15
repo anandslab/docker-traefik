@@ -1,6 +1,6 @@
 # Changelog
 ## Planned: 
-* Add nut-upsd, mariadb/pma, HealthChecks, FileRun, smtp-to-telegram
+* Add nut-upsd, HealthChecks, FileRun, smtp-to-telegram
 * Replace or remove Transmission/qBittorrent (duplicate functionality)
 
 ## January 14, 2020
