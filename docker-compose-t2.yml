@@ -316,7 +316,7 @@ services:
 # ZoneMinder - Video Surveillance 
 # Create the database and initial tables using the init script. Database zm, username zmuser, and password zmpass - cannot customize zm, zmuser, or zmpass.
   zoneminder:
-    image: quantumobject/docker-zoneminder
+    image: quantumobject/docker-zoneminder:1.32
 #    image: adc3c7a0ca0a
     container_name: zoneminder
     hostname: zoneminder

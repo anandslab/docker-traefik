@@ -137,3 +137,177 @@ services:
       - TZ=${TZ}
     volumes:
       - ${USERDIR}/docker/telly/telly.config.toml:/etc/telly/telly.config.toml
+
+# Traefik Home - Dashboard
+  home:
+    image: lobre/traefik-home
+    container_name: traefik-home
+    hostname: traefik-home
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+#    ports:
+#     - "${SMOKEPING_PORT}:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    labels:
+      #Additional label - add this to all containers to make them appear on dashboard
+      traefik.home: "true"
+      #Regular labels
+      traefik.enable: "true"
+      traefik.backend: home
+      traefik.protocol: http
+      traefik.port: 80
+      traefik.frontend.rule: Host:home.${DOMAINNAME}
+      traefik.frontend.headers.SSLHost: home.${DOMAINNAME}
+      traefik.docker.network: traefik_proxy
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.headers.SSLForceHost: "true"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.headers.browserXSSFilter: "true"
+      traefik.frontend.headers.contentTypeNosniff: "true"
+      traefik.frontend.headers.forceSTSHeader: "true"
+      traefik.frontend.headers.STSSeconds: 315360000
+      traefik.frontend.headers.STSIncludeSubdomains: "true"
+      traefik.frontend.headers.STSPreload: "true"
+      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
+      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      traefik.frontend.auth.forward.address: "http://oauth:4181"
+      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+      traefik.frontend.auth.forward.trustForwardHeader: "true"    
+
+# MiFlora MQTT Daemon - BT to MQTT Daemon for MiFlora Sensors
+  miflora:
+    image: raymondmm/miflora-mqtt
+    container_name: miflora-mqtt
+    hostname: miflora
+    environment:
+      - TZ=${TZ}
+    network_mode: host
+#    user: "0"    
+    volumes:
+      - ${USERDIR}/docker/miflora-mqtt/config:/config
+    restart: unless-stopped
+
+# xTeve - IPTV proxy for Plex
+  xteve:
+    image: alturismo/xteve
+    container_name: xteve
+    hostname: xteve
+    restart: unless-stopped
+#    network_mode: host
+    networks:
+      - traefik_proxy
+      - default
+    ports:
+      - "34400:34400"
+      - "1901:1900"
+#    user: "0"
+#    logging:
+#      options:
+#        max-size: "10m"
+#        max-files: 3
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - ${USERDIR}/docker/xteve:/config:rw
+      - /dev/shm:/tmp/xteve
+    labels:
+      traefik.enable: "true"
+      traefik.backend: xteve
+      traefik.protocol: http
+      traefik.port: 34400
+      traefik.frontend.rule: Host:xteve.${DOMAINNAME}
+      traefik.frontend.headers.SSLHost: xteve.${DOMAINNAME}
+      traefik.docker.network: traefik_proxy
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.headers.SSLForceHost: "true"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.headers.browserXSSFilter: "true"
+      traefik.frontend.headers.contentTypeNosniff: "true"
+      traefik.frontend.headers.forceSTSHeader: "true"
+      traefik.frontend.headers.STSSeconds: 315360000
+      traefik.frontend.headers.STSIncludeSubdomains: "true"
+      traefik.frontend.headers.STSPreload: "true"
+      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
+      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      traefik.frontend.auth.forward.address: "http://oauth:4181"
+      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+      traefik.frontend.auth.forward.trustForwardHeader: "true"
+
+# MQTT Admin - Web Based MQTT Client 
+  mqttweb:
+    image: dersimn/mqtt-admin
+    container_name: mqttweb
+    hostname: mqttweb
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+#    ports:
+#      - "80:80"
+    environment:
+      MQTT_HOST: "$SERVER_IP:9001"
+    labels:
+      traefik.enable: "true"
+      traefik.backend: mqttweb
+      traefik.protocol: http
+      traefik.port: 80
+      traefik.frontend.rule: Host:mqttweb.${DOMAINNAME}
+      traefik.frontend.headers.SSLHost: mqttweb.${DOMAINNAME}
+      traefik.docker.network: traefik_proxy
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.headers.SSLForceHost: "true"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.headers.browserXSSFilter: "true"
+      traefik.frontend.headers.contentTypeNosniff: "true"
+      traefik.frontend.headers.forceSTSHeader: "true"
+      traefik.frontend.headers.STSSeconds: 315360000
+      traefik.frontend.headers.STSIncludeSubdomains: "true"
+      traefik.frontend.headers.STSPreload: "true"
+      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
+      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      traefik.frontend.auth.forward.address: "http://oauth:4181"
+      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+      traefik.frontend.auth.forward.trustForwardHeader: "true"
+
+# Traefik Home - Dashboard
+  home:
+    image: lobre/traefik-home
+    container_name: traefik-home
+    hostname: traefik-home
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+#    ports:
+#     - "${SMOKEPING_PORT}:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    labels:
+      #Additional label - add this to all containers to make them appear on dashboard
+      traefik.home: "true"
+      #Regular labels
+      traefik.enable: "true"
+      traefik.backend: home
+      traefik.protocol: http
+      traefik.port: 80
+      traefik.frontend.rule: Host:home.${DOMAINNAME}
+      traefik.frontend.headers.SSLHost: home.${DOMAINNAME}
+      traefik.docker.network: traefik_proxy
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.headers.SSLForceHost: "true"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.headers.browserXSSFilter: "true"
+      traefik.frontend.headers.contentTypeNosniff: "true"
+      traefik.frontend.headers.forceSTSHeader: "true"
+      traefik.frontend.headers.STSSeconds: 315360000
+      traefik.frontend.headers.STSIncludeSubdomains: "true"
+      traefik.frontend.headers.STSPreload: "true"
+      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
+      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      traefik.frontend.auth.forward.address: "http://oauth:4181"
+      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+      traefik.frontend.auth.forward.trustForwardHeader: "true" 
