@@ -306,47 +306,11 @@ services:
       PUID: ${PUID}
       PGID: ${PGID}
       TZ: ${TZ}
-    
-# MQTT Admin - Web Based MQTT Client 
-  mqttweb:
-    image: dersimn/mqtt-admin
-    container_name: mqttweb
-    hostname: mqttweb
-    restart: unless-stopped
-    networks:
-      - traefik_proxy
-#    ports:
-#      - "80:80"
-    environment:
-      MQTT_HOST: "$SERVER_IP:9001"
-    labels:
-      traefik.enable: "true"
-      traefik.backend: mqttweb
-      traefik.protocol: http
-      traefik.port: 80
-      traefik.frontend.rule: Host:mqttweb.${DOMAINNAME}
-      traefik.frontend.headers.SSLHost: mqttweb.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
-      traefik.frontend.passHostHeader: "true"
-      traefik.frontend.headers.SSLForceHost: "true"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.headers.browserXSSFilter: "true"
-      traefik.frontend.headers.contentTypeNosniff: "true"
-      traefik.frontend.headers.forceSTSHeader: "true"
-      traefik.frontend.headers.STSSeconds: 315360000
-      traefik.frontend.headers.STSIncludeSubdomains: "true"
-      traefik.frontend.headers.STSPreload: "true"
-      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
-      traefik.frontend.auth.forward.address: "http://oauth:4181"
-      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-      traefik.frontend.auth.forward.trustForwardHeader: "true"
 
 # ZoneMinder - Video Surveillance 
 # Create the database and initial tables using the init script. Database zm, username zmuser, and password zmpass - cannot customize zm, zmuser, or zmpass.
   zoneminder:
-    image: quantumobject/docker-zoneminder
+    image: quantumobject/docker-zoneminder:1.32
 #    image: adc3c7a0ca0a
     container_name: zoneminder
     hostname: zoneminder
@@ -355,7 +319,7 @@ services:
       - traefik_proxy
     ports:
       - "${ZONEMINDER_HTTP_PORT}:80"
-      - "${ZONEMINDER_HTTPS_PORT}:443"
+#      - "${ZONEMINDER_HTTPS_PORT}:443"
       - "9000:9000" # Event Notification Port
     privileged: true
     shm_size: 4096m
@@ -400,19 +364,6 @@ services:
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
       traefik.frontend.auth.forward.trustForwardHeader: "true"
-
-# MiFlora MQTT Daemon - BT to MQTT Daemon for MiFlora Sensors
-  miflora:
-    image: raymondmm/miflora-mqtt
-    container_name: miflora-mqtt
-    hostname: miflora
-    environment:
-      - TZ=${TZ}
-    network_mode: host
-#    user: "0"    
-    volumes:
-      - ${USERDIR}/docker/miflora-mqtt/config:/config
-    restart: unless-stopped
 
 ############################# DATABASE
 
@@ -1015,6 +966,7 @@ services:
 #      traefik.frontend.auth.forward.address: "http://oauth:4181"
 #      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
 #      traefik.frontend.auth.forward.trustForwardHeader: "true"
+
 # Jellyfin - Media Server
   jellyfin:
     image: jellyfin/jellyfin:latest
@@ -1114,54 +1066,6 @@ services:
       CRON_SCHEDULE: '*/5 * * * *'
       SECTION_MAPS: ${SYN_PLEX}/${SYN_PLEX_HOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_HOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_TVSHOWS} ${NUC_PLEX}/${NUC_PLEX_TVSHOWS} | ${SYN_PLEX}/${SYN_PLEX_BOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_BOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_KOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_KOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_TOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_TOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_DOCMOVIES} ${NUC_PLEX}/${NUC_PLEX_DOCMOVIES} | ${SYN_PLEX}/${SYN_PLEX_DOCSHOWS} ${NUC_PLEX}/${NUC_PLEX_DOCSHOWS} | ${SYN_PLEX}/${SYN_PLEX_KIDSMOVIES} ${NUC_PLEX}/${NUC_PLEX_KIDSMOVIES} | ${SYN_PLEX}/${SYN_PLEX_INTERNATIONAL} ${NUC_PLEX}/${NUC_PLEX_INTERNATIONAL}
     restart: unless-stopped
-
-# xTeve - IPTV proxy for Plex
-  xteve:
-    image: alturismo/xteve
-    container_name: xteve
-    hostname: xteve
-    restart: unless-stopped
-#    network_mode: host
-    networks:
-      - traefik_proxy
-      - default
-    ports:
-      - "34400:34400"
-      - "1901:1900"
-#    user: "0"
-#    logging:
-#      options:
-#        max-size: "10m"
-#        max-files: 3
-    environment:
-      TZ: ${TZ}
-    volumes:
-      - ${USERDIR}/docker/xteve:/config:rw
-      - /dev/shm:/tmp/xteve
-    labels:
-      traefik.enable: "true"
-      traefik.backend: xteve
-      traefik.protocol: http
-      traefik.port: 34400
-      traefik.frontend.rule: Host:xteve.${DOMAINNAME}
-      traefik.frontend.headers.SSLHost: xteve.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
-      traefik.frontend.passHostHeader: "true"
-      traefik.frontend.headers.SSLForceHost: "true"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.headers.browserXSSFilter: "true"
-      traefik.frontend.headers.contentTypeNosniff: "true"
-      traefik.frontend.headers.forceSTSHeader: "true"
-      traefik.frontend.headers.STSSeconds: 315360000
-      traefik.frontend.headers.STSIncludeSubdomains: "true"
-      traefik.frontend.headers.STSPreload: "true"
-      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
-      traefik.frontend.auth.forward.address: "http://oauth:4181"
-      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-      traefik.frontend.auth.forward.trustForwardHeader: "true"
-
 
 ############################# MEDIA FILE MANAGEMENT
 
@@ -1875,46 +1779,7 @@ services:
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-      traefik.frontend.auth.forward.trustForwardHeader: "true"
-
-# Traefik Home - Dashboard
-  home:
-    image: lobre/traefik-home
-    container_name: traefik-home
-    hostname: traefik-home
-    restart: unless-stopped
-    networks:
-      - traefik_proxy
-#    ports:
-#     - "${SMOKEPING_PORT}:80"
-    volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-    labels:
-      #Additional label - add this to all containers to make them appear on dashboard
-      traefik.home: "true"
-      #Regular labels
-      traefik.enable: "true"
-      traefik.backend: home
-      traefik.protocol: http
-      traefik.port: 80
-      traefik.frontend.rule: Host:home.${DOMAINNAME}
-      traefik.frontend.headers.SSLHost: home.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
-      traefik.frontend.passHostHeader: "true"
-      traefik.frontend.headers.SSLForceHost: "true"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.headers.browserXSSFilter: "true"
-      traefik.frontend.headers.contentTypeNosniff: "true"
-      traefik.frontend.headers.forceSTSHeader: "true"
-      traefik.frontend.headers.STSSeconds: 315360000
-      traefik.frontend.headers.STSIncludeSubdomains: "true"
-      traefik.frontend.headers.STSPreload: "true"
-      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
-      traefik.frontend.auth.forward.address: "http://oauth:4181"
-      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-      traefik.frontend.auth.forward.trustForwardHeader: "true"      
+      traefik.frontend.auth.forward.trustForwardHeader: "true"     
 
 ############################# MAINTENANCE
 

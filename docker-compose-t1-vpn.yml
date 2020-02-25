@@ -19,7 +19,11 @@ services:
     image: linuxserver/jackett
     container_name: jackett
     restart: always
-    network_mode: container:transmission-vpn
+#    network_mode: container:transmission-vpn
+    networks:
+      - traefik_proxy
+    ports:
+      - "${JACKETT_PORT}:8168"
 #    depends_on:
 #      -   transmission-vpn
     volumes:
@@ -60,7 +64,11 @@ services:
     image: jlesage/jdownloader-2
     container_name: jdownloader
     restart: always
-    network_mode: container:transmission-vpn
+#    network_mode: container:transmission-vpn
+    networks:
+      - traefik_proxy
+    ports:
+      - "${JDOWNLOADER_PORT}:8168"
 #    depends_on:
 #      -   transmission-vpn
     volumes:
@@ -106,7 +114,11 @@ services:
     image: linuxserver/qbittorrent
     container_name: qbittorrent
     restart: always
-    network_mode: container:transmission-vpn
+#    network_mode: container:transmission-vpn
+    networks:
+      - traefik_proxy
+    ports:
+      - "${QBITTORRENT_PORT}:8168"
 #    depends_on:
 #      -   transmission-vpn
     volumes:
