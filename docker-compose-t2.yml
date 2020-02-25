@@ -16,9 +16,9 @@ services:
 # Traefik - Reverse Proxy
 # docker network create --gateway 192.168.90.1 --subnet 192.168.90.0/24 t2_proxy
 # Subnet range 192.168.0.0/16 covers 192.168.0.0 to 192.168.255.255
-# touch $USERDIR/traefik2/acme/acme.json
-# chmod 600 $USERDIR/traefik2/acme/acme.json
-# touch $USERDIR/traefik2/traefik.log
+# touch $USERDIR/docker/traefik2/acme/acme.json
+# chmod 600 $USERDIR/docker/traefik2/acme/acme.json
+# touch $USERDIR/docker/traefik2/traefik.log
   traefik:
     container_name: traefik
     image: traefik:cantal
