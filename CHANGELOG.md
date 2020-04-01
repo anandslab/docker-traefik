@@ -1,7 +1,11 @@
 # Changelog
 ## Planned: 
-* Add nut-upsd, HealthChecks, FileRun, smtp-to-telegram
 * Replace or remove Transmission/qBittorrent (duplicate functionality)
+* Add LazyLibrarian, Calibre, Calibre-web, projectsend, cloudflare ddns, traefik cert extractor, embystat, nextcloud, photoprism, nut-upsd, HealthChecks, FileRun, smtp-to-telegram
+
+## March 31, 2020
+* Added Ombi, PhotoShow, LazyLibrarian, Calibre, Caliber-web
+* Moved Traefik-Home, MQTT Admin, xTeVe, Piwigo, MiFlora Daemon, xTeVe to Obsolete list
 
 ## January 14, 2020
 * Added dozzle, smokeping, Traefik-Home, and VSCode Server - Thanks github.com/thefrenchmatt

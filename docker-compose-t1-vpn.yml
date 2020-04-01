@@ -13,112 +13,17 @@ services:
 
 ############################# FRONTENDS
 
-# Jackett - Torrent proxy
-# Set url_base in Jackett settings if using PathPrefix
-  jackett:
-    image: linuxserver/jackett
-    container_name: jackett
-    restart: always
-#    network_mode: container:transmission-vpn
-    networks:
-      - traefik_proxy
-    ports:
-      - "${JACKETT_PORT}:8168"
-#    depends_on:
-#      -   transmission-vpn
-    volumes:
-      - ${USERDIR}/docker/jackett:/config
-      - ${USERDIR}/Downloads:/downloads
-      - "/etc/localtime:/etc/localtime:ro"
-    environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
-      TZ: ${TZ}
-    labels:
-      traefik.enable: "true"
-      traefik.backend: jackett
-      traefik.protocol: http
-      traefik.port: 9117
-      traefik.frontend.rule: Host:jackett.${DOMAINNAME}
-#     traefik.frontend.rule: Host:${DOMAINNAME}; PathPrefix: /jackett
-      traefik.frontend.headers.SSLHost: jackett.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
-      traefik.frontend.passHostHeader: "true"
-      traefik.frontend.headers.SSLForceHost: "true"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.headers.browserXSSFilter: "true"
-      traefik.frontend.headers.contentTypeNosniff: "true"
-      traefik.frontend.headers.forceSTSHeader: "true"
-      traefik.frontend.headers.STSSeconds: 315360000
-      traefik.frontend.headers.STSIncludeSubdomains: "true"
-      traefik.frontend.headers.STSPreload: "true"
-      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
-#      traefik.frontend.auth.forward.address: "http://oauth:4181"
-#      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-#      traefik.frontend.auth.forward.trustForwardHeader: "true"
-
-# jDownloader - Download management
-  jdownloader:
-    image: jlesage/jdownloader-2
-    container_name: jdownloader
-    restart: always
-#    network_mode: container:transmission-vpn
-    networks:
-      - traefik_proxy
-    ports:
-      - "${JDOWNLOADER_PORT}:8168"
-#    depends_on:
-#      -   transmission-vpn
-    volumes:
-      - ${USERDIR}/Downloads/completed:/output
-      - ${USERDIR}/docker/jdownloader:/config
-    environment:
-      USER_ID: ${PUID}
-      GROUP_ID: ${PGID}
-      TZ: ${TZ}
-      UMASK_SET: 002
-      KEEP_APP_RUNNIN: 1
-      CLEAN_TMP_DIR: 1
-      DISPLAY_WIDTH: 1600
-      DISPLAY_HEIGHT: 960
-      VNC_PASSWORD: ${JDOWN_VNC_PASSWD}
-    labels:
-      traefik.enable: "true"
-      traefik.backend: jdownloader
-      traefik.protocol: http
-      traefik.port: 5800
-      traefik.frontend.rule: Host:jdown.${DOMAINNAME}
-      traefik.frontend.headers.SSLHost: jdown.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
-      traefik.frontend.passHostHeader: "true"
-      traefik.frontend.headers.SSLForceHost: "true"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.headers.browserXSSFilter: "true"
-      traefik.frontend.headers.contentTypeNosniff: "true"
-      traefik.frontend.headers.forceSTSHeader: "true"
-      traefik.frontend.headers.STSSeconds: 315360000
-      traefik.frontend.headers.STSIncludeSubdomains: "true"
-      traefik.frontend.headers.STSPreload: "true"
-      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
-      traefik.frontend.auth.forward.address: "http://oauth:4181"
-      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-      traefik.frontend.auth.forward.trustForwardHeader: "true"
-
 # qBittorrent - Torrent downloader
 # Needs trailing / if using PathPrefixStrip
   qbittorrent:
     image: linuxserver/qbittorrent
     container_name: qbittorrent
     restart: always
-#    network_mode: container:transmission-vpn
-    networks:
-      - traefik_proxy
-    ports:
-      - "${QBITTORRENT_PORT}:8168"
+    network_mode: container:transmission-vpn
+#    networks:
+#      - traefik_proxy
+#    ports:
+#      - "${QBITTORRENT_PORT}:8168"
 #    depends_on:
 #      -   transmission-vpn
     volumes:

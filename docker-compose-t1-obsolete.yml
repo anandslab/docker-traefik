@@ -273,28 +273,29 @@ services:
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
       traefik.frontend.auth.forward.trustForwardHeader: "true"
 
-# Traefik Home - Dashboard
-  home:
-    image: lobre/traefik-home
-    container_name: traefik-home
-    hostname: traefik-home
+# Piwigo - Image Gallery
+  piwigo:
+    image: linuxserver/piwigo
+    container_name: piwigo
+    hostname: piwigo
     restart: unless-stopped
     networks:
       - traefik_proxy
-#    ports:
-#     - "${SMOKEPING_PORT}:80"
+    ports:
+      - "${PIWIGO_PORT}:80"
     volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ${USERDIR}/docker/piwigo:/config
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
     labels:
-      #Additional label - add this to all containers to make them appear on dashboard
-      traefik.home: "true"
-      #Regular labels
       traefik.enable: "true"
-      traefik.backend: home
+      traefik.backend: piwigo
       traefik.protocol: http
       traefik.port: 80
-      traefik.frontend.rule: Host:home.${DOMAINNAME}
-      traefik.frontend.headers.SSLHost: home.${DOMAINNAME}
+      traefik.frontend.rule: Host:piwigo.${DOMAINNAME}
+      traefik.frontend.headers.SSLHost: piwigo.${DOMAINNAME}
       traefik.docker.network: traefik_proxy
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.headers.SSLForceHost: "true"
@@ -310,4 +311,4 @@ services:
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-      traefik.frontend.auth.forward.trustForwardHeader: "true" 
+      traefik.frontend.auth.forward.trustForwardHeader: "true"
