@@ -156,7 +156,7 @@ services:
       - "traefik.http.routers.oauth-rtr.tls=true"
       - "traefik.http.routers.oauth-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.oauth-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.oauth-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.oauth-rtr.service=oauth-svc"
       - "traefik.http.services.oauth-svc.loadbalancer.server.port=4181"
@@ -184,7 +184,7 @@ services:
       - "traefik.http.routers.portainer-rtr.tls=true"
       - "traefik.http.routers.portainer-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.portainer-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.portainer-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.portainer-rtr.service=portainer-svc"
       - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
@@ -212,7 +212,7 @@ services:
       - "traefik.http.routers.organizr-rtr.tls=true"
       - "traefik.http.routers.organizr-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.organizr-rtr.middlewares=noauth-chain@file" 
+      - "traefik.http.routers.organizr-rtr.middlewares=chain-no-auth@file" 
 #      - "traefik.http.middlewares.organizr-headers.headers.customResponseHeaders.sslHost=$DOMAINNAME"
 #      - "traefik.http.middlewares.organizr-headers.headers.customResponseHeaders='X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex'"
 #      - "traefik.http.middlewares.organizr-headers.headers.browserxssfilter=true"
@@ -245,7 +245,7 @@ services:
       - "traefik.http.routers.heimdall-rtr.tls=true"
       - "traefik.http.routers.heimdall-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.heimdall-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.heimdall-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.heimdall-rtr.service=heimdall-svc"
       - "traefik.http.services.heimdall-svc.loadbalancer.server.port=80"
@@ -269,7 +269,7 @@ services:
       - "traefik.http.routers.autoindex-rtr.tls=true"
       - "traefik.http.routers.autoindex-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.autoindex-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.autoindex-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.autoindex-rtr.service=autoindex-svc"
       - "traefik.http.services.autoindex-svc.loadbalancer.server.port=80"
@@ -355,7 +355,7 @@ services:
       - "traefik.http.routers.zoneminder-rtr.tls=true"
       - "traefik.http.routers.zoneminder-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.zoneminder-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.zoneminder-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.zoneminder-rtr.service=zoneminder-svc"
       - "traefik.http.services.zoneminder-svc.loadbalancer.server.port=80"
@@ -453,7 +453,7 @@ services:
       - "traefik.http.routers.phpmyadmin-rtr.tls=true"
       - "traefik.http.routers.phpmyadmin-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.phpmyadmin-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.phpmyadmin-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.phpmyadmin-rtr.service=phpmyadmin-svc"
       - "traefik.http.services.phpmyadmin-svc.loadbalancer.server.port=80"
@@ -484,7 +484,7 @@ services:
       - "traefik.http.routers.grafana-rtr.tls=true"
       - "traefik.http.routers.grafana-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.grafana-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.grafana-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.grafana-rtr.service=grafana-svc"
       - "traefik.http.services.grafana-svc.loadbalancer.server.port=3000"
@@ -651,7 +651,7 @@ services:
       - "traefik.http.routers.sabnzbd-rtr.tls=true"
       - "traefik.http.routers.sabnzbd-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.sabnzbd-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.sabnzbd-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.sabnzbd-rtr.service=sabnzbd-svc"
       - "traefik.http.services.sabnzbd-svc.loadbalancer.server.port=8080"
@@ -683,7 +683,7 @@ services:
       - "traefik.http.routers.hydra-rtr.tls=true"
       - "traefik.http.routers.hydra-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.hydra-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.hydra-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.hydra-rtr.service=hydra-svc"
       - "traefik.http.services.hydra-svc.loadbalancer.server.port=5076"
@@ -718,7 +718,7 @@ services:
       - "traefik.http.routers.lidarr-rtr.tls=true"
       - "traefik.http.routers.lidarr-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.lidarr-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.lidarr-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.lidarr-rtr.service=lidarr-svc"
       - "traefik.http.services.lidarr-svc.loadbalancer.server.port=8686"
@@ -754,7 +754,7 @@ services:
       - "traefik.http.routers.radarr-rtr.tls=true"
       - "traefik.http.routers.radarr-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.radarr-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.radarr-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.radarr-rtr.service=radarr-svc"
       - "traefik.http.services.radarr-svc.loadbalancer.server.port=7878"
@@ -790,7 +790,7 @@ services:
       - "traefik.http.routers.sonarr-rtr.tls=true"
       - "traefik.http.routers.sonarr-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.sonarr-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.sonarr-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.sonarr-rtr.service=sonarr-svc"
       - "traefik.http.services.sonarr-svc.loadbalancer.server.port=8989"
@@ -826,7 +826,7 @@ services:
       - "traefik.http.routers.airsonic-rtr.tls=true"
       - "traefik.http.routers.airsonic-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.airsonic-rtr.middlewares=noauth-chain@file"
+      - "traefik.http.routers.airsonic-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.airsonic-rtr.service=airsonic-svc"
       - "traefik.http.services.airsonic-svc.loadbalancer.server.port=4040"
@@ -871,7 +871,7 @@ services:
       - "traefik.http.routers.plexms-rtr.tls=true"
       - "traefik.http.routers.plexms-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.plexms-rtr.middlewares=noauth-chain@file"
+      - "traefik.http.routers.plexms-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.plexms-rtr.service=plexms-svc"
       - "traefik.http.services.plexms-svc.loadbalancer.server.port=32400"
@@ -905,7 +905,7 @@ services:
       - "traefik.http.routers.jellyfin-rtr.tls=true"
       - "traefik.http.routers.jellyfin-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.jellyfin-rtr.middlewares=noauth-chain@file"
+      - "traefik.http.routers.jellyfin-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.jellyfin-rtr.service=jellyfin-svc"
       - "traefik.http.services.jellyfin-svc.loadbalancer.server.port=8096"
@@ -940,7 +940,7 @@ services:
       - "traefik.http.routers.embyms-rtr.tls=true"
       - "traefik.http.routers.embyms-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.embyms-rtr.middlewares=noauth-chain@file"
+      - "traefik.http.routers.embyms-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.embyms-rtr.service=embyms-svc"
       - "traefik.http.services.embyms-svc.loadbalancer.server.port=8096"
@@ -971,7 +971,7 @@ services:
       - "traefik.http.routers.tautulli-rtr.tls=true"
       - "traefik.http.routers.tautulli-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.tautulli-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.tautulli-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.tautulli-rtr.service=tautulli-svc"
       - "traefik.http.services.tautulli-svc.loadbalancer.server.port=8181"
@@ -1018,7 +1018,7 @@ services:
       - "traefik.http.routers.xteve-rtr.tls=true"
       - "traefik.http.routers.xteve-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.xteve-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.xteve-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.xteve-rtr.service=xteve-svc"
       - "traefik.http.services.xteve-svc.loadbalancer.server.port=8181"
@@ -1050,7 +1050,7 @@ services:
       - "traefik.http.routers.bazarr-rtr.tls=true"
       - "traefik.http.routers.bazarr-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.bazarr-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.bazarr-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.bazarr-rtr.service=bazarr-svc"
       - "traefik.http.services.bazarr-svc.loadbalancer.server.port=6767"
@@ -1085,7 +1085,7 @@ services:
       - "traefik.http.routers.picard-rtr.tls=true"
       - "traefik.http.routers.picard-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.picard-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.picard-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.picard-rtr.service=picard-svc"
       - "traefik.http.services.picard-svc.loadbalancer.server.port=5800"
@@ -1124,7 +1124,7 @@ services:
       - "traefik.http.routers.handbrake-rtr.tls=true"
       - "traefik.http.routers.handbrake-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.handbrake-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.handbrake-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.handbrake-rtr.service=handbrake-svc"
       - "traefik.http.services.handbrake-svc.loadbalancer.server.port=5800"
@@ -1160,7 +1160,7 @@ services:
       - "traefik.http.routers.mkvtoolnix-rtr.tls=true"
       - "traefik.http.routers.mkvtoolnix-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.mkvtoolnix-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.mkvtoolnix-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.mkvtoolnix-rtr.service=mkvtoolnix-svc"
       - "traefik.http.services.mkvtoolnix-svc.loadbalancer.server.port=5800"
@@ -1198,7 +1198,7 @@ services:
       - "traefik.http.routers.makemkv-rtr.tls=true"
       - "traefik.http.routers.makemkv-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.makemkv-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.makemkv-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.makemkv-rtr.service=makemkv-svc"
       - "traefik.http.services.makemkv-svc.loadbalancer.server.port=5800"
@@ -1236,7 +1236,7 @@ services:
       - "traefik.http.routers.filebot-rtr.tls=true"
       - "traefik.http.routers.filebot-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.filebot-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.filebot-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.filebot-rtr.service=filebot-svc"
       - "traefik.http.services.filebot-svc.loadbalancer.server.port=5800"
@@ -1276,7 +1276,7 @@ services:
       - "traefik.http.routers.firefox-rtr.tls=true"
       - "traefik.http.routers.firefox-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.firefox-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.firefox-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.firefox-rtr.service=firefox-svc"
       - "traefik.http.services.firefox-svc.loadbalancer.server.port=5800"
@@ -1312,7 +1312,7 @@ services:
       - "traefik.http.routers.jdownloader-rtr.tls=true"
       - "traefik.http.routers.jdownloader-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.jdownloader-rtr.middlewares=noauth-chain@file"
+      - "traefik.http.routers.jdownloader-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.jdownloader-rtr.service=jdownloader-svc"
       - "traefik.http.services.jdownloader-svc.loadbalancer.server.port=5800"
@@ -1344,7 +1344,7 @@ services:
       - "traefik.http.routers.glances-rtr.tls=true"
       - "traefik.http.routers.glances-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.glances-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.glances-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.glances-rtr.service=glances-svc"
       - "traefik.http.services.glances-svc.loadbalancer.server.port=61208"
@@ -1400,7 +1400,7 @@ services:
       - "traefik.http.routers.qdirstat-rtr.tls=true"
       - "traefik.http.routers.qdirstat-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.qdirstat-rtr.middlewares=secure-chain@file"
+      - "traefik.http.routers.qdirstat-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.qdirstat-rtr.service=qdirstat-svc"
       - "traefik.http.services.qdirstat-svc.loadbalancer.server.port=5800"
@@ -1436,7 +1436,7 @@ services:
       - "traefik.http.routers.guacamole-rtr.tls=true"
       - "traefik.http.routers.guacamole-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.guacamole-rtr.middlewares=secure-chain@file,add-guacamole" 
+      - "traefik.http.routers.guacamole-rtr.middlewares=chain-oauth@file,add-guacamole" 
       - "traefik.http.middlewares.add-guacamole.addPrefix.prefix=/guacamole"
       ## HTTP Services
       - "traefik.http.routers.guacamole-rtr.service=guacamole-svc"
@@ -1481,7 +1481,7 @@ services:
       - "traefik.http.routers.statping-rtr.tls=true"
       - "traefik.http.routers.statping-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.statping-rtr.middlewares=noauth-chain@file"
+      - "traefik.http.routers.statping-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.statping-rtr.service=statping-svc"
       - "traefik.http.services.statping-svc.loadbalancer.server.port=8080"
