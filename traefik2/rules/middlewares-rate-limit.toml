@@ -1,0 +1,4 @@
+[http.middlewares.rate-limit]
+  [http.middlewares.rate-limit.rateLimit]
+    average = 100
+    burst = 50

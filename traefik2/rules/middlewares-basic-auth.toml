@@ -1,7 +1,7 @@
 [http.middlewares]
   [http.middlewares.basic-auth.basicAuth]
 #    users = [
-#      "user:$apr1$y.WvC/6.$E3FtsfTntPC0wVJ7IUVtX1",
+#      "user:$apsdfswWvC/6.$E3FtsfTntPC0wVJ7IUVtX1",
 #    ]
     realm = "Traefik2 Basic Auth"
     usersFile = "/shared/.htpasswd" #be sure to mount the volume through docker-compose.yml
