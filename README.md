@@ -46,12 +46,12 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 * HA-Dockermon - Manage Docker containers in Home Assistant 
 * Mosquitto - MQTT Broker
 * ZoneMinder - Video Surveillance 
-* MiFlora - MiFlora MQTT Daemon (MiFlora Plant Sensors)
+* MiFlora - MiFlora MQTT Daemon (MiFlora Plant Sensors) (OBSOLETE)
 
 ### DATABASE
 
-* phpMyAdmin - Database management
 * MariaDB - MySQL Database
+* phpMyAdmin - Database management
 * InfluxDB - Database for sensor data
 * Postgres - Database
 * Grafana - Graphical data visualization for InfluxDB data
@@ -60,14 +60,14 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 ### DOWNLOADERS
 
 * jDownloader - Download management
+* TransmissionBT with VPN - Torrent Downloader
 * SABnzbd - Binary newsgrabber (NZB downloader)
-* qBittorrent - Torrent downloader
-* TransmissionBT - Torrent Downloader
+* qBittorrent with VPN - Torrent downloader
 
 ### INDEXERS
 
-* Jackett - Torrent proxy
 * NZBHydra2 - NZB meta search
+* Jackett - Torrent proxy
 
 ### PVRS
 
@@ -79,12 +79,14 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 
 * AirSonic - Music Server
 * Plex - Media Server
+* Emby - Media Server
 * Jellyfin - Media Server
-* Emby - Media Server (OBSOLETE)
+* Ombi - Media Requests
 * Tautulli - Previously PlexPy. Plex statistics and monitoring
 * Plex-Sync - For Syncing watched status between plex servers 
+* PhotoShow - Personal Photo Gallery and viewer
 * TellyTv- IPTV proxy for Plex (OBSOLETE)
-* xTeve- IPTV proxy for Plex
+* xTeve- IPTV proxy for Plex (OBSOLETE)
 
 ### MEDIA FILE MANAGEMENT
 
@@ -99,13 +101,16 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 
 * Firefox - Web Broswer
 * Glances - System Information
-* Logarr - Log Management
-* Monitorr - Webfront to display the status of any webapp or service (OBSOLETE)
 * APCUPSD - APC UPS Management
-* qDirStat - Directory Statistics
+* Logarr - Log Management (OBSOLETE)
+* Monitorr - Webfront to display the status of any webapp or service (OBSOLETE)
 * Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser 
 * Guacamole Daemon - Needed for Guacamole
+* Dozzle - Docker logs viewer
+* qDirStat - Directory Statistics
+* VS Code Server - Code Editor
 * StatPing - Status Page & Monitoring Server
+* SmokePing - Network Latency Monitoring
 
 ### MAINTENANCE
 

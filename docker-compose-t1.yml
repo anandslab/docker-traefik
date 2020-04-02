@@ -1077,6 +1077,46 @@ services:
 #      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
 #      traefik.frontend.auth.forward.trustForwardHeader: "true"
 
+# Ombi - Media Requests
+  ombi:
+    image: linuxserver/ombi
+    container_name: ombi
+    hostname: ombi
+    restart: unless-stopped
+    networks:
+      - t1_proxy
+    ports:
+      - "${OMBI_PORT}:3579"
+    volumes:
+      - ${USERDIR}/docker/ombi:/config
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+      BASE_URL: /ombi #optional
+    labels:
+      traefik.enable: "true"
+      traefik.backend: ombi
+      traefik.protocol: http
+      traefik.port: 3579
+      traefik.frontend.rule: Host:ombi.${DOMAINNAME}
+      traefik.frontend.headers.SSLHost: ombi.${DOMAINNAME}
+      traefik.docker.network: t1_proxy
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.headers.SSLForceHost: "true"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.headers.browserXSSFilter: "true"
+      traefik.frontend.headers.contentTypeNosniff: "true"
+      traefik.frontend.headers.forceSTSHeader: "true"
+      traefik.frontend.headers.STSSeconds: 315360000
+      traefik.frontend.headers.STSIncludeSubdomains: "true"
+      traefik.frontend.headers.STSPreload: "true"
+      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      traefik.frontend.auth.forward.address: "http://oauth:4181"
+      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+      traefik.frontend.auth.forward.trustForwardHeader: "true"
+
 # Tautulli - Previously PlexPy. Plex statistics and monitoring
 # Set HTTP Root in Tautulli settings if using PathPrefix
   tautulli:
@@ -1129,46 +1169,6 @@ services:
       CRON_SCHEDULE: '*/5 * * * *'
       SECTION_MAPS: ${SYN_PLEX}/${SYN_PLEX_HOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_HOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_TVSHOWS} ${NUC_PLEX}/${NUC_PLEX_TVSHOWS} | ${SYN_PLEX}/${SYN_PLEX_BOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_BOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_KOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_KOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_TOLLYWOOD} ${NUC_PLEX}/${NUC_PLEX_TOLLYWOOD} | ${SYN_PLEX}/${SYN_PLEX_DOCMOVIES} ${NUC_PLEX}/${NUC_PLEX_DOCMOVIES} | ${SYN_PLEX}/${SYN_PLEX_DOCSHOWS} ${NUC_PLEX}/${NUC_PLEX_DOCSHOWS} | ${SYN_PLEX}/${SYN_PLEX_KIDSMOVIES} ${NUC_PLEX}/${NUC_PLEX_KIDSMOVIES} | ${SYN_PLEX}/${SYN_PLEX_INTERNATIONAL} ${NUC_PLEX}/${NUC_PLEX_INTERNATIONAL}
     restart: unless-stopped
-
-# Ombi - Media Requests
-  ombi:
-    image: linuxserver/ombi
-    container_name: ombi
-    hostname: ombi
-    restart: unless-stopped
-    networks:
-      - t1_proxy
-    ports:
-      - "${OMBI_PORT}:3579"
-    volumes:
-      - ${USERDIR}/docker/ombi:/config
-    environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
-      TZ: ${TZ}
-      BASE_URL: /ombi #optional
-    labels:
-      traefik.enable: "true"
-      traefik.backend: ombi
-      traefik.protocol: http
-      traefik.port: 3579
-      traefik.frontend.rule: Host:ombi.${DOMAINNAME}
-      traefik.frontend.headers.SSLHost: ombi.${DOMAINNAME}
-      traefik.docker.network: t1_proxy
-      traefik.frontend.passHostHeader: "true"
-      traefik.frontend.headers.SSLForceHost: "true"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.headers.browserXSSFilter: "true"
-      traefik.frontend.headers.contentTypeNosniff: "true"
-      traefik.frontend.headers.forceSTSHeader: "true"
-      traefik.frontend.headers.STSSeconds: 315360000
-      traefik.frontend.headers.STSIncludeSubdomains: "true"
-      traefik.frontend.headers.STSPreload: "true"
-      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
-      traefik.frontend.auth.forward.address: "http://oauth:4181"
-      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-      traefik.frontend.auth.forward.trustForwardHeader: "true"
 
 # PhotoShow - Image Gallery
   photoshow:
@@ -1702,54 +1702,6 @@ services:
     hostname: guacd
     restart: unless-stopped
 
-# StatPing - Status Page & Monitoring Server
-  statping:
-    image: hunterlong/statping
-    container_name: statping
-    hostname: statping
-    restart: unless-stopped
-    networks:
-      - t1_proxy
-      - default
-    ports:
-      - "${STATPING_PORT}:8080"
-    volumes:
-      - ${USERDIR}/docker/statping:/app
-    environment:
-      VIRTUAL_HOST: localhost
-      VIRTUAL_PORT: 8080
-      DB_CONN: postgres
-      DB_HOST: postgres
-      DB_USER: ${STATPING_DB_USER}
-      DB_PASS: ${STATPING_DB_PASS}
-      DB_DATABASE: ${STATPING_DB}
-      IS_DOCKER: "true"
-      DISABLE_LOGS: "false"
-      NAME: StatPing
-      DESCRIPTION: Monitor web services
-    labels:
-      traefik.enable: "true"
-      traefik.backend: statping
-      traefik.protocol: http
-      traefik.port: 8080
-      traefik.frontend.rule: "Host:statping.${DOMAINNAME}"
-      traefik.frontend.headers.SSLHost: statping.${DOMAINNAME}
-      traefik.docker.network: t1_proxy
-      traefik.frontend.passHostHeader: "true"
-      traefik.frontend.headers.SSLForceHost: "true"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.headers.browserXSSFilter: "true"
-      traefik.frontend.headers.contentTypeNosniff: "true"
-      traefik.frontend.headers.forceSTSHeader: "true"
-      traefik.frontend.headers.STSSeconds: 315360000
-      traefik.frontend.headers.STSIncludeSubdomains: "true"
-      traefik.frontend.headers.STSPreload: "true"
-      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
-#      traefik.frontend.auth.forward.address: "http://oauth:4181"
-#      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-#      traefik.frontend.auth.forward.trustForwardHeader: "true"
-
 # Dozzle - Real-time Docker Log Viewer
   dozzle:
     image: amir20/dozzle:latest
@@ -1829,6 +1781,54 @@ services:
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
       traefik.frontend.auth.forward.trustForwardHeader: "true"
+
+# StatPing - Status Page & Monitoring Server
+  statping:
+    image: hunterlong/statping
+    container_name: statping
+    hostname: statping
+    restart: unless-stopped
+    networks:
+      - t1_proxy
+      - default
+    ports:
+      - "${STATPING_PORT}:8080"
+    volumes:
+      - ${USERDIR}/docker/statping:/app
+    environment:
+      VIRTUAL_HOST: localhost
+      VIRTUAL_PORT: 8080
+      DB_CONN: postgres
+      DB_HOST: postgres
+      DB_USER: ${STATPING_DB_USER}
+      DB_PASS: ${STATPING_DB_PASS}
+      DB_DATABASE: ${STATPING_DB}
+      IS_DOCKER: "true"
+      DISABLE_LOGS: "false"
+      NAME: StatPing
+      DESCRIPTION: Monitor web services
+    labels:
+      traefik.enable: "true"
+      traefik.backend: statping
+      traefik.protocol: http
+      traefik.port: 8080
+      traefik.frontend.rule: "Host:statping.${DOMAINNAME}"
+      traefik.frontend.headers.SSLHost: statping.${DOMAINNAME}
+      traefik.docker.network: t1_proxy
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.headers.SSLForceHost: "true"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.headers.browserXSSFilter: "true"
+      traefik.frontend.headers.contentTypeNosniff: "true"
+      traefik.frontend.headers.forceSTSHeader: "true"
+      traefik.frontend.headers.STSSeconds: 315360000
+      traefik.frontend.headers.STSIncludeSubdomains: "true"
+      traefik.frontend.headers.STSPreload: "true"
+      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
+      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+#      traefik.frontend.auth.forward.address: "http://oauth:4181"
+#      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+#      traefik.frontend.auth.forward.trustForwardHeader: "true"
 
 # SmokePing - Network latency Monitoring
   smokeping:
