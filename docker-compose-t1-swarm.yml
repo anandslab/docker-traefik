@@ -62,7 +62,7 @@ services:
       - ${USERDIR}/docker/shared:/shared
       #- ${USERDIR}/docker/traefik1-swarm/traefik.log:/traefik.log
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -75,7 +75,7 @@ services:
         max_attempts: 5
       labels:
         traefik.enable: "true"
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.backend: traefik
         traefik.protocol: http
         traefik.port: 8080
@@ -140,7 +140,7 @@ services:
       - ${USERDIR}/docker/unifi:/config
       - ${USERDIR}/docker/shared:/shared
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -188,7 +188,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -201,7 +201,7 @@ services:
         traefik.protocol: http
         traefik.frontend.priority: 1
         traefik.backend: heimdall
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
         traefik.frontend.headers.browserXSSFilter: "true"
@@ -237,7 +237,7 @@ services:
       - MYSQL_USER=${GUAC_MYSQL_USER}
       - MYSQL_PASSWORD=${GUAC_MYSQL_PASSWORD}
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -250,7 +250,7 @@ services:
         traefik.protocol: http
         traefik.frontend.priority: 1
         traefik.backend: guacamole
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
         traefik.frontend.headers.browserXSSFilter: "true"
@@ -289,7 +289,7 @@ services:
 #      - ${USERDIR}/docker/phpmyadmin:/etc/phpmyadmin
 #      - ${USERDIR}/docker/shared:/shared
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -302,7 +302,7 @@ services:
         traefik.protocol: http
         traefik.frontend.priority: 1
         traefik.backend: phpmyadmin
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
         traefik.frontend.headers.browserXSSFilter: "true"
@@ -337,7 +337,7 @@ services:
       - "8086:8086"
       - "8083:8083"
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -364,7 +364,7 @@ services:
 #    env_file:
 #      - ${USERDIR}/docker/env/env.grafana
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -377,7 +377,7 @@ services:
         traefik.protocol: http
         traefik.frontend.priority: 1
         traefik.backend: grafana
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
         traefik.frontend.headers.browserXSSFilter: "true"
@@ -420,7 +420,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -464,7 +464,7 @@ services:
       - MYSQL_ROOT=${USER}
 #    shm_size: 4096m
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -477,7 +477,7 @@ services:
         traefik.protocol: http
         traefik.frontend.priority: 1
         traefik.backend: zoneminder
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
         traefik.frontend.headers.browserXSSFilter: "true"
@@ -518,7 +518,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -531,7 +531,7 @@ services:
         traefik.protocol: http
         traefik.frontend.priority: 1
         traefik.backend: sabnzbd
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
         traefik.frontend.headers.browserXSSFilter: "true"
@@ -572,7 +572,7 @@ services:
       - UMASK_SET=002
       - WEBUI_PORT=8168
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -585,7 +585,7 @@ services:
         traefik.protocol: http
         traefik.frontend.priority: 1
         traefik.backend: qbittorrent
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
         traefik.frontend.headers.browserXSSFilter: "true"
@@ -628,7 +628,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -641,7 +641,7 @@ services:
         traefik.protocol: http
         traefik.frontend.priority: 1
         traefik.backend: radarr
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
         traefik.frontend.headers.browserXSSFilter: "true"
@@ -683,7 +683,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -696,7 +696,7 @@ services:
         traefik.protocol: http
         traefik.frontend.priority: 1
         traefik.backend: sonarr
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
         traefik.frontend.headers.browserXSSFilter: "true"
@@ -735,7 +735,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -748,7 +748,7 @@ services:
         traefik.protocol: http
         traefik.frontend.priority: 1
         traefik.backend: lidarr
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
         traefik.frontend.headers.browserXSSFilter: "true"
@@ -787,7 +787,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -800,7 +800,7 @@ services:
         traefik.protocol: http
         traefik.frontend.priority: 1
         traefik.backend: jackett
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
         traefik.frontend.headers.browserXSSFilter: "true"
@@ -837,7 +837,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ} 
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -850,7 +850,7 @@ services:
         traefik.protocol: http
         traefik.frontend.priority: 1
         traefik.backend: hydra
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
         traefik.frontend.headers.browserXSSFilter: "true"
@@ -894,7 +894,7 @@ services:
       - UID=${PUID}
       - GID=${PGID}
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -907,7 +907,7 @@ services:
         traefik.protocol: http
         traefik.frontend.priority: 1
         traefik.backend: embyms
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
         traefik.frontend.headers.browserXSSFilter: "true"
@@ -944,7 +944,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -957,7 +957,7 @@ services:
         traefik.protocol: http
         traefik.frontend.priority: 1
         traefik.backend: tautulli
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
         traefik.frontend.headers.browserXSSFilter: "true"
@@ -994,7 +994,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -1007,7 +1007,7 @@ services:
         traefik.protocol: http
         traefik.frontend.priority: 1
         traefik.backend: bazarr
-        traefik.docker.network: traefik
+        traefik.docker.network: t1s_proxy
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
         traefik.frontend.headers.browserXSSFilter: "true"
@@ -1047,7 +1047,7 @@ services:
     hostname: guacd
     image: guacamole/guacd
     networks:
-      - traefik
+      - t1s_proxy
     deploy:
       mode: replicated
       replicas: 1
@@ -1063,6 +1063,6 @@ services:
 
 ########################### NETWORKS ############################
 networks:
-  traefik:
-    name: traefik
+  t1s_proxy:
+    name: t1s_proxy
     external: true

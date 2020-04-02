@@ -4,9 +4,9 @@ version: "3.7"
 
 ########################### NETWORKS
 networks:
-  traefik_proxy:
+  t1_proxy:
     external:
-      name: traefik_proxy
+      name: t1_proxy
   default:
     driver: bridge
 
@@ -20,7 +20,7 @@ services:
     hostname: monitorr
     restart: unless-stopped
     networks:
-      - traefik_proxy
+      - t1_proxy
 #    ports:
 #      - "${MONITORR_PORT}:80"
     volumes:
@@ -36,7 +36,7 @@ services:
       traefik.port: 80
       traefik.frontend.rule: Host:monitorr.${DOMAINNAME}
       traefik.frontend.headers.SSLHost: monitorr.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
+      traefik.docker.network: t1_proxy
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.headers.SSLForceHost: "true"
       traefik.frontend.headers.SSLRedirect: "true"
@@ -60,7 +60,7 @@ services:
     container_name: varken
     restart: unless-stopped
     networks:
-      - traefik_proxy
+      - t1_proxy
       - default
     volumes:
       - ${USERDIR}/docker/varken:/config
@@ -145,7 +145,7 @@ services:
     hostname: traefik-home
     restart: unless-stopped
     networks:
-      - traefik_proxy
+      - t1_proxy
 #    ports:
 #     - "${SMOKEPING_PORT}:80"
     volumes:
@@ -160,7 +160,7 @@ services:
       traefik.port: 80
       traefik.frontend.rule: Host:home.${DOMAINNAME}
       traefik.frontend.headers.SSLHost: home.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
+      traefik.docker.network: t1_proxy
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.headers.SSLForceHost: "true"
       traefik.frontend.headers.SSLRedirect: "true"
@@ -198,7 +198,7 @@ services:
     restart: unless-stopped
 #    network_mode: host
     networks:
-      - traefik_proxy
+      - t1_proxy
       - default
     ports:
       - "34400:34400"
@@ -220,7 +220,7 @@ services:
       traefik.port: 34400
       traefik.frontend.rule: Host:xteve.${DOMAINNAME}
       traefik.frontend.headers.SSLHost: xteve.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
+      traefik.docker.network: t1_proxy
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.headers.SSLForceHost: "true"
       traefik.frontend.headers.SSLRedirect: "true"
@@ -244,7 +244,7 @@ services:
     hostname: mqttweb
     restart: unless-stopped
     networks:
-      - traefik_proxy
+      - t1_proxy
 #    ports:
 #      - "80:80"
     environment:
@@ -256,7 +256,7 @@ services:
       traefik.port: 80
       traefik.frontend.rule: Host:mqttweb.${DOMAINNAME}
       traefik.frontend.headers.SSLHost: mqttweb.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
+      traefik.docker.network: t1_proxy
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.headers.SSLForceHost: "true"
       traefik.frontend.headers.SSLRedirect: "true"
@@ -280,7 +280,7 @@ services:
     hostname: piwigo
     restart: unless-stopped
     networks:
-      - traefik_proxy
+      - t1_proxy
     ports:
       - "${PIWIGO_PORT}:80"
     volumes:
@@ -296,7 +296,7 @@ services:
       traefik.port: 80
       traefik.frontend.rule: Host:piwigo.${DOMAINNAME}
       traefik.frontend.headers.SSLHost: piwigo.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
+      traefik.docker.network: t1_proxy
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.headers.SSLForceHost: "true"
       traefik.frontend.headers.SSLRedirect: "true"
@@ -308,6 +308,44 @@ services:
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
 #      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
+      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      traefik.frontend.auth.forward.address: "http://oauth:4181"
+      traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
+      traefik.frontend.auth.forward.trustForwardHeader: "true"
+
+# Logarr - Log Management
+  logarr:
+    image: monitorr/logarr
+    container_name: logarr
+    hostname: logarr
+    restart: unless-stopped
+    networks:
+      - t1_proxy
+#    ports:
+#     - "${LOGARR_PORT}:80"
+    volumes:
+      - ${USERDIR}/docker/logarr/config:/config
+      - ${USERDIR}/docker/logarr/logs:/var/log/logarrlogs
+    environment:
+      TZ: ${TZ}
+    labels:
+      traefik.enable: "true"
+      traefik.backend: logarr
+      traefik.protocol: http
+      traefik.port: 80
+      traefik.frontend.rule: Host:logarr.${DOMAINNAME}
+      traefik.frontend.headers.SSLHost: logarr.${DOMAINNAME}
+      traefik.docker.network: t1_proxy
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.headers.SSLForceHost: "true"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.headers.browserXSSFilter: "true"
+      traefik.frontend.headers.contentTypeNosniff: "true"
+      traefik.frontend.headers.forceSTSHeader: "true"
+      traefik.frontend.headers.STSSeconds: 315360000
+      traefik.frontend.headers.STSIncludeSubdomains: "true"
+      traefik.frontend.headers.STSPreload: "true"
+      traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
       traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User

@@ -1,13 +1,5 @@
 version: "3.7"
 
-########################### NETWORKS
-networks:
-  traefik_proxy:
-    external:
-      name: traefik_proxy
-  default:
-    driver: bridge
-
 ########################### SERVICES
 services:
 

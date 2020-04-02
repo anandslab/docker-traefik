@@ -3,7 +3,7 @@
       entryPoints = ["https"]
       rule = "Host(`hassio.example.com`)"
       service = "hassio-svc"
-      middlewares = ["noauth-chain"]
+      middlewares = ["chain-no-auth"]
       [http.routers.hassio-rtr.tls]
         certresolver = "dns-cloudflare"
 

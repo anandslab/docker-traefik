@@ -382,7 +382,7 @@ services:
     restart: always
     networks:
       - default
-#      - traefik_proxy:
+#      - t2_proxy:
 #          ipv4_address: 192.168.50.250 
     ports:
       - "3306:3306"
@@ -803,7 +803,7 @@ services:
     image: linuxserver/airsonic:latest
     restart: unless-stopped
     networks:
-      - traefik_proxy
+      - t2_proxy
     ports:
       - "${AIRSONIC_PORT}:4040"
     volumes:
@@ -917,7 +917,7 @@ services:
     hostname: embyms
     restart: unless-stopped
     networks:
-      - traefik_proxy
+      - t2_proxy
     ports:
       - "${EMBY_PORT}:8096/tcp"
       - "8921:8920/tcp"
@@ -995,7 +995,7 @@ services:
     restart: unless-stopped
 #    network_mode: host
     networks:
-      - traefik_proxy
+      - t2_proxy
       - default
     ports:
       - "34400:34400"
