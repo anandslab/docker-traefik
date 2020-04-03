@@ -1214,6 +1214,8 @@ services:
 #    ports:
 #      - "${FILEBOT_PORT}:5800"
     volumes:
+      # A *.psm license file is required in /config
+      # https://github.com/jlesage/docker-filebot#installing-a-license
       - ${USERDIR}/docker/filebot:/config
       - /media:/nas
       - ${USERDIR}/Downloads:/downloads
@@ -1223,7 +1225,6 @@ services:
       TZ: ${TZ}
       UMASK: 002
       KEEP_APP_RUNNING: 1
-      CLEAN_TMP_DIR: 1
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
@@ -1298,8 +1299,8 @@ services:
       USER_ID: ${PUID}
       GROUP_ID: ${PGID}
       TZ: ${TZ}
-      UMASK_SET: 002
-      KEEP_APP_RUNNIN: 1
+      UMASK: 002
+      KEEP_APP_RUNNING: 1
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
