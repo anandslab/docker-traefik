@@ -1,5 +1,5 @@
 [http.middlewares]
-  [http.middlewares.basic-auth.basicAuth]
+  [http.middlewares.middlewares-basic-auth.basicAuth]
 #    users = [
 #      "user:$apsdfswWvC/6.$E3FtsfTntPC0wVJ7IUVtX1",
 #    ]

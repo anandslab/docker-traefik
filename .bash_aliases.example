@@ -13,7 +13,7 @@ alias docdf='docker system df'
 
 # STACK UP AND DOWN
 alias dc1down='cd /home/USER/docker ; dcdown1v ; dcdown1'
-alias dc1up='cd /home/USER/docker ; docker network create traefik_proxy ; dcrec1 plexms ; dcup1 ; dcup1v'
+alias dc1up='cd /home/USER/docker ; docker network create t1_proxy ; dcrec1 plexms ; dcup1 ; dcup1v'
 alias dc2down='cd /home/USER/docker ; dcdown2v ; dcdown2'
 alias dc2up='cd /home/USER/docker ; docker network create --gateway 192.168.90.1 --subnet 192.168.90.0/24 t2_proxy ; dcrec2 plexms ; dcup2 ; dcup2v'
 

@@ -1,5 +1,5 @@
 [http.middlewares]
-  [http.middlewares.oauth.forwardAuth]
+  [http.middlewares.middlewares-oauth.forwardAuth]
     address = "http://oauth:4181" # Make sure you have the OAuth service in docker-compose.yml
     trustForwardHeader = true
     authResponseHeaders = ["X-Forwarded-User"]

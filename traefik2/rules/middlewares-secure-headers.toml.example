@@ -11,7 +11,7 @@
 # CAUTION: Any headers defined in docker-compose (yml) will OVERWRITE ALL of the headers defined below.
 
 [http.middlewares]
-  [http.middlewares.secure-headers.headers]
+  [http.middlewares.middlewares-secure-headers.headers]
     accessControlAllowMethods= ["GET", "OPTIONS", "PUT"]
     accessControlMaxAge = 100
     hostsProxyHeaders = ["X-Forwarded-Host"]
@@ -29,6 +29,6 @@
     referrerPolicy = "same-origin" 
 #   Setting contentSecurityPolicy is more secure but it can break things. Proper auth will reduce the risk.
     featurePolicy = "camera 'none'; geolocation 'none'; microphone 'none'; payment 'none'; usb 'none'; vr 'none';" 
-    [http.middlewares.secure-headers.headers.customResponseHeaders]
+    [http.middlewares.middlewares-secure-headers.headers.customResponseHeaders]
       X-Robots-Tag = "none,noarchive,nosnippet,notranslate,noimageindex,"
       server = ""
