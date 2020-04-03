@@ -1214,6 +1214,8 @@ services:
 #    ports:
 #      - "${FILEBOT_PORT}:5800"
     volumes:
+      # A *.psm license file is required in /config
+      # https://github.com/jlesage/docker-filebot#installing-a-license
       - ${USERDIR}/docker/filebot:/config
       - /media:/nas
       - ${USERDIR}/Downloads:/downloads
