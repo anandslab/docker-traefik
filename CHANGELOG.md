@@ -1,7 +1,7 @@
 # Changelog
 ## Planned: 
 * Replace or remove Transmission/qBittorrent (duplicate functionality)
-* Add LazyLibrarian, Calibre, Caliber-web, projectsend, cloudflare ddns, traefik cert extractor, embystat, nextcloud, photoprism, nut-upsd, HealthChecks, FileRun, smtp-to-telegram, cloud commander
+* Add LazyLibrarian, Calibre, Caliber-web, projectsend, cloudflare ddns, traefik cert extractor, embystat, nextcloud, photoprism, nut-upsd, HealthChecks, FileRun, smtp-to-telegram, cloud commander, fail2ban
 * Replace VSCode Server with linuxserver/code-server
 
 ## March 31, 2020

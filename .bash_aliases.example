@@ -1,5 +1,6 @@
 # DOCKER
 alias dstopcont='sudo docker stop $(docker ps -a -q)'
+alias dstopall='sudo docker stop $(sudo docker ps -aq)'
 alias drmcont='sudo docker rm $(docker ps -a -q)'
 alias dvolprune='sudo docker volume prune'
 alias dsysprune='sudo docker system prune -a'
