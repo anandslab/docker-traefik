@@ -1,3 +1,0 @@
-[http.middlewares]
-  [http.middlewares.chain-oauth.chain]
-    middlewares = [ "middlewares-rate-limit", "middlewares-secure-headers", "middlewares-oauth"]

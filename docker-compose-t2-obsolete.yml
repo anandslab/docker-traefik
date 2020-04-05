@@ -13,3 +13,111 @@ networks:
 ########################### SERVICES
 services:
 
+# MiFlora MQTT Daemon - BT to MQTT Daemon for MiFlora Sensors
+  miflora:
+    image: raymondmm/miflora-mqtt
+    container_name: miflora-mqtt
+    environment:
+      - TZ=${TZ}
+    network_mode: host
+#    user: "0"    
+    volumes:
+      - ${USERDIR}/docker/miflora-mqtt/config:/config
+    restart: unless-stopped
+
+# Varken - Monitor Plex, Sonarr, Radarr, and Other Data
+  varken:
+    image: boerderij/varken
+    hostname: varken
+    container_name: varken
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+      - default
+    volumes:
+      - ${USERDIR}/docker/varken:/config
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+      VRKN_GLOBAL_SONARR_SERVER_IDS: 1
+      VRKN_GLOBAL_RADARR_SERVER_IDS: 1
+      VRKN_GLOBAL_LIDARR_SERVER_IDS: "false"
+      VRKN_GLOBAL_TAUTULLI_SERVER_IDS: 1
+      VRKN_GLOBAL_OMBI_SERVER_IDS: "false"
+      VRKN_GLOBAL_SICKCHILL_SERVER_IDS: "false"
+      VRKN_GLOBAL_UNIFI_SERVER_IDS: 1
+      VRKN_INFLUXDB_URL: ${SERVER_IP}
+      VRKN_INFLUXDB_PORT: 8086
+      VRKN_INFLUXDB_SSL: "false"
+      VRKN_INFLUXDB_VERIFY_SSL: "false"
+      VRKN_INFLUXDB_USERNAME: ${VARKEN_USER}
+      VRKN_INFLUXDB_PASSWORD: ${VARKEN_PASS}
+      VRKN_TAUTULLI_1_URL: ${SERVER_IP}:${TAUTULLI_PORT}
+      VRKN_TAUTULLI_1_FALLBACK_IP: 1.1.1.1
+      VRKN_TAUTULLI_1_APIKEY: ${TAUTULLI_API_KEY}
+      VRKN_TAUTULLI_1_SSL: "false"
+      VRKN_TAUTULLI_1_VERIFY_SSL: "false"
+      VRKN_TAUTULLI_1_GET_ACTIVITY: "true"
+      VRKN_TAUTULLI_1_GET_ACTIVITY_RUN_SECONDS: 30
+      VRKN_TAUTULLI_1_GET_STATS: "true"
+      VRKN_TAUTULLI_1_GET_STATS_RUN_SECONDS: 3600
+      VRKN_SONARR_1_URL: ${SERVER_IP}:${SONARR_PORT}
+      VRKN_SONARR_1_APIKEY: ${SONARR_API_KEY}
+      VRKN_SONARR_1_SSL: "false"
+      VRKN_SONARR_1_VERIFY_SSL: "false"
+      VRKN_SONARR_1_MISSING_DAYS: 7
+      VRKN_SONARR_1_MISSING_DAYS_RUN_SECONDS: 300
+      VRKN_SONARR_1_FUTURE_DAYS: 1
+      VRKN_SONARR_1_FUTURE_DAYS_RUN_SECONDS: 300
+      VRKN_SONARR_1_QUEUE: "true"
+      VRKN_SONARR_1_QUEUE_RUN_SECONDS: 300
+      VRKN_RADARR_1_URL: ${SERVER_IP}:${RADARR_PORT}
+      VRKN_RADARR_1_APIKEY: ${RADARR_API_KEY}
+      VRKN_RADARR_1_SSL: "false"
+      VRKN_RADARR_1_VERIFY_SSL: "false"
+      VRKN_RADARR_1_QUEUE: "true"
+      VRKN_RADARR_1_QUEUE_RUN_SECONDS: 300
+      VRKN_RADARR_1_GET_MISSING: "true"
+      VRKN_RADARR_1_GET_MISSING_RUN_SECONDS: 300
+      VRKN_UNIFI_1_URL: ${UNIFI_HOST}
+      VRKN_UNIFI_1_USERNAME: ${UNIFI_USER}
+      VRKN_UNIFI_1_PASSWORD: ${UNIFI_PASS}
+      VRKN_UNIFI_1_SITE: default
+      VRKN_UNIFI_1_USG_NAME: USG
+      VRKN_UNIFI_1_SSL: "true"
+      VRKN_UNIFI_1_VERIFY_SSL: "false"
+      VRKN_UNIFI_1_GET_USG_STATS_RUN_SECONDS: 300
+
+# xTeve - IPTV proxy for Plex
+  xteve:
+    image: alturismo/xteve
+    container_name: xteve
+    restart: unless-stopped
+#    network_mode: host
+    networks:
+      - t2_proxy
+    ports:
+      - "34400:34400"
+      - "1901:1900"
+#    user: "0"
+#    logging:
+#      options:
+#        max-size: "10m"
+#        max-files: 3
+    environment:
+      TZ: $TZ
+    volumes:
+      - $USERDIR/docker/xteve:/config:rw
+      - /dev/shm:/tmp/xteve
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.xteve-rtr.entrypoints=https"
+      - "traefik.http.routers.xteve-rtr.rule=Host(`xteve.$DOMAINNAME`)"
+      - "traefik.http.routers.xteve-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.xteve-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.xteve-rtr.service=xteve-svc"
+      - "traefik.http.services.xteve-svc.loadbalancer.server.port=34400"

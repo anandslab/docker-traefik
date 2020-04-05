@@ -1,0 +1,56 @@
+[http.middlewares]
+  [http.middlewares.middlewares-rate-limit]
+    [http.middlewares.middlewares-rate-limit.rateLimit]
+      average = 100
+      burst = 50
+
+  [http.middlewares.basic-auth]
+    [http.middlewares.middlewares-basic-auth.basicAuth]
+#      users = [
+#        "user:$apsdfswWvC/6.$E3FtsfTntPC0wVJ7IUVtX1",
+#      ]
+      realm = "Traefik2 Basic Auth"
+      usersFile = "/shared/.htpasswd" #be sure to mount the volume through docker-compose.yml
+
+  [http.middlewares.middlewares-oauth]
+    [http.middlewares.middlewares-oauth.forwardAuth]
+      address = "http://oauth:4181" # Make sure you have the OAuth service in docker-compose.yml
+      trustForwardHeader = true
+      authResponseHeaders = ["X-Forwarded-User"]
+
+# Available Header Options: 
+#####https://github.com/unrolled/secure#available-options
+#####https://docs.traefik.io/middlewares/headers/
+# A great resource for these headers is your preferred browser's docs. Firefox: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
+# https://developers.google.com/search/reference/robots_meta_tag
+# https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Clickjacking_Defense_Cheat_Sheet.md
+# CSP for VNC: https://github.com/cockpit-project/cockpit/pull/5932
+# Check headers here, don't include OAuth when checking headers, otherwise you are checking google's headers: https://securityheaders.com
+# or check them here: https://observatory.mozilla.org/
+
+# CAUTION: Any headers defined in docker-compose (yml) will OVERWRITE ALL of the headers defined below.
+
+  [http.middlewares.middlewares-secure-headers]
+    [http.middlewares.middlewares-secure-headers.headers]
+      accessControlAllowMethods= ["GET", "OPTIONS", "PUT"]
+      accessControlMaxAge = 100
+      hostsProxyHeaders = ["X-Forwarded-Host"]
+      sslRedirect = true
+      stsSeconds = 63072000
+      stsIncludeSubdomains = true
+      stsPreload = true
+      forceSTSHeader = true
+#      frameDeny = true #overwritten by customFrameOptionsValue
+      customFrameOptionsValue = "allow-from https:example.com" #CSP takes care of this but may be needed for organizr. 
+      contentTypeNosniff = true 
+      browserXssFilter = true 
+#      sslForceHost = true # add sslHost and all of the 
+#      sslHost = "example.com"
+      referrerPolicy = "same-origin" 
+#      Setting contentSecurityPolicy is more secure but it can break things. Proper auth will reduce the risk.
+#      the below line also breaks some apps due to 'none' - sonarr, radarr, etc.
+#      contentSecurityPolicy = "frame-ancestors '*.example.com:*';object-src 'none';script-src 'none';"
+      featurePolicy = "camera 'none'; geolocation 'none'; microphone 'none'; payment 'none'; usb 'none'; vr 'none';" 
+      [http.middlewares.middlewares-secure-headers.headers.customResponseHeaders]
+        X-Robots-Tag = "none,noarchive,nosnippet,notranslate,noimageindex,"
+        server = ""
