@@ -4,7 +4,7 @@
       average = 100
       burst = 50
 
-  [http.middlewares.basic-auth]
+  [http.middlewares.middlewares-basic-auth]
     [http.middlewares.middlewares-basic-auth.basicAuth]
 #      users = [
 #        "user:$apsdfswWvC/6.$E3FtsfTntPC0wVJ7IUVtX1",
