@@ -19,7 +19,7 @@ services:
 
 ############################# FRONTENDS
 
-# Traefik - Reverse Proxy
+# Traefik 2 - Reverse Proxy
 # Touch (create empty files) traefik.log and acme/acme.json. Set acme.json permissions to 600. 
 # touch $USERDIR/docker/traefik2/acme/acme.json
 # chmod 600 $USERDIR/docker/traefik2/acme/acme.json
@@ -38,7 +38,7 @@ services:
       - --entryPoints.traefik.address=:8080
       - --api=true
 #      - --api.insecure=true
-#      - --serversTransport.insecureSkipVerify=true
+      - --serversTransport.insecureSkipVerify=true
       - --log=true
       - --log.level=DEBUG # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
       - --accessLog=true
@@ -104,32 +104,10 @@ services:
       - "traefik.http.routers.traefik-rtr.tls.domains[0].sans=*.$DOMAINNAME"
 #      - "traefik.http.routers.traefik-rtr.tls.domains[1].main=$DOMAIN" # Pulls main cert for second domain
 #      - "traefik.http.routers.traefik-rtr.tls.domains[1].sans=*.$DOMAIN" # Pulls wildcard cert for second domain
-      ## Middlewares
-      - "traefik.http.routers.traefik-rtr.middlewares=traefik-headers,middlewares-rate-limit@file" #,middlewares-rate-limit@file,rate-limit@file,oauth@file
-      - "traefik.http.middlewares.traefik-headers.headers.accesscontrolallowmethods=GET, OPTIONS, PUT"
-      - "traefik.http.middlewares.traefik-headers.headers.accesscontrolalloworiginlist=https://$DOMAINNAME"
-      - "traefik.http.middlewares.traefik-headers.headers.accesscontrolmaxage=100"
-      - "traefik.http.middlewares.traefik-headers.headers.addvaryheader=true" 
-      - "traefik.http.middlewares.traefik-headers.headers.allowedhosts=traefik.$DOMAINNAME" 
-      - "traefik.http.middlewares.traefik-headers.headers.hostsproxyheaders=X-Forwarded-Host"
-      - "traefik.http.middlewares.traefik-headers.headers.sslredirect=true"
-      - "traefik.http.middlewares.traefik-headers.headers.sslhost=traefik.$DOMAINNAME" 
-      - "traefik.http.middlewares.traefik-headers.headers.sslforcehost=true"
-      - "traefik.http.middlewares.traefik-headers.headers.sslproxyheaders.X-Forwarded-Proto=https"
-      - "traefik.http.middlewares.traefik-headers.headers.stsseconds=63072000"
-      - "traefik.http.middlewares.traefik-headers.headers.stsincludesubdomains=true"
-      - "traefik.http.middlewares.traefik-headers.headers.stspreload=true"
-      - "traefik.http.middlewares.traefik-headers.headers.forcestsheader=true"
-      - "traefik.http.middlewares.traefik-headers.headers.framedeny=true"
-#      - "traefik.http.middlewares.traefik-headers.headers.customframeoptionsvalue=SAMEORIGIN" # This option overrides FrameDeny
-      - "traefik.http.middlewares.traefik-headers.headers.contenttypenosniff=true"
-      - "traefik.http.middlewares.traefik-headers.headers.browserxssfilter=true"
-#      - "traefik.http.middlewares.traefik-headers.headers.contentsecuritypolicy=frame-ancestors 'none'; object-src 'none'; base-uri 'none';"
-      - "traefik.http.middlewares.traefik-headers.headers.referrerpolicy=same-origin"
-      - "traefik.http.middlewares.traefik-headers.headers.featurepolicy=camera 'none'; geolocation 'none'; microphone 'none'; payment 'none'; usb 'none'; vr 'none';"
-      - "traefik.http.middlewares.traefik-headers.headers.customresponseheaders.X-Robots-Tag=none,noarchive,nosnippet,notranslate,noimageindex,"
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
+      ## Middlewares
+      - "traefik.http.routers.traefik-rtr.middlewares=chain-oauth@file"
 
 # Google OAuth - Single Sign On using OAuth 2.0
   # https://hub.docker.com/r/thomseddon/traefik-forward-auth

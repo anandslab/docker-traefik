@@ -1,9 +1,3 @@
-[http.middlewares]
-  [http.middlewares.middlewares-rate-limit]
-    [http.middlewares.middlewares-rate-limit.rateLimit]
-      average = 100
-      burst = 50
-
   [http.middlewares.middlewares-basic-auth]
     [http.middlewares.middlewares-basic-auth.basicAuth]
 #      users = [
@@ -12,11 +6,11 @@
       realm = "Traefik2 Basic Auth"
       usersFile = "/shared/.htpasswd" #be sure to mount the volume through docker-compose.yml
 
-  [http.middlewares.middlewares-oauth]
-    [http.middlewares.middlewares-oauth.forwardAuth]
-      address = "http://oauth:4181" # Make sure you have the OAuth service in docker-compose.yml
-      trustForwardHeader = true
-      authResponseHeaders = ["X-Forwarded-User"]
+[http.middlewares]
+  [http.middlewares.middlewares-rate-limit]
+    [http.middlewares.middlewares-rate-limit.rateLimit]
+      average = 100
+      burst = 50
 
 # Available Header Options: 
 #####https://github.com/unrolled/secure#available-options
@@ -54,3 +48,9 @@
       [http.middlewares.middlewares-secure-headers.headers.customResponseHeaders]
         X-Robots-Tag = "none,noarchive,nosnippet,notranslate,noimageindex,"
         server = ""
+
+  [http.middlewares.middlewares-oauth]
+    [http.middlewares.middlewares-oauth.forwardAuth]
+      address = "http://oauth:4181" # Make sure you have the OAuth service in docker-compose.yml
+      trustForwardHeader = true
+      authResponseHeaders = ["X-Forwarded-User"]
