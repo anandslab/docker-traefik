@@ -58,6 +58,7 @@ services:
       - --certificatesResolvers.dns-cloudflare.acme.email=$CLOUDFLARE_EMAIL
       - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
@@ -355,9 +356,9 @@ services:
     image: linuxserver/mariadb:latest
     restart: always
     networks:
-      - default
-#      - t2_proxy:
-#          ipv4_address: 192.168.90.250 
+#      - default
+      t2_proxy:
+        ipv4_address: 192.168.90.250 
     security_opt:
       - no-new-privileges:true
     ports:
