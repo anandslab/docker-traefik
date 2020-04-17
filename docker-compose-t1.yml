@@ -1,6 +1,6 @@
 version: "3.7"
 
-# GLOBAL NOTES
+# GLOBAL NOTE S
 # customFrameOptionsValue overrides traefik.frontend.headers.frameDeny="true"
 
 ########################### NETWORKS
