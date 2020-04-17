@@ -40,9 +40,9 @@ services:
 #      - --api.insecure=true
       - --serversTransport.insecureSkipVerify=true
       - --log=true
-      - --log.level=DEBUG # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --log.level=INFO # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
       - --accessLog=true
-      - --accessLog.filePath=/var/log/docker/traefik.log
+      - --accessLog.filePath=/traefik.log
       - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
       - --accessLog.filters.statusCodes=400-499
       - --providers.docker=true
@@ -84,7 +84,7 @@ services:
       - $USERDIR/docker/traefik2/rules:/rules # file provider directory
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - $USERDIR/docker/traefik2/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
-      - $USERDIR/docker/traefik2/traefik.log:/var/log/docker/traefik.log # for fail2ban - make sure to touch file before starting container
+      - $USERDIR/docker/traefik2/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
       - $USERDIR/docker/shared:/shared
     environment:
       - CF_API_EMAIL=$CLOUDFLARE_EMAIL
