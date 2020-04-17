@@ -284,7 +284,7 @@ services:
 # Create mosquitto.conf, passwd, mosquitto.log files  and set permissions to 775 user:docker
 # dexec mosquitto /bin/sh -> mosquitto_passwd -b /mosquitto/config/passwd username passwd
   mosquitto:
-    image: eclipse-mosquitto:lastest
+    image: eclipse-mosquitto:latest
     container_name: mosquitto
     restart: unless-stopped
     ports:
