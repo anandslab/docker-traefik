@@ -4,9 +4,9 @@ version: "3.7"
 
 ########################### NETWORKS
 networks:
-  traefik_proxy:
+  t2_proxy:
     external:
-      name: traefik_proxy
+      name: t2_proxy
   default:
     driver: bridge
 
@@ -28,12 +28,10 @@ services:
 # Varken - Monitor Plex, Sonarr, Radarr, and Other Data
   varken:
     image: boerderij/varken
-    hostname: varken
     container_name: varken
     restart: unless-stopped
     networks:
       - t2_proxy
-      - default
     volumes:
       - ${USERDIR}/docker/varken:/config
     environment:
@@ -116,6 +114,7 @@ services:
       - "traefik.http.routers.xteve-rtr.entrypoints=https"
       - "traefik.http.routers.xteve-rtr.rule=Host(`xteve.$DOMAINNAME`)"
       - "traefik.http.routers.xteve-rtr.tls=true"
+      - "traefik.http.routers.xteve-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
       - "traefik.http.routers.xteve-rtr.middlewares=chain-oauth@file"
       ## HTTP Services

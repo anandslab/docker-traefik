@@ -1,5 +1,19 @@
 version: "3.7"
 
+# GLOBAL NOTES
+# customFrameOptionsValue overrides traefik.frontend.headers.frameDeny="true"
+
+########################### NETWORKS
+# Create t1_proxy network
+# docker network create t1_proxy
+
+networks:
+  t1_proxy:
+    external:
+      name: t1_proxy
+  default:
+    driver: bridge
+
 ########################### SERVICES
 services:
 
@@ -13,11 +27,9 @@ services:
     restart: always
     network_mode: container:transmission-vpn
 #    networks:
-#      - traefik_proxy
+#      - t1_proxy
 #    ports:
 #      - "${QBITTORRENT_PORT}:8168"
-#    depends_on:
-#      -   transmission-vpn
     volumes:
       - ${USERDIR}/docker/qbittorrent:/config
       - ${USERDIR}/Downloads:/downloads
