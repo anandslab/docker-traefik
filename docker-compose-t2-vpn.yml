@@ -47,14 +47,14 @@ services:
     security_opt:
       - no-new-privileges:true
 #    ports:
-#      - "${QBITTORRENT_PORT}:8168"
+#      - "$QBITTORRENT_PORT:8168"
     volumes:
-      - ${USERDIR}/docker/qbittorrent:/config
-      - ${USERDIR}/Downloads:/downloads
+      - $USERDIR/docker/qbittorrent:/config
+      - $USERDIR/Downloads:/downloads
     environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
-      TZ: ${TZ}
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
       UMASK_SET: 002
       WEBUI_PORT: 8168
     labels:
