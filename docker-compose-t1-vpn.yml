@@ -3,16 +3,6 @@ version: "3.7"
 # GLOBAL NOTES
 # customFrameOptionsValue overrides traefik.frontend.headers.frameDeny="true"
 
-########################### NETWORKS
-# Create t1_proxy network
-# docker network create t1_proxy
-
-networks:
-  t1_proxy:
-    external:
-      name: t1_proxy
-  default:
-    driver: bridge
 
 ########################### SERVICES
 services:
@@ -26,8 +16,6 @@ services:
     container_name: qbittorrent
     restart: always
     network_mode: container:transmission-vpn
-#    networks:
-#      - t1_proxy
 #    ports:
 #      - "${QBITTORRENT_PORT}:8168"
     volumes:
@@ -47,7 +35,7 @@ services:
       traefik.frontend.rule: Host:qbit.${DOMAINNAME}
 #     traefik.frontend.rule: Host:${DOMAINNAME}; PathPrefix: /qbittorrent
       traefik.frontend.headers.SSLHost: qbit.${DOMAINNAME}
-      traefik.docker.network: traefik_proxy
+      traefik.docker.network: t1_proxy
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.headers.SSLForceHost: "true"
       traefik.frontend.headers.SSLRedirect: "true"

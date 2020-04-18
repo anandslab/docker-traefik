@@ -1,13 +1,5 @@
 version: "3.7"
 
-########################### NETWORKS
-networks:
-  t2_proxy:
-    external:
-      name: t2_proxy
-  default:
-    driver: bridge
-
 ########################### SERVICES
 services:
 
@@ -19,8 +11,6 @@ services:
     image: linuxserver/jackett:latest
     container_name: jackett
     restart: always
-#    networks:
-#      - t2_proxy
     network_mode: container:transmission-vpn
     security_opt:
       - no-new-privileges:true
@@ -50,11 +40,9 @@ services:
 # qBittorrent - Torrent downloader
 # Needs trailing / if using PathPrefixStrip
   qbittorrent:
-    image: linuxserver/qbittorrent
+    image: linuxserver/qbittorrent:latest
     container_name: qbittorrent
     restart: always
-#    networks:
-#      - t2_proxy
     network_mode: container:transmission-vpn
     security_opt:
       - no-new-privileges:true
@@ -77,7 +65,7 @@ services:
       - "traefik.http.routers.qbittorrent-rtr.tls=true"
       - "traefik.http.routers.qbittorrent-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.qbittorrent-rtr.middlewares=noauth-chain@file"
+      - "traefik.http.routers.qbittorrent-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.qbittorrent-rtr.service=qbittorrent-svc"
       - "traefik.http.services.qbittorrent-svc.loadbalancer.server.port=8168"
