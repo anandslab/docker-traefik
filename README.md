@@ -1,33 +1,29 @@
 # Description
 This is the updated docker-compose repo of all the media and home server apps described in the following guides on our website:
 
-* Docker Media Server - [https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/)
-* Traefik Reverse Proxy - [https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/](https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/)
-* Docker with Google OAuth2 - [https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/](https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/)
+* Docker Media Server with Traefik 2 Reverse Proxy: [https://www.smarthomebeginner.com/traefik-2-docker-tutorial/](https://www.smarthomebeginner.com/traefik-2-docker-tutorial/)
+
+<STRONG>Old Posts:</STRONG>
+The following 3 posts have been combined and updated for Traefik v2 (linked above):
+* Docker Media Server without Reverse Proxy (- [https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/)
+* Docker Media Server with Traefik 1 Reverse Proxy - [https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/](https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/)
+* Docker with Google OAuth 2 - [https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/](https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/)
 
 ## A Note on Traefik 1 vs Traefik 2?
-<p><strong>Update (December 16, 2019):</strong> First draft of Traefik 2.1 setup pushed to the repository. At this point, it works for most of the apps. Still a lot to be figured out and optimized. Look for a detailed guide on our website in the coming days.</p>
+<strong>Update (April 19, 2020):</strong> We have switched from Traefik v1 to Traefik v2, which is now our default. Therefore, the setup for Traefik v1 will only receive minor security related updates (if any). If you are new, follow instructions for Traefik v2.
 
-### Traefik 1
+### Traefik 2 (ACTIVE)
+* docker-compose-t2.yml
+* docker-compose-t2-vpn.yml
+* docker-compose-t2-obsolete.yml (Apps that we do not use anymore)
+ 
+### Traefik 1 (NOT ACTIVELY MAINTAINED)
 * docker-compose-t1.yml
 * docker-compose-t1-vpn.yml
 * docker-compose-t1-obsolete.yml (Apps that we do not use anymore)
 
-### Traefik 1 - Docker Swarm Mode
+### Traefik 1 - Docker Swarm Mode (NOT ACTIVELY MAINTAINED)
 * docker-compose-t1-swarm.yml
-
-### Traefik 2
-* docker-compose-t2.yml
-* docker-compose-t2-vpn.yml
-* docker-compose-t2-obsolete.yml (Apps that we do not use anymore)
-
-<blockquote>
-<p>At this point we still prefer Traefik  1. As we move ours to Traefik 2, we will publish a new repository. </p>
-
-<p>Having said that, Traefik 1.7.16 (the final release in v1.x.x) still works great for the purposes of a media / home server stack. Traefik 2 is significantly different requiring a major rework of your files. Therefore, if you are already on Traefik 1, we do not see a need to upgrade to Traefik 2 at this point. </p>
-
-<p>If you are starting out, you may start with Traefik 2. However, documentation, community knowledge, and support for Traefik 2 is still quite limited at this time.</p>
-</blockquote>
 
 ## What apps are included in this stack?
 We will try to keep this repo up-to-date. For now, here are the apps currently included in our stack:
@@ -167,8 +163,3 @@ I use bash_aliases to simplify starting and stopping containers/stack. Included 
 * <strong>dcrestart1</strong> or <strong>dcrestart2</strong> - Restart a specific service
 * <strong>dclogs1</strong> or <strong>dclogs1v</strong> or <strong>dclogs2</strong> or <strong>dclogs2v</strong> - See real-time logs for the corresponding stack or service
 * <strong>dcpull1</strong> or <strong>dcpull1v</strong> or <strong>dcpull2</strong> or <strong>dcpull2v</strong> - Pull new images for the corresponding stack or service
-
-
-
-
-
