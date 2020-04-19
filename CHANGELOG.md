@@ -4,6 +4,9 @@
 * Add LazyLibrarian, Calibre, Caliber-web, projectsend, cloudflare ddns, traefik cert extractor, embystat, nextcloud, photoprism, nut-upsd, HealthChecks, FileRun, smtp-to-telegram, cloud commander, fail2ban
 * Replace VSCode Server with linuxserver/code-server
 
+## April 19, 2020 
+* Switched to Traefik 2.2 as default
+
 ## March 31, 2020
 * Added Ombi, PhotoShow
 * Moved Traefik-Home, MQTT Admin, xTeVe, Piwigo, MiFlora Daemon, xTeVe, Logarr to Obsolete list

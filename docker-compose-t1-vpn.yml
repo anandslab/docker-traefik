@@ -1,5 +1,7 @@
 version: "3.7"
 
+# DOCKER TRAEFIK 1 IS NO LONGER BEING MAINTAINED. CHECK INSTRUCTIONS FOR DOCKER TRAEFIK V2 SETUP.
+
 # GLOBAL NOTES
 # customFrameOptionsValue overrides traefik.frontend.headers.frameDeny="true"
 
