@@ -114,7 +114,7 @@ services:
       - "traefik.http.routers.xteve-rtr.entrypoints=https"
       - "traefik.http.routers.xteve-rtr.rule=Host(`xteve.$DOMAINNAME`)"
       - "traefik.http.routers.xteve-rtr.tls=true"
-      - "traefik.http.routers.xteve-rtr.tls.certresolver=dns-cloudflare" 
+#      - "traefik.http.routers.xteve-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
       - "traefik.http.routers.xteve-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
