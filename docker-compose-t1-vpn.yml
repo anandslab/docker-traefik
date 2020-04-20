@@ -18,8 +18,6 @@ services:
     container_name: qbittorrent
     restart: always
     network_mode: container:transmission-vpn
-#    ports:
-#      - "${QBITTORRENT_PORT}:8168"
     volumes:
       - ${USERDIR}/docker/qbittorrent:/config
       - ${USERDIR}/Downloads:/downloads

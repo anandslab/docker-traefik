@@ -38,9 +38,9 @@ services:
       - --entryPoints.traefik.address=:8080
       - --api=true
 #      - --api.insecure=true
-      - --serversTransport.insecureSkipVerify=true
+#      - --serversTransport.insecureSkipVerify=true
       - --log=true
-      - --log.level=INFO # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --log.level=WARN # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
       - --accessLog=true
       - --accessLog.filePath=/traefik.log
       - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
@@ -514,7 +514,9 @@ services:
     container_name: transmission-vpn
     restart: unless-stopped
     networks:
-      - t2_proxy
+#      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.90 
 #    security_opt:
 #      - no-new-privileges:true
     ports:
