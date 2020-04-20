@@ -933,7 +933,7 @@ services:
       - "traefik.http.routers.ombi-rtr.tls=true"
 #      - "traefik.http.routers.ombi-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.ombi-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.ombi-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.ombi-rtr.service=ombi-svc"
       - "traefik.http.services.ombi-svc.loadbalancer.server.port=3579"
