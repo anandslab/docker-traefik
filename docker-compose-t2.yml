@@ -1582,3 +1582,14 @@ services:
       CLEAN_UP_VOLUMES: 1
       TZ: $TZ
 
+# Traefik Certs Dumper - Extract LetsEncrypt Certificates - Traefik2 Compatible
+  certdumper:
+    container_name: traefik_certdumper
+    image: humenius/traefik-certs-dumper:latest
+#    command: --restart-containers container1,container2,container3
+    volumes:
+    - $USERDIR/docker/traefik2/acme:/traefik:ro
+    - $USERDIR/docker/shared/certs:/output:rw
+#    - /var/run/docker.sock:/var/run/docker.sock:ro # only needed if restarting containers
+    environment:
+      DOMAIN: $DOMAINNAME
