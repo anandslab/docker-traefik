@@ -112,6 +112,8 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 
 * Ouroboros - Automatic Docker Container Updates
 * Docker-GC - Automatic Docker Garbage Collection
+* Traefik Certificate Dumper - Extract Traefik SSL Certs
+* Cloudflare DDNS - Dynamic IP Updater
 
 ## IPVanish VPN
 Some of the containers are behind VPN for privacy and security. We have been using [IPVanish](https://www.smarthomebeginner.com/go/ipvanish) for a while now. The following apps are behind IPVanish VPN:

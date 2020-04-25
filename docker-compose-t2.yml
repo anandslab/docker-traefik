@@ -116,6 +116,7 @@ services:
   oauth:
     container_name: oauth
     image: thomseddon/traefik-forward-auth:latest
+#    image: thomseddon/traefik-forward-auth:2.1-arm # Use this image with Raspberry Pi
     restart: unless-stopped
     networks:
       - t2_proxy
@@ -349,7 +350,7 @@ services:
       - "traefik.http.routers.zoneminder-rtr.tls=true"
 #      - "traefik.http.routers.zoneminder-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.zoneminder-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.zoneminder-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.zoneminder-rtr.service=zoneminder-svc"
       - "traefik.http.services.zoneminder-svc.loadbalancer.server.port=80"
@@ -980,7 +981,7 @@ services:
       INITIAL_RUN: "true"
 #      DRY_RUN: 0
       CRON_SCHEDULE: '*/5 * * * *'
-      SECTION_MAPS: $SYN_PLEX/$SYN_PLEX_HOLLYWOOD $NUC_PLEX/$NUC_PLEX_HOLLYWOOD | $SYN_PLEX/$SYN_PLEX_TVSHOWS $NUC_PLEX/$NUC_PLEX_TVSHOWS | $SYN_PLEX/$SYN_PLEX_BOLLYWOOD $NUC_PLEX/$NUC_PLEX_BOLLYWOOD | $SYN_PLEX/$SYN_PLEX_KOLLYWOOD $NUC_PLEX/$NUC_PLEX_KOLLYWOOD | $SYN_PLEX/$SYN_PLEX_TOLLYWOOD $NUC_PLEX/$NUC_PLEX_TOLLYWOOD | $SYN_PLEX/$SYN_PLEX_DOCMOVIES $NUC_PLEX/$NUC_PLEX_DOCMOVIES | $SYN_PLEX/$SYN_PLEX_DOCSHOWS $NUC_PLEX/$NUC_PLEX_DOCSHOWS | $SYN_PLEX/$SYN_PLEX_KIDSMOVIES $NUC_PLEX/$NUC_PLEX_KIDSMOVIES | $SYN_PLEX/$SYN_PLEX_INTERNATIONAL $NUC_PLEX/$NUC_PLEX_INTERNATIONAL
+      SECTION_MAPS: $SYN_PLEX/$SYN_PLEX_HOLLYWOOD $NUC_PLEX/$NUC_PLEX_HOLLYWOOD | $SYN_PLEX/$SYN_PLEX_TVSHOWS $NUC_PLEX/$NUC_PLEX_TVSHOWS | $SYN_PLEX/$SYN_PLEX_INDIAN $NUC_PLEX/$NUC_PLEX_INDIAN | $SYN_PLEX/$SYN_PLEX_KOLLYWOOD $NUC_PLEX/$NUC_PLEX_KOLLYWOOD | $SYN_PLEX/$SYN_PLEX_DOCMOVIES $NUC_PLEX/$NUC_PLEX_DOCMOVIES | $SYN_PLEX/$SYN_PLEX_DOCSHOWS $NUC_PLEX/$NUC_PLEX_DOCSHOWS | $SYN_PLEX/$SYN_PLEX_KIDSMOVIES $NUC_PLEX/$NUC_PLEX_KIDSMOVIES | $SYN_PLEX/$SYN_PLEX_INTERNATIONAL $NUC_PLEX/$NUC_PLEX_INTERNATIONAL
     restart: unless-stopped
 
 # PhotoShow - Image Gallery
@@ -1545,6 +1546,8 @@ services:
       - "traefik.http.routers.smokeping-rtr.service=smokeping-svc"
       - "traefik.http.services.smokeping-svc.loadbalancer.server.port=80"
 
+############################# MAINTENANCE
+
 # Ouroboros - Automatic Docker Container Updates
   ouroboros:
     image: pyouroboros/ouroboros:latest
@@ -1593,3 +1596,15 @@ services:
 #    - /var/run/docker.sock:/var/run/docker.sock:ro # only needed if restarting containers
     environment:
       DOMAIN: $DOMAINNAME
+
+# Cloudflare DDNS - Dynamic DNS Updater
+  cloudddns:
+    container_name: cloudddns
+    restart: always
+    image: joshava/cloudflare-ddns
+    volumes:
+      - $USERDIR/docker/cloudflare-ddns/config.yaml:/app/config.yaml
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ

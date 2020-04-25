@@ -25,6 +25,9 @@ shared/*
 !picard
 picard/*
 !picard/*.example
+!cloudflare-ddns
+cloudflare-ddns/*
+!cloudflare-ddns/*.example
 !traefik2
 traefik2/*
 !traefik2/*.example
