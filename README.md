@@ -166,12 +166,8 @@ I use bash_aliases to simplify starting and stopping containers/stack. Included 
 * <strong>dclogs1</strong> or <strong>dclogs1v</strong> or <strong>dclogs2</strong> or <strong>dclogs2v</strong> - See real-time logs for the corresponding stack or service
 * <strong>dcpull1</strong> or <strong>dcpull1v</strong> or <strong>dcpull2</strong> or <strong>dcpull2v</strong> - Pull new images for the corresponding stack or service
 
-<blockquote style="clear:both;background:#ffe2c4;border:4px dashed #ffac57">
-<div style="padding:10px">
-<div style="font-size:25px;font-weight:bold">Did this post help you?</div>
+## Did this Repo help you?
 
-SmartHomeBeginner brings in-depth tutorials easy enough to understand even for beginners. If you are reading this, please consider buying us a coffee (or two) as a token of appreciation.
+Please consider buying us a coffee (or two) as a token of appreciation.
 
 <a href="https://www.buymeacoffee.com/smarthomebeginr" target="_blank" rel="nofollow noopener noreferrer"><img src="https://www.smarthomebeginner.com/images/2020/04/coffee.png" alt="" width="340" height="77" class="aligncenter size-full wp-image-41005" /></a>
-</div>
-</blockquote>
