@@ -59,6 +59,7 @@ services:
       - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.delayBeforeCheck=90 # To delay DNS check and reduce LE hitrate
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
@@ -1546,6 +1547,35 @@ services:
       - "traefik.http.routers.smokeping-rtr.service=smokeping-svc"
       - "traefik.http.services.smokeping-svc.loadbalancer.server.port=80"
 
+# Cloud Commander - web file manager
+  cloudcmd:
+    image: coderaiser/cloudcmd
+    container_name: cloudcmd
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - $USERDIR/docker/cloudcmd:/root
+      - $USERDIR:/mnt/fs
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.cloudcmd-rtr.entrypoints=https"
+      - "traefik.http.routers.cloudcmd-rtr.rule=Host(`cloudcmd.$DOMAINNAME`)"
+      - "traefik.http.routers.cloudcmd-rtr.tls=true"
+#      - "traefik.http.routers.cloudcmd-rtr.tls.certresolver=dns-cloudflare" 
+      ## Middlewares
+      - "traefik.http.routers.cloudcmd-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.cloudcmd-rtr.service=cloudcmd-svc"
+      - "traefik.http.services.cloudcmd-svc.loadbalancer.server.port=8000"
+
 ############################# MAINTENANCE
 
 # Ouroboros - Automatic Docker Container Updates
@@ -1563,7 +1593,7 @@ services:
       LOG_LEVEL: debug
       SELF_UPDATE: "true"
       CLEANUP: "true"
-      IGNORE: traefik influxdb hassio_dns homeassistant hassio_supervisor addon_core_check_config addon_62c7908d_autobackup plexms
+      IGNORE: traefik influxdb hassio_dns homeassistant hassio_supervisor addon_core_check_config addon_62c7908d_autobackup plexms 
       NOTIFIERS: 'tgram://$TGRAM_BOT_TOKEN/$TGRAM_CHAT_ID/'
 
 # Docker-GC - Automatic Docker Garbage Collection 
