@@ -11,7 +11,6 @@
 !docker-compose-t2-obsolete.yml
 !.env.example
 !README.md
-CHANGELOG.md
 !LICENSE
 !traefik1
 traefik1/*
