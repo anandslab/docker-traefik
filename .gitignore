@@ -34,11 +34,8 @@ traefik2/*
 !traefik2/rules
 traefik2/rules/*
 !traefik2/rules/*.example
-!traefik2/rules/middlewares-basic-auth.toml
-!traefik2/rules/middlewares-oauth.toml
-!traefik2/rules/middlewares-rate-limit.toml
-!traefik2/rules/chain-basic-auth.toml
-!traefik2/rules/chain-oauth.toml
-!traefik2/rules/chain-no-auth.toml
-
-
+!traefik2/rules/middlewares.toml
+!traefik2/rules/middlewares-chains.toml
+!authelia
+authelia/*
+!authelia/*.example

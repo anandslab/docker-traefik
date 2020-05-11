@@ -1,3 +1,4 @@
+[http.middlewares]
   [http.middlewares.middlewares-basic-auth]
     [http.middlewares.middlewares-basic-auth.basicAuth]
 #      users = [
@@ -6,7 +7,6 @@
       realm = "Traefik2 Basic Auth"
       usersFile = "/shared/.htpasswd" #be sure to mount the volume through docker-compose.yml
 
-[http.middlewares]
   [http.middlewares.middlewares-rate-limit]
     [http.middlewares.middlewares-rate-limit.rateLimit]
       average = 100
@@ -35,15 +35,15 @@
       stsPreload = true
       forceSTSHeader = true
 #      frameDeny = true #overwritten by customFrameOptionsValue
-      customFrameOptionsValue = "allow-from https:example.com" #CSP takes care of this but may be needed for organizr. 
+      customFrameOptionsValue = "allow-from https:pivean.com" #CSP takes care of this but may be needed for organizr. 
       contentTypeNosniff = true 
       browserXssFilter = true 
-#      sslForceHost = true # add sslHost and all of the 
-#      sslHost = "example.com"
+#      sslForceHost = true # add sslHost to all of the services
+#      sslHost = "pivean.com"
       referrerPolicy = "same-origin" 
 #      Setting contentSecurityPolicy is more secure but it can break things. Proper auth will reduce the risk.
 #      the below line also breaks some apps due to 'none' - sonarr, radarr, etc.
-#      contentSecurityPolicy = "frame-ancestors '*.example.com:*';object-src 'none';script-src 'none';"
+#      contentSecurityPolicy = "frame-ancestors '*.pivean.com:*';object-src 'none';script-src 'none';"
       featurePolicy = "camera 'none'; geolocation 'none'; microphone 'none'; payment 'none'; usb 'none'; vr 'none';" 
       [http.middlewares.middlewares-secure-headers.headers.customResponseHeaders]
         X-Robots-Tag = "none,noarchive,nosnippet,notranslate,noimageindex,"
@@ -55,7 +55,8 @@
       trustForwardHeader = true
       authResponseHeaders = ["X-Forwarded-User"]
 
-  [http.middlewares.authelia.forwardAuth]
-    address = "http://authelia:9091/api/verify?rd=https://authelia.example.com"
-    trustForwardHeader = true
-    authResponseHeaders = ["Remote-User", "Remote-Groups"]
+  [http.middlewares.middlewares-authelia]
+    [http.middlewares.middlewares-authelia.forwardAuth]
+      address = "http://authelia:9091/api/verify?rd=https://authelia.pivean.com"
+      trustForwardHeader = true
+      authResponseHeaders = ["Remote-User", "Remote-Groups"]

@@ -1,0 +1,101 @@
+###############################################################
+#                   Authelia configuration                    #
+###############################################################
+
+#host: 0.0.0.0
+host: authelia
+port: 9091
+log_level: info
+
+# This secret can also be set using the env variables AUTHELIA_JWT_SECRET_FILE
+# I used this site to generate the secret: https://www.grc.com/passwords.htm
+jwt_secret: ENTER_SECRET_HERE
+
+# https://docs.authelia.com/configuration/miscellaneous.html#default-redirection-url
+default_redirection_url: https://authelia.example.com
+
+totp:
+  issuer: authelia.com
+  period: 30
+  skew: 1
+
+# Enable the following for Duo Push Notification support
+#duo_api:
+#  hostname: api-123456789.example.com
+#  integration_key: ABCDEF
+#  # This secret can also be set using the env variables AUTHELIA_DUO_API_SECRET_KEY_FILE
+#  secret_key: 1234567890abcdefghifjkl
+
+authentication_backend:
+  file:
+    path: /etc/authelia/users_database.yml
+    # customize passwords based on https://docs.authelia.com/configuration/authentication/file.html
+    password:
+      algorithm: argon2id
+      iterations: 1
+      salt_length: 16
+      parallelism: 8
+      memory: 1024
+
+# https://docs.authelia.com/configuration/access-control.html
+access_control:
+  default_policy: deny
+  rules:
+    # Rules applied to everyone
+    - domain: authelia.example.com
+      policy: bypass
+#    - domain: radarr.example.com
+#      policy: bypass
+#      subject: "group:admins"
+#      resources:
+#      - "^/api/.*$"      
+#    - domain: "*.example.com"
+#      policy: one_factor
+    - domain: "*.example.com"
+      policy: two_factor
+
+session:
+  name: authelia_session
+  # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET_FILE
+  # Used a different secret, but the same site as jwt_secret above.
+  secret: ENTER_SECRET_HERE
+  expiration: 3600 # 1 hour
+  inactivity: 300 # 5 minutes
+  domain: example.com # Should match whatever your root protected domain is
+
+# Optional. Can improve performance on a busy system.
+#  redis:
+#    host: redis
+#    port: 6379
+    # This secret can also be set using the env variables AUTHELIA_SESSION_REDIS_PASSWORD_FILE
+    # password: authelia
+
+regulation:
+  max_retries: 3
+  find_time: 120
+  ban_time: 300
+
+storage:
+# For local storage, uncomment lines below and comment out mysql. https://docs.authelia.com/configuration/storage/sqlite.html
+#  local:
+#    path: /var/lib/authelia/db.sqlite3
+  mysql:
+  # MySQL allows running multiple authelia instances. Create database and enter details below.
+    host: MYSQL_HOST
+    port: 3306
+    database: authelia
+    username: DBUSERNAME
+    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
+    password: DBPASSWORD
+
+notifier:
+  smtp:
+    username: SMTP_USERNAME
+    # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
+    password: SMTP_PASSWORD
+    host: SMTP_HOST
+    port: 587 #465
+    sender: SENDER_EMAIL
+  # For testing purpose, notifications can be sent in a file. Be sure map the volume in docker-compose.
+#  filesystem:
+#    filename: /tmp/authelia/notification.txt

@@ -31,7 +31,8 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 ### FRONTENDS
 
 * Traefik - Reverse Proxy
-* OAuth - Forward Authentication
+* OAuth - Forward Authentication (Google OAuth 2.0)
+* Authelia - Private Forward Authentication 
 * Portainer - Container Management
 * Organizr - Unified Frontend
 * Heimdall - Unified Frontend Alternative
