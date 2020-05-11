@@ -1,6 +1,6 @@
 # Changelog
 ## Planned: 
-* Replace or remove Transmission/qBittorrent (duplicate)
+* Replace or remove Transmission/qBittorrent (duplicate functionality)
 * Add LazyLibrarian, Calibre, Caliber-web, projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, smtp-to-telegram, cloud commander, fail2ban
 * Replace VSCode Server with linuxserver/code-server
 * tecnative docker proxy
