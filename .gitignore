@@ -34,8 +34,6 @@ traefik2/*
 !traefik2/rules
 traefik2/rules/*
 !traefik2/rules/*.example
-!traefik2/rules/middlewares.toml
-!traefik2/rules/middlewares-chains.toml
 !authelia
 authelia/*
 !authelia/*.example
