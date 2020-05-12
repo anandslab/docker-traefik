@@ -49,6 +49,8 @@ services:
       - --providers.docker.endpoint=unix:///var/run/docker.sock
       - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME`)
       - --providers.docker.exposedByDefault=false
+#      - --entrypoints.https.http.middlewares=chain-oauth@file
+      - --entrypoints.https.http.tls.certresolver=dns-cloudflare
       - --providers.docker.network=t2_proxy
       - --providers.docker.swarmMode=false
       - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory.
