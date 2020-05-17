@@ -3,7 +3,7 @@
       entryPoints = ["https"]
       rule = "Host(`pihole.example.com`)"
       service = "pihole-svc"
-      middlewares = ["chain-oauth", "pihole-add-admin"]
+      middlewares = ["chain-authelia", "pihole-add-admin"]
       [http.routers.pihole-rtr.tls]
         certresolver = "dns-cloudflare"
 
