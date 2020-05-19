@@ -2,9 +2,14 @@
 
 ## Planned:
 
-- Replace or remove Transmission/qBittorrent (duplicate functionality)
 - Add LazyLibrarian, Calibre, Caliber-web, projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, smtp-to-telegram, cloud commander, fail2ban
 - tecnative docker proxy
+
+## May 19, 2020
+
+- Removed Jackett from VPN
+- Removed qBittorrent
+- Added Home Assistant Core to Obsolete as a backup (due to recent developments with Home Assistant)
 
 ## May 18, 2020
 
