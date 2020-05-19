@@ -48,9 +48,12 @@ services:
       - --providers.docker=true
       - --providers.docker.endpoint=unix:///var/run/docker.sock
       - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME`)
-      - --providers.docker.exposedByDefault=false
-#      - --entrypoints.https.http.middlewares=chain-oauth@file
+      - --providers.docker.exposedByDefault=true
+#      - --entrypoints.https.http.middlewares=chain-authelia@file
+      # The line below specifies the default certresolver for all services.      
       - --entrypoints.https.http.tls.certresolver=dns-cloudflare
+      # The line below turns on TLS by default and specifies TLS standards to use.
+      - --entrypoints.https.http.tls.options=tls-opts@file
       - --providers.docker.network=t2_proxy
       - --providers.docker.swarmMode=false
       - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory.
@@ -93,7 +96,6 @@ services:
       - CF_API_EMAIL=$CLOUDFLARE_EMAIL
       - CF_API_KEY=$CLOUDFLARE_API_KEY
     labels:
-      - "traefik.enable=true"
       # HTTP-to-HTTPS Redirect
       - "traefik.http.routers.http-catchall.entrypoints=http"
       - "traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)"
@@ -102,8 +104,6 @@ services:
       # HTTP Routers
       - "traefik.http.routers.traefik-rtr.entrypoints=https"
       - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME`)"
-      - "traefik.http.routers.traefik-rtr.tls=true"
-#      - "traefik.http.routers.traefik-rtr.tls.certresolver=dns-cloudflare" 
       - "traefik.http.routers.traefik-rtr.tls.domains[0].main=$DOMAINNAME"
       - "traefik.http.routers.traefik-rtr.tls.domains[0].sans=*.$DOMAINNAME"
 #      - "traefik.http.routers.traefik-rtr.tls.domains[1].main=$DOMAIN" # Pulls main cert for second domain
@@ -111,7 +111,7 @@ services:
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## Middlewares
-      - "traefik.http.routers.traefik-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file"
 
 # Google OAuth - Single Sign On using OAuth 2.0
   # https://hub.docker.com/r/thomseddon/traefik-forward-auth
@@ -144,12 +144,9 @@ services:
       - DEFAULT_ACTION=auth
       - DEFAULT_PROVIDER=google
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.oauth-rtr.entrypoints=https"
       - "traefik.http.routers.oauth-rtr.rule=Host(`oauth.$DOMAINNAME`)"
-      - "traefik.http.routers.oauth-rtr.tls=true"
-#      - "traefik.http.routers.oauth-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
       - "traefik.http.routers.oauth-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -172,12 +169,9 @@ services:
     environment:
       - TZ=$TZ
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.authelia-rtr.entrypoints=https"
       - "traefik.http.routers.authelia-rtr.rule=Host(`authelia.$DOMAINNAME`)"
-      - "traefik.http.routers.authelia-rtr.tls=true"
-#      - "traefik.http.routers.authelia-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
       - "traefik.http.routers.authelia-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
@@ -202,12 +196,9 @@ services:
     environment:
       - TZ=$TZ
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.portainer-rtr.entrypoints=https"
       - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME`)"
-      - "traefik.http.routers.portainer-rtr.tls=true"
-#      - "traefik.http.routers.portainer-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
 #      - "traefik.http.routers.portainer-rtr.middlewares=chain-no-auth@file" # No Authentication
 #      - "traefik.http.routers.portainer-rtr.middlewares=chain-basic-auth@file" # Basic Authentication
@@ -235,14 +226,11 @@ services:
       - PGID=$PGID
       - TZ=$TZ
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.organizr-rtr.entrypoints=https"
       - "traefik.http.routers.organizr-rtr.rule=Host(`$DOMAINNAME`,`www.$DOMAINNAME`)" 
-      - "traefik.http.routers.organizr-rtr.tls=true"
-#      - "traefik.http.routers.organizr-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.organizr-rtr.middlewares=chain-oauth@file" 
+      - "traefik.http.routers.organizr-rtr.middlewares=chain-authelia@file" 
       ## HTTP Services
       - "traefik.http.routers.organizr-rtr.service=organizr-svc"
       - "traefik.http.services.organizr-svc.loadbalancer.server.port=80"
@@ -266,14 +254,11 @@ services:
       - PGID=$PGID
       - TZ=$TZ
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.heimdall-rtr.entrypoints=https"
       - "traefik.http.routers.heimdall-rtr.rule=Host(`heimdall.$DOMAINNAME`)"
-      - "traefik.http.routers.heimdall-rtr.tls=true"
-#      - "traefik.http.routers.heimdall-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.heimdall-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.heimdall-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.heimdall-rtr.service=heimdall-svc"
       - "traefik.http.services.heimdall-svc.loadbalancer.server.port=80"
@@ -292,14 +277,11 @@ services:
     volumes:
       - /media:/var/lib/nginx/html:ro # Location you want to index
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.autoindex-rtr.entrypoints=https"
       - "traefik.http.routers.autoindex-rtr.rule=Host(`index.$DOMAINNAME`)"
-      - "traefik.http.routers.autoindex-rtr.tls=true"
-#      - "traefik.http.routers.autoindex-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.autoindex-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.autoindex-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.autoindex-rtr.service=autoindex-svc"
       - "traefik.http.services.autoindex-svc.loadbalancer.server.port=80"
@@ -382,12 +364,9 @@ services:
       MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
       MYSQL_ROOT: $USER
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.zoneminder-rtr.entrypoints=https"
       - "traefik.http.routers.zoneminder-rtr.rule=Host(`zone.$DOMAINNAME`)"
-      - "traefik.http.routers.zoneminder-rtr.tls=true"
-#      - "traefik.http.routers.zoneminder-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
       - "traefik.http.routers.zoneminder-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
@@ -429,12 +408,9 @@ services:
       MULTI_PORT_START: 0
       MULTI_PORT_END: 0
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.zminder-rtr.entrypoints=https"
       - "traefik.http.routers.zminder-rtr.rule=Host(`zmind.$DOMAINNAME`)"
-      - "traefik.http.routers.zminder-rtr.tls=true"
-#      - "traefik.http.routers.zminder-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
       - "traefik.http.routers.zminder-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
@@ -464,12 +440,9 @@ services:
       PGID: $PGID
       TZ: $TZ
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.motioneye-rtr.entrypoints=https"
       - "traefik.http.routers.motioneye-rtr.rule=Host(`meye.$DOMAINNAME`)"
-      - "traefik.http.routers.motioneye-rtr.tls=true"
-#      - "traefik.http.routers.motioneye-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
       - "traefik.http.routers.motioneye-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
@@ -520,14 +493,11 @@ services:
       - PMA_ARBITRARY=1
       - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.phpmyadmin-rtr.entrypoints=https"
       - "traefik.http.routers.phpmyadmin-rtr.rule=Host(`pma.$DOMAINNAME`)"
-      - "traefik.http.routers.phpmyadmin-rtr.tls=true"
-#      - "traefik.http.routers.phpmyadmin-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.phpmyadmin-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.phpmyadmin-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.phpmyadmin-rtr.service=phpmyadmin-svc"
       - "traefik.http.services.phpmyadmin-svc.loadbalancer.server.port=80"
@@ -578,14 +548,11 @@ services:
     environment:
       GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel" 
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.grafana-rtr.entrypoints=https"
       - "traefik.http.routers.grafana-rtr.rule=Host(`grafana.$DOMAINNAME`)"
-      - "traefik.http.routers.grafana-rtr.tls=true"
-#      - "traefik.http.routers.grafana-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.grafana-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.grafana-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.grafana-rtr.service=grafana-svc"
       - "traefik.http.services.grafana-svc.loadbalancer.server.port=3000"
@@ -617,14 +584,11 @@ services:
       DISPLAY_HEIGHT: 960
       VNC_PASSWORD: $JDOWN_VNC_PASSWD
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.jdownloader-rtr.entrypoints=https"
       - "traefik.http.routers.jdownloader-rtr.rule=Host(`jdown.$DOMAINNAME`)"
-      - "traefik.http.routers.jdownloader-rtr.tls=true"
-#      - "traefik.http.routers.jdownloader-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.jdownloader-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.jdownloader-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.jdownloader-rtr.service=jdownloader-svc"
       - "traefik.http.services.jdownloader-svc.loadbalancer.server.port=5800"
@@ -686,12 +650,9 @@ services:
       TRANSMISSION_WATCH_DIR_ENABLED: "true"
       TRANSMISSION_DOWNLOAD_DIR: /downloads/completed
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.transmission-vpn-rtr.entrypoints=https"
       - "traefik.http.routers.transmission-vpn-rtr.rule=Host(`trans.$DOMAINNAME`)"
-      - "traefik.http.routers.transmission-vpn-rtr.tls=true"
-#      - "traefik.http.routers.transmission-vpn-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
       - "traefik.http.routers.transmission-vpn-rtr.middlewares=middlewares-rate-limit@file"
       ## HTTP Services
@@ -721,17 +682,12 @@ services:
       TZ: $TZ
       UMASK_SET: 002
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers Auth Bypass - HeadersRegexp NOT WORKING. USING OAUTH CONTAINER BYPASS METHOD.
-#      - "traefik.http.routers.sabnzbd-rtr-bypass.entrypoints=https"
-#      - "traefik.http.routers.sabnzbd-rtr-bypass.tls=true"  
-##      - "traefik.http.routers.sabnzbd-rtr-bypass.tls.certresolver=dns-cloudflare" 
+#      - "traefik.http.routers.sabnzbd-rtr-bypass.entrypoints=https"  
 #      - "traefik.http.routers.sabnzbd-rtr-bypass.rule=HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
 #      - "traefik.http.routers.sabnzbd-rtr-bypass.priority=100"
       ## HTTP Routers Auth 
       - "traefik.http.routers.sabnzbd-rtr.entrypoints=https"
-      - "traefik.http.routers.sabnzbd-rtr.tls=true"
-#      - "traefik.http.routers.sabnzbd-rtr.tls.certresolver=dns-cloudflare" 
       - "traefik.http.routers.sabnzbd-rtr.rule=Host(`sabnzbd.$DOMAINNAME`)"
       - "traefik.http.routers.sabnzbd-rtr.priority=99"
       ## Middlewares
@@ -763,14 +719,11 @@ services:
       PGID: $PGID
       TZ: $TZ
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.hydra-rtr.entrypoints=https"
       - "traefik.http.routers.hydra-rtr.rule=Host(`hydra.$DOMAINNAME`)"
-      - "traefik.http.routers.hydra-rtr.tls=true"
-#      - "traefik.http.routers.hydra-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.hydra-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.hydra-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.hydra-rtr.service=hydra-svc"
       - "traefik.http.services.hydra-svc.loadbalancer.server.port=5076"
@@ -799,22 +752,17 @@ services:
       PGID: $PGID
       TZ: $TZ
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
-      - "traefik.http.routers.lidarr-rtr-bypass.entrypoints=https"
-      - "traefik.http.routers.lidarr-rtr-bypass.tls=true"  
-#      - "traefik.http.routers.lidarr-rtr-bypass.tls.certresolver=dns-cloudflare" 
+      - "traefik.http.routers.lidarr-rtr-bypass.entrypoints=https"  
       - "traefik.http.routers.lidarr-rtr-bypass.rule=Headers(`X-Api-Key`, `$LIDARR_API_KEY`)"
       - "traefik.http.routers.lidarr-rtr-bypass.priority=100"
       ## HTTP Routers Auth 
       - "traefik.http.routers.lidarr-rtr.entrypoints=https"
-      - "traefik.http.routers.lidarr-rtr.tls=true"
-#      - "traefik.http.routers.lidarr-rtr.tls.certresolver=dns-cloudflare" 
       - "traefik.http.routers.lidarr-rtr.rule=Host(`lidarr.$DOMAINNAME`)"
       - "traefik.http.routers.lidarr-rtr.priority=99"
       ## Middlewares
       - "traefik.http.routers.lidarr-rtr-bypass.middlewares=chain-no-auth@file"
-      - "traefik.http.routers.lidarr-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.lidarr-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.lidarr-rtr.service=lidarr-svc"
       - "traefik.http.routers.lidarr-rtr-bypass.service=lidarr-svc"
@@ -844,22 +792,17 @@ services:
       PGID: $PGID
       TZ: $TZ
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.radarr-rtr-bypass.entrypoints=https"
-      - "traefik.http.routers.radarr-rtr-bypass.tls=true"  
-#      - "traefik.http.routers.radarr-rtr-bypass.tls.certresolver=dns-cloudflare" 
       - "traefik.http.routers.radarr-rtr-bypass.rule=Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
       - "traefik.http.routers.radarr-rtr-bypass.priority=100"
       ## HTTP Routers Auth 
       - "traefik.http.routers.radarr-rtr.entrypoints=https"
-      - "traefik.http.routers.radarr-rtr.tls=true"
-#      - "traefik.http.routers.radarr-rtr.tls.certresolver=dns-cloudflare" 
       - "traefik.http.routers.radarr-rtr.rule=Host(`radarr.$DOMAINNAME`)"
       - "traefik.http.routers.radarr-rtr.priority=99"
       ## Middlewares
       - "traefik.http.routers.radarr-rtr-bypass.middlewares=chain-no-auth@file"
-      - "traefik.http.routers.radarr-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.radarr-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.radarr-rtr.service=radarr-svc"
       - "traefik.http.routers.radarr-rtr-bypass.service=radarr-svc"
@@ -889,23 +832,17 @@ services:
       PGID: $PGID
       TZ: $TZ
     labels:
-    
-      - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
-      - "traefik.http.routers.sonarr-rtr-bypass.entrypoints=https"
-      - "traefik.http.routers.sonarr-rtr-bypass.tls=true"  
-#      - "traefik.http.routers.sonarr-rtr-bypass.tls.certresolver=dns-cloudflare" 
+      - "traefik.http.routers.sonarr-rtr-bypass.entrypoints=https" 
       - "traefik.http.routers.sonarr-rtr-bypass.rule=Headers(`X-Api-Key`, `$SONARR_API_KEY`)"
       - "traefik.http.routers.sonarr-rtr-bypass.priority=100"
       ## HTTP Routers Auth 
       - "traefik.http.routers.sonarr-rtr.entrypoints=https"
-      - "traefik.http.routers.sonarr-rtr.tls=true"
-#      - "traefik.http.routers.sonarr-rtr.tls.certresolver=dns-cloudflare" 
       - "traefik.http.routers.sonarr-rtr.rule=Host(`sonarr.$DOMAINNAME`)"
       - "traefik.http.routers.sonarr-rtr.priority=99"
       ## Middlewares
       - "traefik.http.routers.sonarr-rtr-bypass.middlewares=chain-no-auth@file"
-      - "traefik.http.routers.sonarr-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.sonarr-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.sonarr-rtr.service=sonarr-svc"
       - "traefik.http.routers.sonarr-rtr-bypass.service=sonarr-svc"
@@ -937,12 +874,9 @@ services:
       - PGID=$PGID
       - JAVA_OPTS=-Dserver.use-forward-headers=true
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.airsonic-rtr.entrypoints=https"
       - "traefik.http.routers.airsonic-rtr.rule=Host(`airsonic.$DOMAINNAME`)"
-      - "traefik.http.routers.airsonic-rtr.tls=true"
-#      - "traefik.http.routers.airsonic-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
       - "traefik.http.routers.airsonic-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
@@ -983,12 +917,9 @@ services:
       PLEX_GID: $PGID
       ADVERTISE_IP: http://$SERVER_IP:$PLEX_PORT/
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.plexms-rtr.entrypoints=https"
       - "traefik.http.routers.plexms-rtr.rule=Host(`nucplex.$DOMAINNAME`)"
-      - "traefik.http.routers.plexms-rtr.tls=true"
-#      - "traefik.http.routers.plexms-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
       - "traefik.http.routers.plexms-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
@@ -1019,12 +950,9 @@ services:
       UID: $PUID
       GID: $PGID
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.embyms-rtr.entrypoints=https"
       - "traefik.http.routers.embyms-rtr.rule=Host(`nucemby.$DOMAINNAME`)"
-      - "traefik.http.routers.embyms-rtr.tls=true"
-#      - "traefik.http.routers.embyms-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
       - "traefik.http.routers.embyms-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
@@ -1054,12 +982,9 @@ services:
       - /media:/nas
 #      - /media:/nas:ro # Run in ro mode while upgrading JF
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.jellyfin-rtr.entrypoints=https"
       - "traefik.http.routers.jellyfin-rtr.rule=Host(`jelly.$DOMAINNAME`)"
-      - "traefik.http.routers.jellyfin-rtr.tls=true"
-#      - "traefik.http.routers.jellyfin-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
       - "traefik.http.routers.jellyfin-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
@@ -1085,12 +1010,9 @@ services:
       TZ: $TZ
       BASE_URL: /ombi #optional
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.ombi-rtr.entrypoints=https"
       - "traefik.http.routers.ombi-rtr.rule=Host(`ombi.$DOMAINNAME`)"
-      - "traefik.http.routers.ombi-rtr.tls=true"
-#      - "traefik.http.routers.ombi-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
       - "traefik.http.routers.ombi-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
@@ -1117,14 +1039,11 @@ services:
       PGID: $PGID
       TZ: $TZ
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.tautulli-rtr.entrypoints=https"
       - "traefik.http.routers.tautulli-rtr.rule=Host(`tautulli.$DOMAINNAME`)"
-      - "traefik.http.routers.tautulli-rtr.tls=true"
-#      - "traefik.http.routers.tautulli-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.tautulli-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.tautulli-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.tautulli-rtr.service=tautulli-svc"
       - "traefik.http.services.tautulli-svc.loadbalancer.server.port=8181"
@@ -1162,14 +1081,11 @@ services:
       PGID: $PGID
       TZ: $TZ
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.photoshow-rtr.entrypoints=https"
       - "traefik.http.routers.photoshow-rtr.rule=Host(`photoshow.$DOMAINNAME`)"
-      - "traefik.http.routers.photoshow-rtr.tls=true"
-#      - "traefik.http.routers.photoshow-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.photoshow-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.photoshow-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.photoshow-rtr.service=photoshow-svc"
       - "traefik.http.services.photoshow-svc.loadbalancer.server.port=80"
@@ -1195,14 +1111,11 @@ services:
       PGID: $PGID
       TZ: $TZ
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.bazarr-rtr.entrypoints=https"
       - "traefik.http.routers.bazarr-rtr.rule=Host(`bazarr.$DOMAINNAME`)"
-      - "traefik.http.routers.bazarr-rtr.tls=true"
-#      - "traefik.http.routers.bazarr-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.bazarr-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.bazarr-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.bazarr-rtr.service=bazarr-svc"
       - "traefik.http.services.bazarr-svc.loadbalancer.server.port=6767"
@@ -1231,14 +1144,11 @@ services:
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.picard-rtr.entrypoints=https"
       - "traefik.http.routers.picard-rtr.rule=Host(`picard.$DOMAINNAME`)"
-      - "traefik.http.routers.picard-rtr.tls=true"
-#      - "traefik.http.routers.picard-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.picard-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.picard-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.picard-rtr.service=picard-svc"
       - "traefik.http.services.picard-svc.loadbalancer.server.port=5800"
@@ -1271,14 +1181,11 @@ services:
       AUTOMATED_CONVERSION_KEEP_SOURCE: 1
       VNC_PASSWORD: $HANDBRAKE_VNC_PASSWD
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.handbrake-rtr.entrypoints=https"
       - "traefik.http.routers.handbrake-rtr.rule=Host(`handbrake.$DOMAINNAME`)"
-      - "traefik.http.routers.handbrake-rtr.tls=true"
-#      - "traefik.http.routers.handbrake-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.handbrake-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.handbrake-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.handbrake-rtr.service=handbrake-svc"
       - "traefik.http.services.handbrake-svc.loadbalancer.server.port=5800"
@@ -1308,14 +1215,11 @@ services:
       DISPLAY_HEIGHT: 960
       VNC_PASSWORD: $MKVTOOLNIX_VNC_PASSWD
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.mkvtoolnix-rtr.entrypoints=https"
       - "traefik.http.routers.mkvtoolnix-rtr.rule=Host(`mkvtoolnix.$DOMAINNAME`)"
-      - "traefik.http.routers.mkvtoolnix-rtr.tls=true"
-#      - "traefik.http.routers.mkvtoolnix-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.mkvtoolnix-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.mkvtoolnix-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.mkvtoolnix-rtr.service=mkvtoolnix-svc"
       - "traefik.http.services.mkvtoolnix-svc.loadbalancer.server.port=5800"
@@ -1347,14 +1251,11 @@ services:
       DISPLAY_HEIGHT: 960
       VNC_PASSWORD: $MAKEMKV_VNC_PASSWD
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.makemkv-rtr.entrypoints=https"
       - "traefik.http.routers.makemkv-rtr.rule=Host(`makemkv.$DOMAINNAME`)"
-      - "traefik.http.routers.makemkv-rtr.tls=true"
-#      - "traefik.http.routers.makemkv-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.makemkv-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.makemkv-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.makemkv-rtr.service=makemkv-svc"
       - "traefik.http.services.makemkv-svc.loadbalancer.server.port=5800"
@@ -1387,14 +1288,11 @@ services:
       DISPLAY_HEIGHT: 960
       VNC_PASSWD: $FILEBOT_VNC_PASSWD
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.filebot-rtr.entrypoints=https"
       - "traefik.http.routers.filebot-rtr.rule=Host(`filebot.$DOMAINNAME`)"
-      - "traefik.http.routers.filebot-rtr.tls=true"
-#      - "traefik.http.routers.filebot-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.filebot-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.filebot-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.filebot-rtr.service=filebot-svc"
       - "traefik.http.services.filebot-svc.loadbalancer.server.port=5800"
@@ -1429,14 +1327,11 @@ services:
       DISPLAY_HEIGHT: 960
       VNC_PASSWD: $FIREFOX_VNC_PASSWD
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.firefox-rtr.entrypoints=https"
       - "traefik.http.routers.firefox-rtr.rule=Host(`firefox.$DOMAINNAME`)"
-      - "traefik.http.routers.firefox-rtr.tls=true"
-#      - "traefik.http.routers.firefox-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.firefox-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.firefox-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.firefox-rtr.service=firefox-svc"
       - "traefik.http.services.firefox-svc.loadbalancer.server.port=5800"
@@ -1462,14 +1357,11 @@ services:
 #      GLANCES_OPT: "-C /glances/conf/glances.conf --quiet --export influxdb"
       GLANCES_OPT: "-w"
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.glances-rtr.entrypoints=https"
       - "traefik.http.routers.glances-rtr.rule=Host(`glances.$DOMAINNAME`)"
-      - "traefik.http.routers.glances-rtr.tls=true"
-#      - "traefik.http.routers.glances-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.glances-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.glances-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.glances-rtr.service=glances-svc"
       - "traefik.http.services.glances-svc.loadbalancer.server.port=61208"
@@ -1520,14 +1412,11 @@ services:
       DISPLAY_HEIGHT: 960
       VNC_PASSWORD: $QDIRSTAT_VNC_PASSWD
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.qdirstat-rtr.entrypoints=https"
       - "traefik.http.routers.qdirstat-rtr.rule=Host(`qdirstat.$DOMAINNAME`)"
-      - "traefik.http.routers.qdirstat-rtr.tls=true"
-#      - "traefik.http.routers.qdirstat-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.qdirstat-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.qdirstat-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.qdirstat-rtr.service=qdirstat-svc"
       - "traefik.http.services.qdirstat-svc.loadbalancer.server.port=5800"
@@ -1552,12 +1441,9 @@ services:
       MYSQL_USER: $GUAC_MYSQL_USER
       MYSQL_PASSWORD: $GUAC_MYSQL_PASSWORD
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.guacamole-rtr.entrypoints=https"
       - "traefik.http.routers.guacamole-rtr.rule=Host(`guac.$DOMAINNAME`)"
-      - "traefik.http.routers.guacamole-rtr.tls=true"
-#      - "traefik.http.routers.guacamole-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
       - "traefik.http.routers.guacamole-rtr.middlewares=chain-authelia@file,add-guacamole" 
       - "traefik.http.middlewares.add-guacamole.addPrefix.prefix=/guacamole"
@@ -1592,14 +1478,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.dozzle-rtr.entrypoints=https"
       - "traefik.http.routers.dozzle-rtr.rule=Host(`dozzle.$DOMAINNAME`)"
-      - "traefik.http.routers.dozzle-rtr.tls=true"
-#      - "traefik.http.routers.dozzle-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.dozzle-rtr.middlewares=chain-oauth@file" 
+      - "traefik.http.routers.dozzle-rtr.middlewares=chain-authelia@file" 
       ## HTTP Services
       - "traefik.http.routers.dozzle-rtr.service=dozzle-svc"
       - "traefik.http.services.dozzle-svc.loadbalancer.server.port=8080"
@@ -1627,12 +1510,9 @@ services:
     user: $PUID:$PGID
 #    user: "0"
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.vscode-rtr.entrypoints=https"
       - "traefik.http.routers.vscode-rtr.rule=Host(`code.$DOMAINNAME`)"
-      - "traefik.http.routers.vscode-rtr.tls=true"
-#      - "traefik.http.routers.vscode-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
       - "traefik.http.routers.vscode-rtr.middlewares=chain-authelia@file" 
       ## HTTP Services
@@ -1665,12 +1545,9 @@ services:
       NAME: StatPing
       DESCRIPTION: Monitor web services
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.statping-rtr.entrypoints=https"
       - "traefik.http.routers.statping-rtr.rule=Host(`statping.$DOMAINNAME`)"
-      - "traefik.http.routers.statping-rtr.tls=true"
-#      - "traefik.http.routers.statping-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
       - "traefik.http.routers.statping-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
@@ -1696,14 +1573,11 @@ services:
       PGID: $PGID
       TZ: $TZ
     labels:
-      - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.smokeping-rtr.entrypoints=https"
       - "traefik.http.routers.smokeping-rtr.rule=Host(`smokeping.$DOMAINNAME`)"
-      - "traefik.http.routers.smokeping-rtr.tls=true"
-#      - "traefik.http.routers.smokeping-rtr.tls.certresolver=dns-cloudflare" 
       ## Middlewares
-      - "traefik.http.routers.smokeping-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.smokeping-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.smokeping-rtr.service=smokeping-svc"
       - "traefik.http.services.smokeping-svc.loadbalancer.server.port=80"

@@ -2,8 +2,14 @@
 ## Planned: 
 * Replace or remove Transmission/qBittorrent (duplicate functionality)
 * Add LazyLibrarian, Calibre, Caliber-web, projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, smtp-to-telegram, cloud commander, fail2ban
-* Replace VSCode Server with linuxserver/code-server
 * tecnative docker proxy
+
+## May 18, 2020
+* Switched default auth from OAuth to Authelia
+* Added default certresolver and TLS options and removed these from all services
+* Added VSCode, Motion Eye
+* Obsoleted Cloud Commander, CloudlIDE, Linuxserver VSCode
+* Set exposedByDefault to True so Traefik is enabled by default for all services
 
 ## May 11, 2020
 * Added Authelia Lite multifactor authentication
