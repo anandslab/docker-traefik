@@ -5,14 +5,12 @@ version: "3.7"
 # GLOBAL NOTES
 # customFrameOptionsValue overrides traefik.frontend.headers.frameDeny="true"
 
-
 ########################### SERVICES
 services:
+  ############################# FRONTENDS
 
-############################# FRONTENDS
-
-# qBittorrent - Torrent downloader
-# Needs trailing / if using PathPrefixStrip
+  # qBittorrent - Torrent downloader
+  # Needs trailing / if using PathPrefixStrip
   qbittorrent:
     image: linuxserver/qbittorrent
     container_name: qbittorrent
@@ -29,11 +27,11 @@ services:
       WEBUI_PORT: 8168
     labels:
       traefik.enable: "true"
-      traefik.backend: qbittorrent 
+      traefik.backend: qbittorrent
       traefik.protocol: http
       traefik.port: 8168
       traefik.frontend.rule: Host:qbit.${DOMAINNAME}
-#     traefik.frontend.rule: Host:${DOMAINNAME}; PathPrefix: /qbittorrent
+      #     traefik.frontend.rule: Host:${DOMAINNAME}; PathPrefix: /qbittorrent
       traefik.frontend.headers.SSLHost: qbit.${DOMAINNAME}
       traefik.docker.network: t1_proxy
       traefik.frontend.passHostHeader: "true"
@@ -46,8 +44,8 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      #      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
+      traefik.frontend.headers.customFrameOptionsValue: "allow-from https:${DOMAINNAME}"
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
       traefik.frontend.auth.forward.trustForwardHeader: "true"

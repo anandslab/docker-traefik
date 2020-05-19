@@ -14,8 +14,7 @@ networks:
 
 ########################### SERVICES
 services:
-
-# Monitorr - Webfront to display the status of any webapp or service
+  # Monitorr - Webfront to display the status of any webapp or service
   monitorr:
     image: monitorr/monitorr
     container_name: monitorr
@@ -23,8 +22,8 @@ services:
     restart: unless-stopped
     networks:
       - t1_proxy
-#    ports:
-#      - "${MONITORR_PORT}:80"
+    #    ports:
+    #      - "${MONITORR_PORT}:80"
     volumes:
       - ${USERDIR}/docker/monitorr:/app
     environment:
@@ -49,13 +48,13 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      #      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
+      traefik.frontend.headers.customFrameOptionsValue: "allow-from https:${DOMAINNAME}"
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
       traefik.frontend.auth.forward.trustForwardHeader: "true"
 
-# Varken - Monitor Plex, Sonarr, Radarr, and Other Data
+  # Varken - Monitor Plex, Sonarr, Radarr, and Other Data
   varken:
     image: boerderij/varken
     hostname: varken
@@ -119,14 +118,14 @@ services:
       VRKN_UNIFI_1_VERIFY_SSL: "false"
       VRKN_UNIFI_1_GET_USG_STATS_RUN_SECONDS: 300
 
-# Telly Tv- IPTV proxy for Plex
-# https://hub.docker.com/r/tellytv/telly
-# https://github.com/tellytv/telly/wiki/Docker-Walkthrough%3A-Linux-with-config-file
-# https://github.com/tellytv/telly/wiki/Adding-Telly-to-Plex
-# Telly uses port 6077
-# In plex, the DVR IP will be http://HostIP:6077
-# EPG data will be at http://HostIP:6077/epg.xml
-# xTeve is better than TellyTV - Replaced on Jan 09, 2020
+  # Telly Tv- IPTV proxy for Plex
+  # https://hub.docker.com/r/tellytv/telly
+  # https://github.com/tellytv/telly/wiki/Docker-Walkthrough%3A-Linux-with-config-file
+  # https://github.com/tellytv/telly/wiki/Adding-Telly-to-Plex
+  # Telly uses port 6077
+  # In plex, the DVR IP will be http://HostIP:6077
+  # EPG data will be at http://HostIP:6077/epg.xml
+  # xTeve is better than TellyTV - Replaced on Jan 09, 2020
   tellytv:
     image: tellytv/telly:dev-ffmpeg
     container_name: tellytv
@@ -140,7 +139,7 @@ services:
     volumes:
       - ${USERDIR}/docker/telly/telly.config.toml:/etc/telly/telly.config.toml
 
-# Traefik Home - Dashboard
+  # Traefik Home - Dashboard
   home:
     image: lobre/traefik-home
     container_name: traefik-home
@@ -148,8 +147,8 @@ services:
     restart: unless-stopped
     networks:
       - t1_proxy
-#    ports:
-#     - "${SMOKEPING_PORT}:80"
+    #    ports:
+    #     - "${SMOKEPING_PORT}:80"
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
     labels:
@@ -173,13 +172,13 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      #      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
+      traefik.frontend.headers.customFrameOptionsValue: "allow-from https:${DOMAINNAME}"
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
-      traefik.frontend.auth.forward.trustForwardHeader: "true"    
+      traefik.frontend.auth.forward.trustForwardHeader: "true"
 
-# MiFlora MQTT Daemon - BT to MQTT Daemon for MiFlora Sensors
+  # MiFlora MQTT Daemon - BT to MQTT Daemon for MiFlora Sensors
   miflora:
     image: raymondmm/miflora-mqtt
     container_name: miflora-mqtt
@@ -187,29 +186,29 @@ services:
     environment:
       - TZ=${TZ}
     network_mode: host
-#    user: "0"    
+    #    user: "0"
     volumes:
       - ${USERDIR}/docker/miflora-mqtt/config:/config
     restart: unless-stopped
 
-# xTeve - IPTV proxy for Plex
+  # xTeve - IPTV proxy for Plex
   xteve:
     image: alturismo/xteve
     container_name: xteve
     hostname: xteve
     restart: unless-stopped
-#    network_mode: host
+    #    network_mode: host
     networks:
       - t1_proxy
       - default
     ports:
       - "34400:34400"
       - "1901:1900"
-#    user: "0"
-#    logging:
-#      options:
-#        max-size: "10m"
-#        max-files: 3
+    #    user: "0"
+    #    logging:
+    #      options:
+    #        max-size: "10m"
+    #        max-files: 3
     environment:
       TZ: ${TZ}
     volumes:
@@ -233,13 +232,13 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      #      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
+      traefik.frontend.headers.customFrameOptionsValue: "allow-from https:${DOMAINNAME}"
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
       traefik.frontend.auth.forward.trustForwardHeader: "true"
 
-# MQTT Admin - Web Based MQTT Client 
+  # MQTT Admin - Web Based MQTT Client
   mqttweb:
     image: dersimn/mqtt-admin
     container_name: mqttweb
@@ -247,8 +246,8 @@ services:
     restart: unless-stopped
     networks:
       - t1_proxy
-#    ports:
-#      - "80:80"
+    #    ports:
+    #      - "80:80"
     environment:
       MQTT_HOST: "$SERVER_IP:9001"
     labels:
@@ -269,13 +268,13 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      #      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
+      traefik.frontend.headers.customFrameOptionsValue: "allow-from https:${DOMAINNAME}"
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
       traefik.frontend.auth.forward.trustForwardHeader: "true"
 
-# Piwigo - Image Gallery
+  # Piwigo - Image Gallery
   piwigo:
     image: linuxserver/piwigo
     container_name: piwigo
@@ -309,13 +308,13 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      #      traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue overrides this
+      traefik.frontend.headers.customFrameOptionsValue: "allow-from https:${DOMAINNAME}"
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
       traefik.frontend.auth.forward.trustForwardHeader: "true"
 
-# Logarr - Log Management
+  # Logarr - Log Management
   logarr:
     image: monitorr/logarr
     container_name: logarr
@@ -323,8 +322,8 @@ services:
     restart: unless-stopped
     networks:
       - t1_proxy
-#    ports:
-#     - "${LOGARR_PORT}:80"
+    #    ports:
+    #     - "${LOGARR_PORT}:80"
     volumes:
       - ${USERDIR}/docker/logarr/config:/config
       - ${USERDIR}/docker/logarr/logs:/var/log/logarrlogs
@@ -348,7 +347,7 @@ services:
       traefik.frontend.headers.STSIncludeSubdomains: "true"
       traefik.frontend.headers.STSPreload: "true"
       traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-      traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+      traefik.frontend.headers.customFrameOptionsValue: "allow-from https:${DOMAINNAME}"
       traefik.frontend.auth.forward.address: "http://oauth:4181"
       traefik.frontend.auth.forward.authResponseHeaders: X-Forwarded-User
       traefik.frontend.auth.forward.trustForwardHeader: "true"

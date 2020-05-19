@@ -16,14 +16,13 @@ networks:
 
 ########################### SERVICES
 services:
+  ############################# FRONTENDS
 
-############################# FRONTENDS
-
-# Traefik 2 - Reverse Proxy
-# Touch (create empty files) traefik.log and acme/acme.json. Set acme.json permissions to 600. 
-# touch $USERDIR/docker/traefik2/acme/acme.json
-# chmod 600 $USERDIR/docker/traefik2/acme/acme.json
-# touch $USERDIR/docker/traefik2/traefik.log
+  # Traefik 2 - Reverse Proxy
+  # Touch (create empty files) traefik.log and acme/acme.json. Set acme.json permissions to 600.
+  # touch $USERDIR/docker/traefik2/acme/acme.json
+  # chmod 600 $USERDIR/docker/traefik2/acme/acme.json
+  # touch $USERDIR/docker/traefik2/traefik.log
   traefik:
     container_name: traefik
     image: traefik:chevrotin # the chevrotin tag refers to v2.2.x
@@ -33,12 +32,12 @@ services:
       - --global.sendAnonymousUsage=true
       - --entryPoints.http.address=:80
       - --entryPoints.https.address=:443
-        # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
+      # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
       - --entrypoints.https.forwardedHeaders.trustedIPs=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/12,172.64.0.0/13,131.0.72.0/22
       - --entryPoints.traefik.address=:8080
       - --api=true
-#      - --api.insecure=true
-#      - --serversTransport.insecureSkipVerify=true
+      # - --api.insecure=true
+      # - --serversTransport.insecureSkipVerify=true
       - --log=true
       - --log.level=WARN # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
       - --accessLog=true
@@ -49,14 +48,15 @@ services:
       - --providers.docker.endpoint=unix:///var/run/docker.sock
       - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME`)
       - --providers.docker.exposedByDefault=false
-#      - --entrypoints.https.http.middlewares=chain-authelia@file
+      # - --entrypoints.https.http.middlewares=chain-authelia@file
+      # Add dns-cloudflare as default certresolver for all services.
       - --entrypoints.https.http.tls.certresolver=dns-cloudflare
       - --providers.docker.network=t2_proxy
       - --providers.docker.swarmMode=false
       - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory.
-#      - --providers.file.filename=/path/to/file # Load dynamic configuration from a file.
+      # - --providers.file.filename=/path/to/file # Load dynamic configuration from a file.
       - --providers.file.watch=true # Only works on top level files in the rules folder
-#      - --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # LetsEncrypt Staging Server - uncomment when testing
+      # - --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # LetsEncrypt Staging Server - uncomment when testing
       - --certificatesResolvers.dns-cloudflare.acme.email=$CLOUDFLARE_EMAIL
       - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
@@ -65,8 +65,8 @@ services:
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
-#    networks:
-#      - t2_proxy
+    # networks:
+    #   - t2_proxy
     security_opt:
       - no-new-privileges:true
     ports:
@@ -105,28 +105,28 @@ services:
       - "traefik.http.routers.traefik-rtr.tls=true"
       - "traefik.http.routers.traefik-rtr.tls.domains[0].main=$DOMAINNAME"
       - "traefik.http.routers.traefik-rtr.tls.domains[0].sans=*.$DOMAINNAME"
-#      - "traefik.http.routers.traefik-rtr.tls.domains[1].main=$DOMAIN" # Pulls main cert for second domain
-#      - "traefik.http.routers.traefik-rtr.tls.domains[1].sans=*.$DOMAIN" # Pulls wildcard cert for second domain
+      # - "traefik.http.routers.traefik-rtr.tls.domains[1].main=$DOMAIN" # Pulls main cert for second domain
+      # - "traefik.http.routers.traefik-rtr.tls.domains[1].sans=*.$DOMAIN" # Pulls wildcard cert for second domain
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## Middlewares
       - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file"
 
-# Google OAuth - Single Sign On using OAuth 2.0
+  # Google OAuth - Single Sign On using OAuth 2.0
   # https://hub.docker.com/r/thomseddon/traefik-forward-auth
   # https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/
   oauth:
     container_name: oauth
     image: thomseddon/traefik-forward-auth:latest
-#    image: thomseddon/traefik-forward-auth:2.1-arm # Use this image with Raspberry Pi
+    # image: thomseddon/traefik-forward-auth:2.1-arm # Use this image with Raspberry Pi
     restart: unless-stopped
     networks:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#   Allow apps to bypass OAuth. Radarr example below will by pass OAuth if API key is present in the request (eg. from NZB360 mobile app).
-#   While this is one way, the recommended way is to bypass authentication using Traefik labels shown in some of hte apps later.
-#    command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
+    # Allow apps to bypass OAuth. Radarr example below will by pass OAuth if API key is present in the request (eg. from NZB360 mobile app).
+    # While this is one way, the recommended way is to bypass authentication using Traefik labels shown in some of hte apps later.
+    # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
     command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
       - CLIENT_ID=$GOOGLE_CLIENT_ID
@@ -154,15 +154,15 @@ services:
       - "traefik.http.routers.oauth-rtr.service=oauth-svc"
       - "traefik.http.services.oauth-svc.loadbalancer.server.port=4181"
 
-# Authelia (Lite) - Self-Hosted Single Sign-On and Two-Factor Authentication
+  # Authelia (Lite) - Self-Hosted Single Sign-On and Two-Factor Authentication
   authelia:
     container_name: authelia
     image: authelia/authelia:latest
     restart: always
     networks:
       - t2_proxy
-#    ports:
-#      - "9091:9091"
+    # ports:
+    #   - "9091:9091"
     volumes:
       - $USERDIR/docker/authelia/authelia:/var/lib/authelia
       - $USERDIR/docker/authelia/configuration.yml:/etc/authelia/configuration.yml:ro
@@ -181,7 +181,7 @@ services:
       - "traefik.http.routers.authelia-rtr.service=authelia-svc"
       - "traefik.http.services.authelia-svc.loadbalancer.server.port=9091"
 
-# Portainer - WebUI for Containers
+  # Portainer - WebUI for Containers
   portainer:
     container_name: portainer
     image: portainer/portainer:latest
@@ -191,8 +191,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$PORTAINER_PORT:9000"
+    # ports:
+    #   - "$PORTAINER_PORT:9000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - $USERDIR/docker/portainer/data:/data # Change to local directory if you want to save/transfer config locally
@@ -205,15 +205,15 @@ services:
       - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME`)"
       - "traefik.http.routers.portainer-rtr.tls=true"
       ## Middlewares
-#      - "traefik.http.routers.portainer-rtr.middlewares=chain-no-auth@file" # No Authentication
-#      - "traefik.http.routers.portainer-rtr.middlewares=chain-basic-auth@file" # Basic Authentication
-#      - "traefik.http.routers.portainer-rtr.middlewares=chain-oauth@file" # Google OAuth 2.0
-      - "traefik.http.routers.portainer-rtr.middlewares=chain-authelia@file" # Authelia 
+      # - "traefik.http.routers.portainer-rtr.middlewares=chain-no-auth@file" # No Authentication
+      # - "traefik.http.routers.portainer-rtr.middlewares=chain-basic-auth@file" # Basic Authentication
+      # - "traefik.http.routers.portainer-rtr.middlewares=chain-oauth@file" # Google OAuth 2.0
+      - "traefik.http.routers.portainer-rtr.middlewares=chain-authelia@file" # Authelia
       ## HTTP Services
       - "traefik.http.routers.portainer-rtr.service=portainer-svc"
       - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
 
-# Organizr - Unified Frontend
+  # Organizr - Unified Frontend
   organizr:
     container_name: organizr
     image: organizrtools/organizr-v2:latest
@@ -222,8 +222,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$ORGANIZR_PORT:80"
+    # ports:
+    #   - "$ORGANIZR_PORT:80"
     volumes:
       - $USERDIR/docker/organizr:/config
     environment:
@@ -234,16 +234,16 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.organizr-rtr.entrypoints=https"
-      - "traefik.http.routers.organizr-rtr.rule=Host(`$DOMAINNAME`,`www.$DOMAINNAME`)" 
+      - "traefik.http.routers.organizr-rtr.rule=Host(`$DOMAINNAME`,`www.$DOMAINNAME`)"
       - "traefik.http.routers.organizr-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.organizr-rtr.middlewares=chain-authelia@file" 
+      - "traefik.http.routers.organizr-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.organizr-rtr.service=organizr-svc"
       - "traefik.http.services.organizr-svc.loadbalancer.server.port=80"
 
-# Heimdall - Unified Frontend Alternative
-# Putting all services behind Oragnizr slows things down.
+  # Heimdall - Unified Frontend Alternative
+  # Putting all services behind Oragnizr slows things down.
   heimdall:
     container_name: heimdall
     image: linuxserver/heimdall:latest
@@ -253,7 +253,7 @@ services:
     security_opt:
       - no-new-privileges:true
     ports:
-     - "$HEIMDALL_PORT:80"
+      - "$HEIMDALL_PORT:80"
     volumes:
       - $USERDIR/docker/heimdall:/config
     environment:
@@ -272,7 +272,7 @@ services:
       - "traefik.http.routers.heimdall-rtr.service=heimdall-svc"
       - "traefik.http.services.heimdall-svc.loadbalancer.server.port=80"
 
-# Autoindex - Simple Directory Index
+  # Autoindex - Simple Directory Index
   autoindex:
     container_name: autoindex
     image: dceoy/nginx-autoindex:latest
@@ -281,8 +281,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$AUTOINDEX_PORT:80"
+    # ports:
+    #   - "$AUTOINDEX_PORT:80"
     volumes:
       - /media:/var/lib/nginx/html:ro # Location you want to index
     labels:
@@ -297,10 +297,9 @@ services:
       - "traefik.http.routers.autoindex-rtr.service=autoindex-svc"
       - "traefik.http.services.autoindex-svc.loadbalancer.server.port=80"
 
+  ############################# SMART HOME
 
-############################# SMART HOME
-
-# HA-Dockermon - Manage Docker containers in Home Assistant 
+  # HA-Dockermon - Manage Docker containers in Home Assistant
   ha-dockermon:
     image: philhawthorne/ha-dockermon:latest
     container_name: ha-dockermon
@@ -308,7 +307,7 @@ services:
     security_opt:
       - no-new-privileges:true
     ports:
-        - "$HA_DOCKERMON_PORT:8126"
+      - "$HA_DOCKERMON_PORT:8126"
     volumes:
       - $USERDIR/docker/ha-dockermon:/config
       - /var/run/docker.sock:/var/run/docker.sock
@@ -317,9 +316,9 @@ services:
       PGID: $PGID
       TZ: $TZ
 
-# Mosquitto - MQTT Broker
-# Create mosquitto.conf, passwd, mosquitto.log files  and set permissions to 775 user:docker
-# dexec mosquitto /bin/sh -> mosquitto_passwd -b /mosquitto/config/passwd username passwd
+  # Mosquitto - MQTT Broker
+  # Create mosquitto.conf, passwd, mosquitto.log files  and set permissions to 775 user:docker
+  # dexec mosquitto /bin/sh -> mosquitto_passwd -b /mosquitto/config/passwd username passwd
   mosquitto:
     image: eclipse-mosquitto:latest
     container_name: mosquitto
@@ -329,8 +328,8 @@ services:
     ports:
       - "$MOSQUITTO_HTTP_PORT:1883" #http
       - "9001:9001" #websockets
-#      - "$MOSQUITTO_HTTPS_PORT:8883" #https 
-    volumes: 
+      # - "$MOSQUITTO_HTTPS_PORT:8883" #https
+    volumes:
       - $USERDIR/docker/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - $USERDIR/docker/mosquitto/config/passwd:/mosquitto/config/passwd
       - $USERDIR/docker/shared:/shared
@@ -339,7 +338,7 @@ services:
       PGID: $PGID
       TZ: $TZ
 
-# MotionEye - Video Surveillance 
+  # MotionEye - Video Surveillance
   motioneye:
     image: ccrisan/motioneye:master-amd64
     container_name: motioneye
@@ -373,17 +372,17 @@ services:
       - "traefik.http.routers.motioneye-rtr.service=motioneye-svc"
       - "traefik.http.services.motioneye-svc.loadbalancer.server.port=8765"
 
-############################# DATABASE
+  ############################# DATABASE
 
-# MariaDB - MySQL Database
+  # MariaDB - MySQL Database
   mariadb:
     container_name: mariadb
     image: linuxserver/mariadb:latest
     restart: always
     networks:
-#      - default
+      # - default
       t2_proxy:
-        ipv4_address: 192.168.90.250 
+        ipv4_address: 192.168.90.250
     security_opt:
       - no-new-privileges:true
     ports:
@@ -397,8 +396,8 @@ services:
       - PGID=$PGID
       - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
 
-# phpMyAdmin - Database management
-# Create a new user with admin privileges. Cannot login as MySQL root for some reason.
+  # phpMyAdmin - Database management
+  # Create a new user with admin privileges. Cannot login as MySQL root for some reason.
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
     container_name: phpmyadmin
@@ -407,12 +406,12 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$PHPMYADMIN_PORT:80"
-#    volumes:
-#      - $USERDIR/docker/phpmyadmin:/etc/phpmyadmin
+    # ports:
+    #   - "$PHPMYADMIN_PORT:80"
+    # volumes:
+    #   - $USERDIR/docker/phpmyadmin:/etc/phpmyadmin
     environment:
-#      - PMA_HOST=$DB_HOST
+      # - PMA_HOST=$DB_HOST
       - PMA_PORT=$DB_PORT
       - PMA_ARBITRARY=1
       - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
@@ -428,8 +427,8 @@ services:
       - "traefik.http.routers.phpmyadmin-rtr.service=phpmyadmin-svc"
       - "traefik.http.services.phpmyadmin-svc.loadbalancer.server.port=80"
 
-# InfluxDB - Database for sensor data
-# Create influxdb.conf
+  # InfluxDB - Database for sensor data
+  # Create influxdb.conf
   influxdb:
     image: influxdb
     container_name: influxdb
@@ -439,11 +438,11 @@ services:
     ports:
       - "$INFLUXDB_PORT:8086"
     volumes:
-#      - $USERDIR/docker/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
+      # - $USERDIR/docker/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
       - $USERDIR/docker/influxdb/db:/var/lib/influxdb
-#    command: -config /etc/influxdb/influxdb.conf
+  #    command: -config /etc/influxdb/influxdb.conf
 
-# Postgres - Database
+  # Postgres - Database
   postgres:
     image: postgres
     container_name: postgres
@@ -457,7 +456,7 @@ services:
       POSTGRES_USER: $STATPING_DB_USER
       POSTGRES_DB: $STATPING_DB
 
-# Grafana - Graphical data visualization for InfluxDB data
+  # Grafana - Graphical data visualization for InfluxDB data
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -466,13 +465,13 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$GRAFANA_PORT:3000"
+    # ports:
+    #   - "$GRAFANA_PORT:3000"
     user: "0"
     volumes:
       - $USERDIR/docker/grafana:/var/lib/grafana
     environment:
-      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel" 
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel"
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -485,9 +484,9 @@ services:
       - "traefik.http.routers.grafana-rtr.service=grafana-svc"
       - "traefik.http.services.grafana-svc.loadbalancer.server.port=3000"
 
-############################# DOWNLOADERS
+  ############################# DOWNLOADERS
 
-# jDownloader - Download management
+  # jDownloader - Download management
   jdownloader:
     image: jlesage/jdownloader-2:latest
     container_name: jdownloader
@@ -496,8 +495,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$JDOWNLOADER_PORT:5800"
+    # ports:
+    #   - "$JDOWNLOADER_PORT:5800"
     volumes:
       - $USERDIR/Downloads/completed:/output
       - $USERDIR/docker/jdownloader:/config
@@ -523,18 +522,18 @@ services:
       - "traefik.http.routers.jdownloader-rtr.service=jdownloader-svc"
       - "traefik.http.services.jdownloader-svc.loadbalancer.server.port=5800"
 
-# TransmissionBT - Torrent Downloader
-# ONLY ACCESSIBLE THROUGH https://domain.com/transmission/web/ if using PathPrefix
+  # TransmissionBT - Torrent Downloader
+  # ONLY ACCESSIBLE THROUGH https://domain.com/transmission/web/ if using PathPrefix
   transmission-vpn:
     image: haugene/transmission-openvpn:latest
     container_name: transmission-vpn
     restart: always
     networks:
-#      - t2_proxy
+      # - t2_proxy
       t2_proxy:
-        ipv4_address: 192.168.90.90 
-#    security_opt:
-#      - no-new-privileges:true
+        ipv4_address: 192.168.90.90
+    # security_opt:
+    #   - no-new-privileges:true
     ports:
       - "$TRANSMISSION_PORT:9091"
     cap_add:
@@ -591,9 +590,9 @@ services:
       - "traefik.http.routers.transmission-vpn-rtr.service=transmission-vpn-svc"
       - "traefik.http.services.transmission-vpn-svc.loadbalancer.server.port=9091"
 
-# SABnzbd - Binary newsgrabber (NZB downloader)
-# Disable SABNnzbd's built-in HTTPS support for traefik proxy to work
-# Needs trailing / if using PathPrefix
+  # SABnzbd - Binary newsgrabber (NZB downloader)
+  # Disable SABNnzbd's built-in HTTPS support for traefik proxy to work
+  # Needs trailing / if using PathPrefix
   sabnzbd:
     image: linuxserver/sabnzbd:latest
     container_name: sabnzbd
@@ -607,7 +606,7 @@ services:
     volumes:
       - $USERDIR/docker/sabnzbd:/config
       - $USERDIR/Downloads:/downloads
-#      - $USERDIR/Downloads/incomplete:/incomplete-downloads
+    #   - $USERDIR/Downloads/incomplete:/incomplete-downloads
     environment:
       PUID: $PUID
       PGID: $PGID
@@ -616,32 +615,32 @@ services:
     labels:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass - HeadersRegexp NOT WORKING. USING OAUTH CONTAINER BYPASS METHOD.
-#      - "traefik.http.routers.sabnzbd-rtr-bypass.entrypoints=https"
-#      - "traefik.http.routers.sabnzbd-rtr-bypass.tls=true"  
-#      - "traefik.http.routers.sabnzbd-rtr-bypass.rule=HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
-#      - "traefik.http.routers.sabnzbd-rtr-bypass.priority=100"
-      ## HTTP Routers Auth 
+      # - "traefik.http.routers.sabnzbd-rtr-bypass.entrypoints=https"
+      # - "traefik.http.routers.sabnzbd-rtr-bypass.tls=true"
+      # - "traefik.http.routers.sabnzbd-rtr-bypass.rule=HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
+      # - "traefik.http.routers.sabnzbd-rtr-bypass.priority=100"
+      ## HTTP Routers Auth
       - "traefik.http.routers.sabnzbd-rtr.entrypoints=https"
       - "traefik.http.routers.sabnzbd-rtr.tls=true"
       - "traefik.http.routers.sabnzbd-rtr.rule=Host(`sabnzbd.$DOMAINNAME`)"
       - "traefik.http.routers.sabnzbd-rtr.priority=99"
       ## Middlewares
-#      - "traefik.http.routers.sabnzbd-rtr-bypass.middlewares=chain-no-auth@file"
+      # - "traefik.http.routers.sabnzbd-rtr-bypass.middlewares=chain-no-auth@file"
       - "traefik.http.routers.sabnzbd-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.sabnzbd-rtr.service=sabnzbd-svc"
-#      - "traefik.http.routers.sabnzbd-rtr-bypass.service=sabnzbd-svc"
+      # - "traefik.http.routers.sabnzbd-rtr-bypass.service=sabnzbd-svc"
       - "traefik.http.services.sabnzbd-svc.loadbalancer.server.port=8080"
 
-############################# INDEXERS
+  ############################# INDEXERS
 
-# Jackett - Torrent proxy
-# Set url_base in Jackett settings if using PathPrefix
+  # Jackett - Torrent proxy
+  # Set url_base in Jackett settings if using PathPrefix
   jackett:
     image: linuxserver/jackett:latest
     container_name: jackett
     restart: always
-#    network_mode: container:transmission-vpn
+    # network_mode: container:transmission-vpn
     networks:
       - t2_proxy
     security_opt:
@@ -668,7 +667,7 @@ services:
       - "traefik.http.routers.jackett-rtr.service=jackett-svc"
       - "traefik.http.services.jackett-svc.loadbalancer.server.port=9117"
 
-# NZBHydra2 - NZB meta search
+  # NZBHydra2 - NZB meta search
   hydra:
     image: linuxserver/hydra2:latest
     container_name: hydra
@@ -677,8 +676,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$NZBHYDRA_PORT:5076"
+    # ports:
+    #   - "$NZBHYDRA_PORT:5076"
     volumes:
       - $USERDIR/docker/hydra2:/config
       - $USERDIR/Downloads:/downloads
@@ -698,10 +697,10 @@ services:
       - "traefik.http.routers.hydra-rtr.service=hydra-svc"
       - "traefik.http.services.hydra-svc.loadbalancer.server.port=5076"
 
-############################# PVRS
+  ############################# PVRS
 
-# Lidarr - Music Management
-# Set url_base in lidarr settings if using PathPrefix
+  # Lidarr - Music Management
+  # Set url_base in lidarr settings if using PathPrefix
   lidarr:
     image: linuxserver/lidarr:latest
     container_name: lidarr
@@ -725,10 +724,10 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.lidarr-rtr-bypass.entrypoints=https"
-      - "traefik.http.routers.lidarr-rtr-bypass.tls=true"  
+      - "traefik.http.routers.lidarr-rtr-bypass.tls=true"
       - "traefik.http.routers.lidarr-rtr-bypass.rule=Headers(`X-Api-Key`, `$LIDARR_API_KEY`)"
       - "traefik.http.routers.lidarr-rtr-bypass.priority=100"
-      ## HTTP Routers Auth 
+      ## HTTP Routers Auth
       - "traefik.http.routers.lidarr-rtr.entrypoints=https"
       - "traefik.http.routers.lidarr-rtr.tls=true"
       - "traefik.http.routers.lidarr-rtr.rule=Host(`lidarr.$DOMAINNAME`)"
@@ -741,10 +740,10 @@ services:
       - "traefik.http.routers.lidarr-rtr-bypass.service=lidarr-svc"
       - "traefik.http.services.lidarr-svc.loadbalancer.server.port=8686"
 
-# Radarr - Movie management
-# Set url_base in radarr settings if using PathPrefix
+  # Radarr - Movie management
+  # Set url_base in radarr settings if using PathPrefix
   radarr:
-#    image: aront/radarr #for mp4_automator support
+    # image: aront/radarr #for mp4_automator support
     image: linuxserver/radarr:preview
     container_name: radarr
     restart: unless-stopped
@@ -758,7 +757,7 @@ services:
       - $USERDIR/docker/radarr:/config
       - $USERDIR/Downloads:/downloads
       - /media:/nas
-#      - $USERDIR/docker/shared/mp4_automator:/config_mp4_automator
+      # - $USERDIR/docker/shared/mp4_automator:/config_mp4_automator
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       PUID: $PUID
@@ -768,10 +767,10 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.radarr-rtr-bypass.entrypoints=https"
-      - "traefik.http.routers.radarr-rtr-bypass.tls=true"  
+      - "traefik.http.routers.radarr-rtr-bypass.tls=true"
       - "traefik.http.routers.radarr-rtr-bypass.rule=Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
       - "traefik.http.routers.radarr-rtr-bypass.priority=100"
-      ## HTTP Routers Auth 
+      ## HTTP Routers Auth
       - "traefik.http.routers.radarr-rtr.entrypoints=https"
       - "traefik.http.routers.radarr-rtr.tls=true"
       - "traefik.http.routers.radarr-rtr.rule=Host(`radarr.$DOMAINNAME`)"
@@ -784,10 +783,10 @@ services:
       - "traefik.http.routers.radarr-rtr-bypass.service=radarr-svc"
       - "traefik.http.services.radarr-svc.loadbalancer.server.port=7878"
 
-# Sonarr - TV Shows management
-# Set url_base in sonarr settings if using PathPrefix
+  # Sonarr - TV Shows management
+  # Set url_base in sonarr settings if using PathPrefix
   sonarr:
-#    image: aront/sonarr  #for mp4_automator support
+    # image: aront/sonarr  #for mp4_automator support
     image: linuxserver/sonarr:preview
     container_name: sonarr
     restart: unless-stopped
@@ -802,20 +801,19 @@ services:
       - $USERDIR/Downloads:/downloads
       - /media:/nas
       - "/etc/localtime:/etc/localtime:ro"
-#      - "$USERDIR/docker/shared/mp4_automator:/config_mp4_automator:rw"
+    #   - "$USERDIR/docker/shared/mp4_automator:/config_mp4_automator:rw"
     environment:
       PUID: $PUID
       PGID: $PGID
       TZ: $TZ
     labels:
-    
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.sonarr-rtr-bypass.entrypoints=https"
-      - "traefik.http.routers.sonarr-rtr-bypass.tls=true"  
+      - "traefik.http.routers.sonarr-rtr-bypass.tls=true"
       - "traefik.http.routers.sonarr-rtr-bypass.rule=Headers(`X-Api-Key`, `$SONARR_API_KEY`)"
       - "traefik.http.routers.sonarr-rtr-bypass.priority=100"
-      ## HTTP Routers Auth 
+      ## HTTP Routers Auth
       - "traefik.http.routers.sonarr-rtr.entrypoints=https"
       - "traefik.http.routers.sonarr-rtr.tls=true"
       - "traefik.http.routers.sonarr-rtr.rule=Host(`sonarr.$DOMAINNAME`)"
@@ -828,9 +826,9 @@ services:
       - "traefik.http.routers.sonarr-rtr-bypass.service=sonarr-svc"
       - "traefik.http.services.sonarr-svc.loadbalancer.server.port=8989"
 
-############################# MEDIA
+  ############################# MEDIA
 
-# AirSonic - Music Server
+  # AirSonic - Music Server
   airsonic:
     container_name: airsonic
     image: linuxserver/airsonic:latest
@@ -846,7 +844,7 @@ services:
       - $USERDIR/docker/airsonic/podcasts:/podcasts
       - $USERDIR/docker/airsonic/playlists:/playlists
       - $USERDIR/docker/airsonic/config:/config
-#      - $USERDIR/docker/airsonic/config:/app/airsonic/config #Used to change log level for debugging
+      # - $USERDIR/docker/airsonic/config:/app/airsonic/config #Used to change log level for debugging
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
@@ -865,7 +863,7 @@ services:
       - "traefik.http.routers.airsonic-rtr.service=airsonic-svc"
       - "traefik.http.services.airsonic-svc.loadbalancer.server.port=4040"
 
-# Plex - Media Server
+  # Plex - Media Server
   plexms:
     image: plexinc/pms-docker:public
     container_name: plexms
@@ -890,7 +888,7 @@ services:
       - $USERDIR/Downloads:/Downloads
       - /media:/nas
       - /dev/shm:/transcode # Offload transcoding to RAM if you have enough RAM
-#      - $USERDIR/Downloads/plex_tmp:/transcode
+    #   - $USERDIR/Downloads/plex_tmp:/transcode
     environment:
       TZ: $TZ
       HOSTNAME: "nucPlex"
@@ -910,7 +908,7 @@ services:
       - "traefik.http.routers.plexms-rtr.service=plexms-svc"
       - "traefik.http.services.plexms-svc.loadbalancer.server.port=32400"
 
-# Emby - Media Server
+  # Emby - Media Server
   embyms:
     image: emby/embyserver:latest
     container_name: embyms
@@ -925,7 +923,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - $USERDIR/docker/embyms:/config
-      - /dev/shm:/transcode      
+      - /dev/shm:/transcode
       - /media:/nas
       - $USERDIR/Downloads:/downloads
     environment:
@@ -945,7 +943,7 @@ services:
       - "traefik.http.routers.embyms-rtr.service=embyms-svc"
       - "traefik.http.services.embyms-svc.loadbalancer.server.port=8096"
 
-# Jellyfin - Media Server
+  # Jellyfin - Media Server
   jellyfin:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
@@ -966,7 +964,7 @@ services:
       - $USERDIR/docker/jellyfin:/config
       - /dev/shm:/ram_transcode
       - /media:/nas
-#      - /media:/nas:ro # Run in ro mode while upgrading JF
+    #   - /media:/nas:ro # Run in ro mode while upgrading JF
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -979,7 +977,7 @@ services:
       - "traefik.http.routers.jellyfin-rtr.service=jellyfin-svc"
       - "traefik.http.services.jellyfin-svc.loadbalancer.server.port=8096"
 
-# Ombi - Media Requests
+  # Ombi - Media Requests
   ombi:
     image: linuxserver/ombi:latest
     container_name: ombi
@@ -1009,8 +1007,8 @@ services:
       - "traefik.http.routers.ombi-rtr.service=ombi-svc"
       - "traefik.http.services.ombi-svc.loadbalancer.server.port=3579"
 
-# Tautulli - Previously PlexPy. Plex statistics and monitoring
-# Set HTTP Root in Tautulli settings if using PathPrefix
+  # Tautulli - Previously PlexPy. Plex statistics and monitoring
+  # Set HTTP Root in Tautulli settings if using PathPrefix
   tautulli:
     image: linuxserver/tautulli:latest
     container_name: tautulli
@@ -1040,7 +1038,7 @@ services:
       - "traefik.http.routers.tautulli-rtr.service=tautulli-svc"
       - "traefik.http.services.tautulli-svc.loadbalancer.server.port=8181"
 
-# Plex-Sync - For Syncing watched status between plex servers 
+  # Plex-Sync - For Syncing watched status between plex servers
   plex-sync:
     image: patsissons/plex-sync:develop
     container_name: plex-sync
@@ -1048,12 +1046,12 @@ services:
       - no-new-privileges:true
     environment:
       INITIAL_RUN: "true"
-#      DRY_RUN: 0
-      CRON_SCHEDULE: '*/5 * * * *'
+      # DRY_RUN: 0
+      CRON_SCHEDULE: "*/5 * * * *"
       SECTION_MAPS: $SYN_PLEX/$SYN_PLEX_HOLLYWOOD $NUC_PLEX/$NUC_PLEX_HOLLYWOOD | $SYN_PLEX/$SYN_PLEX_TVSHOWS $NUC_PLEX/$NUC_PLEX_TVSHOWS | $SYN_PLEX/$SYN_PLEX_INDIAN $NUC_PLEX/$NUC_PLEX_INDIAN | $SYN_PLEX/$SYN_PLEX_KOLLYWOOD $NUC_PLEX/$NUC_PLEX_KOLLYWOOD | $SYN_PLEX/$SYN_PLEX_DOCMOVIES $NUC_PLEX/$NUC_PLEX_DOCMOVIES | $SYN_PLEX/$SYN_PLEX_DOCSHOWS $NUC_PLEX/$NUC_PLEX_DOCSHOWS | $SYN_PLEX/$SYN_PLEX_KIDSMOVIES $NUC_PLEX/$NUC_PLEX_KIDSMOVIES | $SYN_PLEX/$SYN_PLEX_INTERNATIONAL $NUC_PLEX/$NUC_PLEX_INTERNATIONAL
     restart: unless-stopped
 
-# PhotoShow - Image Gallery
+  # PhotoShow - Image Gallery
   photoshow:
     image: linuxserver/photoshow:latest
     container_name: photoshow
@@ -1084,9 +1082,9 @@ services:
       - "traefik.http.routers.photoshow-rtr.service=photoshow-svc"
       - "traefik.http.services.photoshow-svc.loadbalancer.server.port=80"
 
-############################# MEDIA FILE MANAGEMENT
+  ############################# MEDIA FILE MANAGEMENT
 
-# Bazarr - Subtitle Management
+  # Bazarr - Subtitle Management
   bazarr:
     image: linuxserver/bazarr:latest
     container_name: bazarr
@@ -1116,7 +1114,7 @@ services:
       - "traefik.http.routers.bazarr-rtr.service=bazarr-svc"
       - "traefik.http.services.bazarr-svc.loadbalancer.server.port=6767"
 
-# Picard - Music Library Tagging and Management
+  # Picard - Music Library Tagging and Management
   picard:
     image: mikenye/picard:latest
     container_name: picard
@@ -1125,8 +1123,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$PICARD_PORT:5800"
+    # ports:
+    #   - "$PICARD_PORT:5800"
     volumes:
       - $USERDIR/Downloads/wip_media:/wip_media:rw
       - $USERDIR/docker/picard:/config:rw
@@ -1151,7 +1149,7 @@ services:
       - "traefik.http.routers.picard-rtr.service=picard-svc"
       - "traefik.http.services.picard-svc.loadbalancer.server.port=5800"
 
-# Handbrake - Video Conversion (Transcoding and compression)
+  # Handbrake - Video Conversion (Transcoding and compression)
   handbrake:
     image: jlesage/handbrake:latest
     container_name: handbrake
@@ -1160,8 +1158,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$HANDBRAKE_PORT:5800"
+    # ports:
+    #   - "$HANDBRAKE_PORT:5800"
     volumes:
       - $USERDIR/Downloads:/downloads:ro
       - $USERDIR/docker/handbrake/config:/config:rw
@@ -1190,7 +1188,7 @@ services:
       - "traefik.http.routers.handbrake-rtr.service=handbrake-svc"
       - "traefik.http.services.handbrake-svc.loadbalancer.server.port=5800"
 
-# MKVToolNix - Video Editing (Remuxing - changing media container while keeping original source quality)
+  # MKVToolNix - Video Editing (Remuxing - changing media container while keeping original source quality)
   mkvtoolnix:
     image: jlesage/mkvtoolnix:latest
     container_name: mkvtoolnix
@@ -1199,8 +1197,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$MKVTOOLNIX_PORT:5800"
+    # ports:
+    #   - "$MKVTOOLNIX_PORT:5800"
     volumes:
       - $USERDIR/Downloads:/downloads:rw
       - $USERDIR/docker/mkvtoolnix/config:/config:rw
@@ -1226,7 +1224,7 @@ services:
       - "traefik.http.routers.mkvtoolnix-rtr.service=mkvtoolnix-svc"
       - "traefik.http.services.mkvtoolnix-svc.loadbalancer.server.port=5800"
 
-# MakeMKV - Video Editing (Ripping from Disks)
+  # MakeMKV - Video Editing (Ripping from Disks)
   makemkv:
     image: jlesage/makemkv:latest
     container_name: makemkv
@@ -1235,8 +1233,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$MAKEMKV_PORT:5800"
+    # ports:
+    #   - "$MAKEMKV_PORT:5800"
     volumes:
       - $USERDIR/Downloads:/Downloads:rw
       - $USERDIR/docker/makemkv/config:/config:rw
@@ -1264,7 +1262,7 @@ services:
       - "traefik.http.routers.makemkv-rtr.service=makemkv-svc"
       - "traefik.http.services.makemkv-svc.loadbalancer.server.port=5800"
 
-# FileBot - File renamer
+  # FileBot - File renamer
   filebot:
     image: jlesage/filebot:latest
     container_name: filebot
@@ -1273,8 +1271,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$FILEBOT_PORT:5800"
+    # ports:
+    #   - "$FILEBOT_PORT:5800"
     volumes:
       # A *.psm license file is required in /config
       # https://github.com/jlesage/docker-filebot#installing-a-license
@@ -1303,20 +1301,20 @@ services:
       - "traefik.http.routers.filebot-rtr.service=filebot-svc"
       - "traefik.http.services.filebot-svc.loadbalancer.server.port=5800"
 
-############################# UTILITIES
+  ############################# UTILITIES
 
-# Firefox - Web Broswer
-# VNC password not working - check
+  # Firefox - Web Broswer
+  # VNC password not working - check
   firefox:
     image: jlesage/firefox:latest
     container_name: firefox
     restart: unless-stopped
-    networks: 
+    networks:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports: 
-#      - "$FIREFOX_PORT:5800"
+    # ports:
+    #   - "$FIREFOX_PORT:5800"
     volumes:
       - $USERDIR/docker/firefox:/config
       - $USERDIR/Downloads/completed:/config/downloads
@@ -1344,25 +1342,25 @@ services:
       - "traefik.http.routers.firefox-rtr.service=firefox-svc"
       - "traefik.http.services.firefox-svc.loadbalancer.server.port=5800"
 
-# Glances - System Information
+  # Glances - System Information
   glances:
     image: nicolargo/glances:latest
     container_name: glances
     restart: unless-stopped
     privileged: true
-#    network_mode: host
+    # network_mode: host
     networks:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$GLANCES_PORT:61208"
+    # ports:
+    #   - "$GLANCES_PORT:61208"
     pid: host
     volumes:
       - $USERDIR/docker/glances/glances.conf:/glances/conf/glances.conf # Use this if you want to add a glances.conf file
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
-#      GLANCES_OPT: "-C /glances/conf/glances.conf --quiet --export influxdb"
+      # GLANCES_OPT: "-C /glances/conf/glances.conf --quiet --export influxdb"
       GLANCES_OPT: "-w"
     labels:
       - "traefik.enable=true"
@@ -1376,8 +1374,8 @@ services:
       - "traefik.http.routers.glances-rtr.service=glances-svc"
       - "traefik.http.services.glances-svc.loadbalancer.server.port=61208"
 
-# APCUPSD - APC UPS Management
-# create the apcupsd.conf file
+  # APCUPSD - APC UPS Management
+  # create the apcupsd.conf file
   apcupsd:
     image: gersilex/apcupsd:latest
     container_name: apcupsd
@@ -1396,7 +1394,7 @@ services:
       - $USERDIR/docker/apcupsd/doshutdown:/etc/apcupsd/doshutdown
       - $USERDIR/docker/apcupsd/apcupsd.events:/var/log/apcupsd.events
 
-# qDirStat - Directory Statistics
+  # qDirStat - Directory Statistics
   qdirstat:
     image: jlesage/qdirstat:latest
     container_name: qdirstat
@@ -1405,8 +1403,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$QDIRSTAT_PORT:5800"
+    # ports:
+    #   - "$QDIRSTAT_PORT:5800"
     volumes:
       - $USERDIR:/storage:ro
       - $USERDIR/docker/qdirstat/config:/config:rw
@@ -1433,8 +1431,8 @@ services:
       - "traefik.http.routers.qdirstat-rtr.service=qdirstat-svc"
       - "traefik.http.services.qdirstat-svc.loadbalancer.server.port=5800"
 
-# Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser 
-# Create all databases and tables first
+  # Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser
+  # Create all databases and tables first
   guacamole:
     image: guacamole/guacamole:latest
     container_name: guacamole
@@ -1443,8 +1441,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$GUACAMOLE_PORT:8080"
+    # ports:
+    #   - "$GUACAMOLE_PORT:8080"
     environment:
       GUACD_HOSTNAME: guacd
       MYSQL_HOSTNAME: $DB_HOST
@@ -1459,13 +1457,13 @@ services:
       - "traefik.http.routers.guacamole-rtr.rule=Host(`guac.$DOMAINNAME`)"
       - "traefik.http.routers.guacamole-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.guacamole-rtr.middlewares=chain-authelia@file,add-guacamole" 
+      - "traefik.http.routers.guacamole-rtr.middlewares=chain-authelia@file,add-guacamole"
       - "traefik.http.middlewares.add-guacamole.addPrefix.prefix=/guacamole"
       ## HTTP Services
       - "traefik.http.routers.guacamole-rtr.service=guacamole-svc"
       - "traefik.http.services.guacamole-svc.loadbalancer.server.port=8080"
 
-# Guacamole Daemon - Needed for Guacamole
+  # Guacamole Daemon - Needed for Guacamole
   guacd:
     image: guacamole/guacd
     container_name: guacd
@@ -1473,7 +1471,7 @@ services:
     security_opt:
       - no-new-privileges:true
 
-# Dozzle - Real-time Docker Log Viewer
+  # Dozzle - Real-time Docker Log Viewer
   dozzle:
     image: amir20/dozzle:latest
     container_name: dozzle
@@ -1482,13 +1480,13 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$DOZZLE_PORT:8080"
+    # ports:
+    #   - "$DOZZLE_PORT:8080"
     environment:
       DOZZLE_LEVEL: info
       DOZZLE_TAILSIZE: 300
       DOZZLE_FILTER: "status=running"
-#      DOZZLE_FILTER: "label=log_me" # limits logs displayed to containers with this label
+      # DOZZLE_FILTER: "label=log_me" # limits logs displayed to containers with this label
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     labels:
@@ -1498,12 +1496,12 @@ services:
       - "traefik.http.routers.dozzle-rtr.rule=Host(`dozzle.$DOMAINNAME`)"
       - "traefik.http.routers.dozzle-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.dozzle-rtr.middlewares=chain-authelia@file" 
+      - "traefik.http.routers.dozzle-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.dozzle-rtr.service=dozzle-svc"
       - "traefik.http.services.dozzle-svc.loadbalancer.server.port=8080"
 
-# StatPing - Status Page & Monitoring Server
+  # StatPing - Status Page & Monitoring Server
   statping:
     image: hunterlong/statping:latest
     container_name: statping
@@ -1512,8 +1510,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#      - "$STATPING_PORT:8080"
+    # ports:
+    #   - "$STATPING_PORT:8080"
     volumes:
       - $USERDIR/docker/statping:/app
     environment:
@@ -1540,7 +1538,7 @@ services:
       - "traefik.http.routers.statping-rtr.service=statping-svc"
       - "traefik.http.services.statping-svc.loadbalancer.server.port=8080"
 
-# SmokePing - Network latency Monitoring
+  # SmokePing - Network latency Monitoring
   smokeping:
     image: linuxserver/smokeping:latest
     container_name: smokeping
@@ -1549,8 +1547,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-#    ports:
-#     - "$SMOKEPING_PORT:80"
+    # ports:
+    #  - "$SMOKEPING_PORT:80"
     volumes:
       - $USERDIR/docker/smokeping/config:/config
       - $USERDIR/docker/smokeping/data:/data
@@ -1570,7 +1568,7 @@ services:
       - "traefik.http.routers.smokeping-rtr.service=smokeping-svc"
       - "traefik.http.services.smokeping-svc.loadbalancer.server.port=80"
 
-# VSCode - VSCode Editing 
+  # VSCode - VSCode Editing
   vscode:
     image: codercom/code-server:latest
     container_name: vscode
@@ -1587,9 +1585,9 @@ services:
       - $USERDIR/docker/vscode/local:/home/coder/.local/share/code-server
     environment:
       PASSWORD: $VSCODE_PASSWORD
-# Run as root first, create the directories, then change permissions to user:docker and 775. Disable run as root below.
+      # Run as root first, create the directories, then change permissions to user:docker and 775. Disable run as root below.
       user: $PUID:$PGID
-#      user: "0"
+      # user: "0"
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1597,14 +1595,14 @@ services:
       - "traefik.http.routers.vscode-rtr.rule=Host(`code.$DOMAINNAME`)"
       - "traefik.http.routers.vscode-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.vscode-rtr.middlewares=chain-authelia@file" 
+      - "traefik.http.routers.vscode-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.vscode-rtr.service=vscode-svc"
       - "traefik.http.services.vscode-svc.loadbalancer.server.port=8080"
 
-############################# MAINTENANCE
+  ############################# MAINTENANCE
 
-# Ouroboros - Automatic Docker Container Updates
+  # Ouroboros - Automatic Docker Container Updates
   ouroboros:
     image: pyouroboros/ouroboros:latest
     container_name: ouroboros
@@ -1619,11 +1617,11 @@ services:
       LOG_LEVEL: debug
       SELF_UPDATE: "true"
       CLEANUP: "true"
-      IGNORE: traefik influxdb hassio_dns homeassistant hassio_supervisor addon_core_check_config addon_62c7908d_autobackup plexms 
-      NOTIFIERS: 'tgram://$TGRAM_BOT_TOKEN/$TGRAM_CHAT_ID/'
+      IGNORE: traefik influxdb hassio_dns homeassistant hassio_supervisor addon_core_check_config addon_62c7908d_autobackup plexms
+      NOTIFIERS: "tgram://$TGRAM_BOT_TOKEN/$TGRAM_CHAT_ID/"
 
-# Docker-GC - Automatic Docker Garbage Collection 
-# Create docker-gc-exclude file
+  # Docker-GC - Automatic Docker Garbage Collection
+  # Create docker-gc-exclude file
   dockergc:
     image: clockworksoul/docker-gc-cron:latest
     container_name: docker-gc
@@ -1641,19 +1639,19 @@ services:
       CLEAN_UP_VOLUMES: 1
       TZ: $TZ
 
-# Traefik Certs Dumper - Extract LetsEncrypt Certificates - Traefik2 Compatible
+  # Traefik Certs Dumper - Extract LetsEncrypt Certificates - Traefik2 Compatible
   certdumper:
     container_name: traefik_certdumper
     image: humenius/traefik-certs-dumper:latest
-#    command: --restart-containers container1,container2,container3
+    # command: --restart-containers container1,container2,container3
     volumes:
-    - $USERDIR/docker/traefik2/acme:/traefik:ro
-    - $USERDIR/docker/shared/certs:/output:rw
-#    - /var/run/docker.sock:/var/run/docker.sock:ro # only needed if restarting containers
+      - $USERDIR/docker/traefik2/acme:/traefik:ro
+      - $USERDIR/docker/shared/certs:/output:rw
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # only needed if restarting containers
     environment:
       DOMAIN: $DOMAINNAME
 
-# Cloudflare DDNS - Dynamic DNS Updater
+  # Cloudflare DDNS - Dynamic DNS Updater
   cloudddns:
     container_name: cloudddns
     restart: always
