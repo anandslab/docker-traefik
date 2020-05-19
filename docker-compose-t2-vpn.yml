@@ -2,11 +2,10 @@ version: "3.7"
 
 ########################### SERVICES
 services:
+  ############################# FRONTENDS
 
-############################# FRONTENDS
-
-# Jackett - Torrent proxy
-# Set url_base in Jackett settings if using PathPrefix
+  # Jackett - Torrent proxy
+  # Set url_base in Jackett settings if using PathPrefix
   jackett:
     image: linuxserver/jackett:latest
     container_name: jackett
@@ -28,15 +27,15 @@ services:
       - "traefik.http.routers.jackett-rtr.entrypoints=https"
       - "traefik.http.routers.jackett-rtr.rule=Host(`jackett.$DOMAINNAME`)"
       - "traefik.http.routers.jackett-rtr.tls=true"
-#      - "traefik.http.routers.jackett-rtr.tls.certresolver=dns-cloudflare" 
+      #      - "traefik.http.routers.jackett-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
       - "traefik.http.routers.jackett-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.jackett-rtr.service=jackett-svc"
       - "traefik.http.services.jackett-svc.loadbalancer.server.port=9117"
 
-# qBittorrent - Torrent downloader
-# Needs trailing / if using PathPrefixStrip
+  # qBittorrent - Torrent downloader
+  # Needs trailing / if using PathPrefixStrip
   qbittorrent:
     image: linuxserver/qbittorrent:latest
     container_name: qbittorrent
@@ -59,7 +58,7 @@ services:
       - "traefik.http.routers.qbittorrent-rtr.entrypoints=https"
       - "traefik.http.routers.qbittorrent-rtr.rule=Host(`qbit.$DOMAINNAME`)"
       - "traefik.http.routers.qbittorrent-rtr.tls=true"
-#      - "traefik.http.routers.qbittorrent-rtr.tls.certresolver=dns-cloudflare"
+      #      - "traefik.http.routers.qbittorrent-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
       - "traefik.http.routers.qbittorrent-rtr.middlewares=chain-oauth@file"
       ## HTTP Services

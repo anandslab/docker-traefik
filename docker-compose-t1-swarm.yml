@@ -2,13 +2,13 @@
 
 # DOCKER TRAEFIK 1 IS NO LONGER BEING MAINTAINED. CHECK INSTRUCTIONS FOR DOCKER TRAEFIK V2 SETUP.
 
-version: '3.7'
+version: "3.7"
 
 services:
   traefik:
     hostname: traefik
     image: traefik:latest
-    command: 
+    command:
       #- "storeconfig" #This is the push to consul, secondary traefik must be created and interfaced to this traefik. Remove this traefik's open ports, it shuts down once consul is messaged.
       - "--logLevel=INFO"
       - "--InsecureSkipVerify=true" #for unifi controller to not throw internal server error message
@@ -24,8 +24,8 @@ services:
       - "--acme"
       - "--acme.storage=/etc/traefik/acme/acme.json"
       - "--acme.entryPoint=https"
-# not yet ready?
-#      - "--acme.TLS-ALPN-01=true"
+      # not yet ready?
+      #      - "--acme.TLS-ALPN-01=true"
       - "--acme.dnsChallenge=true"
       - "--acme.dnsChallenge.provider=cloudflare"
       - "--acme.dnsChallenge.delayBeforeCheck=60"
@@ -35,8 +35,8 @@ services:
       - "--acme.acmeLogging=true"
       - "--acme.domains=${DOMAINNAME},*.${DOMAINNAME},"
       - "--acme.KeyType=RSA4096"
-#Let's Encrypt's staging server,
-#caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
+      #Let's Encrypt's staging server,
+      #caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
       - "--docker"
       - "--docker.swarmMode"
       - "--docker.domain=${DOMAINNAME}"
@@ -96,8 +96,8 @@ services:
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
         traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-##        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https:${DOMAINNAME}'
+        ##        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https:${DOMAINNAME}"
         traefik.frontend.auth.basic.users: ${HTTP_USERNAME}:${HTTP_PASSWORD}
         #traefik.frontend.auth.forward.address: http://oauth:4181
         #traefik.frontend.auth.basic.users: xxx:xxx
@@ -155,7 +155,7 @@ services:
         traefik.admin.port: 8443
         traefik.admin.protocol: https
         traefik.frontend.headers.customResponseHeaders: X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex
-#        traefik.frontend.redirect.entryPoint: https
+        #        traefik.frontend.redirect.entryPoint: https
         traefik.frontend.priority: 1
         traefik.frontend.headers.SSLRedirect: "true"
         traefik.frontend.headers.STSSeconds: 315360000
@@ -165,18 +165,18 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-#HEIMDALL 8148
+  #HEIMDALL 8148
   heimdall:
     image: "linuxserver/heimdall"
     hostname: heimdall
@@ -184,7 +184,7 @@ services:
       - ${USERDIR}/docker/heimdall:/config
     ports:
       - "8148:80"
-#      - "443:443"      
+    #      - "443:443"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -212,26 +212,26 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-        traefik.frontend.passHostHeader: 'true'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+        traefik.frontend.passHostHeader: "true"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-#GUACAMOLE 8149
+  #GUACAMOLE 8149
   guacamole:
     hostname: guacamole
     image: guacamole/guacamole
     ports:
       - 8149:8080
     environment:
-    #using single quotation around env variables did not work
+      #using single quotation around env variables did not work
       - GUACD_HOSTNAME=guacd
       - MYSQL_HOSTNAME=${DB_HOST}
       - MYSQL_PORT=${DB_PORT}
@@ -261,22 +261,22 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-        traefik.frontend.passHostHeader: 'true'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+        traefik.frontend.passHostHeader: "true"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-################## DATABASES ##############################################
+  ################## DATABASES ##############################################
 
-#PHPMYADMIN 8155
-# Create a new user with admin priv as in notes. root user did not work.
+  #PHPMYADMIN 8155
+  # Create a new user with admin priv as in notes. root user did not work.
   phpmyadmin:
     hostname: phpmyadmin
     image: phpmyadmin/phpmyadmin
@@ -285,11 +285,11 @@ services:
     environment:
       - PMA_HOST=${DB_HOST}
       - PMA_PORT=${DB_PORT}
-#      - PMA_ARBITRARY=1
+      #      - PMA_ARBITRARY=1
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-#    volumes:
-#      - ${USERDIR}/docker/phpmyadmin:/etc/phpmyadmin
-#      - ${USERDIR}/docker/shared:/shared
+    #    volumes:
+    #      - ${USERDIR}/docker/phpmyadmin:/etc/phpmyadmin
+    #      - ${USERDIR}/docker/shared:/shared
     networks:
       - t1s_proxy
     deploy:
@@ -313,28 +313,28 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-        traefik.frontend.passHostHeader: 'true'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+        traefik.frontend.passHostHeader: "true"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-#INFLUXDB 8154
-#create influxdb.conf
+  #INFLUXDB 8154
+  #create influxdb.conf
   influxdb:
     hostname: influxdb
     image: influxdb
     volumes:
-#      - ${USERDIR}/docker/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
+      #      - ${USERDIR}/docker/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
       - ${USERDIR}/docker/influxdb/db:/var/lib/influxdb
       - ${USERDIR}/docker/shared:/shared
-#    command: -config /etc/influxdb/influxdb.conf
+    #    command: -config /etc/influxdb/influxdb.conf
     ports:
       - "8086:8086"
       - "8083:8083"
@@ -350,10 +350,10 @@ services:
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-#GRAFANA 8157
+  #GRAFANA 8157
   grafana:
     hostname: grafana
     image: grafana/grafana
@@ -363,8 +363,8 @@ services:
     ports:
       - "8158:3000"
     user: "0"
-#    env_file:
-#      - ${USERDIR}/docker/env/env.grafana
+    #    env_file:
+    #      - ${USERDIR}/docker/env/env.grafana
     networks:
       - t1s_proxy
     deploy:
@@ -388,34 +388,34 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-        traefik.frontend.passHostHeader: 'true'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+        traefik.frontend.passHostHeader: "true"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-################## SMART HOME ##############################################
+  ################## SMART HOME ##############################################
 
-#MOSQUITTO MQTT BROKER 8152
-# Create mosquitto.conf, passwd, mosquitto.log files  and set permissions to 775 user:docker
+  #MOSQUITTO MQTT BROKER 8152
+  # Create mosquitto.conf, passwd, mosquitto.log files  and set permissions to 775 user:docker
   mosquitto:
     image: "eclipse-mosquitto"
     hostname: mosquitto
-    volumes: 
+    volumes:
       - ${USERDIR}/docker/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ${USERDIR}/docker/mosquitto/config/passwd:/mosquitto/config/passwd
-#      - ${USERDIR}/docker/mosquitto/log/mosquitto.log:/mosquitto/log/mosquitto.log
-#      - ${USERDIR}/docker/mosquitto/data:/mosquitto/data
+      #      - ${USERDIR}/docker/mosquitto/log/mosquitto.log:/mosquitto/log/mosquitto.log
+      #      - ${USERDIR}/docker/mosquitto/data:/mosquitto/data
       - ${USERDIR}/docker/shared:/shared
     ports:
       - "1883:1883" #http
-#      - "8158:9001" #websockets
+      #      - "8158:9001" #websockets
       - "8152:8883" #https
     environment:
       - PUID=${PUID}
@@ -433,14 +433,14 @@ services:
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
   zoneminder:
     hostname: zoneminder
-#    image: adc3c7a0ca0a
+    #    image: adc3c7a0ca0a
     image: quantumobject/docker-zoneminder
-#    privileged: true
+    #    privileged: true
     ports:
       - "8154:80"
       - "8156:443"
@@ -464,7 +464,7 @@ services:
       #needed to create the initial tables etc. In addition need database zm, username zmuser, and password zmpass - cannot change zm, zmuser, or zmpass
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_ROOT=${USER}
-#    shm_size: 4096m
+    #    shm_size: 4096m
     networks:
       - t1s_proxy
     deploy:
@@ -488,23 +488,23 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-        traefik.frontend.passHostHeader: 'true'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+        traefik.frontend.passHostHeader: "true"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-#################### DOWNLOADERS ############################################
+  #################### DOWNLOADERS ############################################
 
-#SABNZBD 8166
-# Disable SABNnzbd's built-in HTTPS support for traefik proxy to work
-# Needs trailing / if using PathPrefix
+  #SABNZBD 8166
+  # Disable SABNnzbd's built-in HTTPS support for traefik proxy to work
+  # Needs trailing / if using PathPrefix
   sabnzbd:
     image: "linuxserver/sabnzbd"
     hostname: sabnzbd
@@ -542,20 +542,20 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-        traefik.frontend.passHostHeader: 'true'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+        traefik.frontend.passHostHeader: "true"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-#qBittorrent 8168
-# Needs trailing / if using PathPrefixStrip
+  #qBittorrent 8168
+  # Needs trailing / if using PathPrefixStrip
   qbittorrent:
     hostname: qbittorrent
     image: "linuxserver/qbittorrent"
@@ -596,23 +596,23 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-        traefik.frontend.passHostHeader: 'true'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+        traefik.frontend.passHostHeader: "true"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-#################### PVRS ############################################
-#RADARR 8164
-# Set url_base in radarr settings if using PathPrefix
+  #################### PVRS ############################################
+  #RADARR 8164
+  # Set url_base in radarr settings if using PathPrefix
   radarr:
-#    image: "aront/radarr"
+    #    image: "aront/radarr"
     image: "linuxserver/radarr"
     hostname: radarr
     volumes:
@@ -620,7 +620,7 @@ services:
       - ${USERDIR}/Downloads:/downloads
       - /media/media:/media
       - /media/ds918:/ds918
-#      - ${USERDIR}/docker/shared/mp4_automator:/config_mp4_automator
+      #      - ${USERDIR}/docker/shared/mp4_automator:/config_mp4_automator
       - /media/media/movies:/movies
       - "/etc/localtime:/etc/localtime:ro"
     ports:
@@ -652,22 +652,22 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-        traefik.frontend.passHostHeader: 'true'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+        traefik.frontend.passHostHeader: "true"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-#SONARR 8167
-# Set url_base in sonarr settings if using PathPrefix
+  #SONARR 8167
+  # Set url_base in sonarr settings if using PathPrefix
   sonarr:
-#    image: "aront/sonarr"
+    #    image: "aront/sonarr"
     image: "linuxserver/sonarr"
     hostname: sonarr
     volumes:
@@ -677,7 +677,7 @@ services:
       - /media/media:/media
       - /media/ds918:/ds918
       - "/etc/localtime:/etc/localtime:ro"
-#      - "${USERDIR}/docker/shared/mp4_automator:/config_mp4_automator:rw"
+    #      - "${USERDIR}/docker/shared/mp4_automator:/config_mp4_automator:rw"
     ports:
       - "8167:8989"
     environment:
@@ -707,20 +707,20 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-        traefik.frontend.passHostHeader: 'true'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+        traefik.frontend.passHostHeader: "true"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-#LIDARR 8163
-# Set url_base in lidarr settings if using PathPrefix
+  #LIDARR 8163
+  # Set url_base in lidarr settings if using PathPrefix
   lidarr:
     image: "linuxserver/lidarr"
     hostname: lidarr
@@ -759,21 +759,21 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-        traefik.frontend.passHostHeader: 'true'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+        traefik.frontend.passHostHeader: "true"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-####################### INDEXERS #########################################
-#JACKETT 8161
-# Set url_base in Jackett settings if using PathPrefix
+  ####################### INDEXERS #########################################
+  #JACKETT 8161
+  # Set url_base in Jackett settings if using PathPrefix
   jackett:
     image: "linuxserver/jackett"
     hostname: jackett
@@ -811,20 +811,20 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-        traefik.frontend.passHostHeader: 'true'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+        traefik.frontend.passHostHeader: "true"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-#HYDRA 8165
-# Set base_url in Hydra settings if using PathPrefix
+  #HYDRA 8165
+  # Set base_url in Hydra settings if using PathPrefix
   hydra:
     image: "linuxserver/hydra"
     hostname: hydra
@@ -837,7 +837,7 @@ services:
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
-      - TZ=${TZ} 
+      - TZ=${TZ}
     networks:
       - t1s_proxy
     deploy:
@@ -861,28 +861,28 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-        traefik.frontend.passHostHeader: 'true'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+        traefik.frontend.passHostHeader: "true"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-##################### MEDIA SERVER ###########################################
+  ##################### MEDIA SERVER ###########################################
 
-#EMBY 
+  #EMBY
   embyms:
     hostname: embyms
     image: emby/embyserver:latest
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ${USERDIR}/docker/embyms:/config
-      - ${USERDIR}/docker/embyms/transcode:/transcode      
+      - ${USERDIR}/docker/embyms/transcode:/transcode
       - /media/media:/media
       - /media/ds918:/ds918
       - ${USERDIR}/docker/shared:/shared
@@ -918,20 +918,20 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-        traefik.frontend.passHostHeader: 'true'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+        traefik.frontend.passHostHeader: "true"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-#TAUTULLI / PLEXPY 8170
-# Set HTTP Root in Tautulli settings if using PathPrefix
+  #TAUTULLI / PLEXPY 8170
+  # Set HTTP Root in Tautulli settings if using PathPrefix
   tautulli:
     hostname: tautulli
     image: linuxserver/tautulli
@@ -968,19 +968,19 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-        traefik.frontend.passHostHeader: 'true'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+        traefik.frontend.passHostHeader: "true"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-#BAZARR 8162
+  #BAZARR 8162
   bazarr:
     hostname: bazarr
     image: linuxserver/bazarr
@@ -1018,21 +1018,21 @@ services:
         traefik.frontend.headers.SSLHost: ${DOMAINNAME}
         traefik.frontend.headers.STSIncludeSubdomains: "true"
         traefik.frontend.headers.STSPreload: "true"
-#        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
-        traefik.frontend.headers.customFrameOptionsValue: 'allow-from https://${DOMAINNAME}'
-        traefik.frontend.passHostHeader: 'true'
-#        traefik.frontend.auth.basic.usersFile: /.htpasswd
+        #        traefik.frontend.headers.frameDeny: "true" #customFrameOptionsValue will override this
+        traefik.frontend.headers.customFrameOptionsValue: "allow-from https://${DOMAINNAME}"
+        traefik.frontend.passHostHeader: "true"
+      #        traefik.frontend.auth.basic.usersFile: /.htpasswd
       update_config:
         delay: 30s
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
-##################### MAINTENANCE ###########################################
+  ##################### MAINTENANCE ###########################################
 
-# auto update swarm services
+  # auto update swarm services
   shepherd:
     image: mazzolino/shepherd
     volumes:
@@ -1042,9 +1042,9 @@ services:
     deploy:
       placement:
         constraints:
-        - node.role == manager
+          - node.role == manager
 
-#GUACAMOLE DAEMON
+  #GUACAMOLE DAEMON
   guacd:
     hostname: guacd
     image: guacamole/guacd
@@ -1060,7 +1060,7 @@ services:
       restart_policy:
         condition: on-failure
       placement:
-#        constraints: [node.platform.os == linux]
+        #        constraints: [node.platform.os == linux]
         constraints: [node.role == manager]
 
 ########################### NETWORKS ############################
