@@ -1582,7 +1582,7 @@ services:
       - $USERDIR/docker:/home/coder/docker
       - $USERDIR/docker/hassio/homeassistant:/home/coder/homeassistant
       - $USERDIR/Downloads:/home/coder/Downloads
-      - $USERDIR/docker/vscode/local:/home/coder/.local/share/code-server
+      - $USERDIR/docker/vscode:/home/coder
     environment:
       PASSWORD: $VSCODE_PASSWORD
       # Run as root first, create the directories, then change permissions to user:docker and 775. Disable run as root below.
