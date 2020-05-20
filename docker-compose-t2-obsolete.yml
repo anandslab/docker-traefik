@@ -180,6 +180,7 @@ services:
       - "traefik.http.services.cloudcmd-svc.loadbalancer.server.port=8000"
 
   # VSCode Server - VSCode Editing
+  # WARNING: This appears to change permissions of all files to PUID:PGID
   code-server:
     image: linuxserver/code-server:latest
     container_name: code-server
