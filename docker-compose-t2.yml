@@ -614,10 +614,10 @@ services:
       UMASK_SET: 002
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers Auth Bypass - HeadersRegexp NOT WORKING. USING OAUTH CONTAINER BYPASS METHOD.
+      ## HTTP Routers Auth Bypass - DISABLED, USING OAUTH CONTAINER BYPASS METHOD INSTEAD.
       # - "traefik.http.routers.sabnzbd-rtr-bypass.entrypoints=https"
       # - "traefik.http.routers.sabnzbd-rtr-bypass.tls=true"
-      # - "traefik.http.routers.sabnzbd-rtr-bypass.rule=HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
+      # - "traefik.http.routers.sabnzbd-rtr-bypass.rule=Query(`apikey`, `$SABNZBD_API_KEY`)"
       # - "traefik.http.routers.sabnzbd-rtr-bypass.priority=100"
       ## HTTP Routers Auth
       - "traefik.http.routers.sabnzbd-rtr.entrypoints=https"
