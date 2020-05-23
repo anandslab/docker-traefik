@@ -1468,6 +1468,8 @@ services:
     image: guacamole/guacd
     container_name: guacd
     restart: unless-stopped
+    networks:
+      - t2_proxy
     security_opt:
       - no-new-privileges:true
 
