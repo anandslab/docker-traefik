@@ -855,7 +855,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.airsonic-rtr.entrypoints=https"
-      - "traefik.http.routers.airsonic-rtr.rule=Host(`airsonic.$DOMAINNAME`)"
+      - "traefik.http.routers.airsonic-rtr.rule=Host(`nucair.$DOMAINNAME`)"
       - "traefik.http.routers.airsonic-rtr.tls=true"
       ## Middlewares
       - "traefik.http.routers.airsonic-rtr.middlewares=chain-no-auth@file"
@@ -969,7 +969,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.jellyfin-rtr.entrypoints=https"
-      - "traefik.http.routers.jellyfin-rtr.rule=Host(`jelly.$DOMAINNAME`)"
+      - "traefik.http.routers.jellyfin-rtr.rule=Host(`nucjf.$DOMAINNAME`)"
       - "traefik.http.routers.jellyfin-rtr.tls=true"
       ## Middlewares
       - "traefik.http.routers.jellyfin-rtr.middlewares=chain-no-auth@file"
@@ -1654,13 +1654,41 @@ services:
       DOMAIN: $DOMAINNAME
 
   # Cloudflare DDNS - Dynamic DNS Updater
-  cloudddns:
-    container_name: cloudddns
+  cf-ddns:
+    container_name: cf-ddns
+    image: oznu/cloudflare-ddns:latest
     restart: always
-    image: joshava/cloudflare-ddns
-    volumes:
-      - $USERDIR/docker/cloudflare-ddns/config.yaml:/app/config.yaml
     environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
+      - API_KEY=$CLOUDFLARE_API_TOKEN
+      - ZONE=$DOMAINNAME
+      - PROXIED=true
+      - RRTYPE=A
+      - DELETE_ON_STOP=false
+      - DNS_SERVER=1.1.1.1
+
+  # Cloudflare-Companion - Automatic CNAME DNS Creation
+  cf-companion:
+    container_name: cf-companion
+    image: tiredofit/traefik-cloudflare-companion:latest
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - TIMEZONE=$TZ
+      - TRAEFIK_VERSION=2
+      - CF_EMAIL=$CLOUDFLARE_EMAIL # Same as traefik
+      # - CF_TOKEN=$CLOUDFLARE_API_TOKEN # Scoped api token not working. Error 10000.
+      - CF_TOKEN=$CLOUDFLARE_API_KEY # Same as traefik
+      - TARGET_DOMAIN=$DOMAINNAME
+      - DOMAIN1=$DOMAINNAME
+      - DOMAIN1_ZONE_ID=$CLOUDFLARE_ZONEID # Copy from Cloudflare Overview page
+      - DOMAIN1_PROXIED=TRUE
+    labels:
+      # Add hosts specified in rules here to force cf-companion to create the CNAMEs
+      # Since cf-companion creates CNAMEs based on host rules, this a workaround for non-docker/external apps
+      - "traefik.http.routers.smokeping-rtr.rule=Host(`hassio.$DOMAINNAME`)"
+      - "traefik.http.routers.smokeping-rtr.rule=Host(`pihole.$DOMAINNAME`)"
+      - "traefik.http.routers.smokeping-rtr.rule=Host(`shell.$DOMAINNAME`)"
+      - "traefik.http.routers.smokeping-rtr.rule=Host(`syno.$DOMAINNAME`)"
+      - "traefik.http.routers.smokeping-rtr.rule=Host(`ufi.$DOMAINNAME`)"
+      - "traefik.http.routers.smokeping-rtr.rule=Host(`www.$DOMAINNAME`)"

@@ -2,8 +2,14 @@
 
 ## Planned:
 
-- Add LazyLibrarian, Calibre, Caliber-web, projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, smtp-to-telegram, cloud commander, fail2ban
+- Add LazyLibrarian, Calibre, Caliber-web, projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, smtp-to-telegram, fail2ban
 - tecnative docker proxy
+
+## May 31, 2020
+
+- Enabled Cloudflare proxy
+- Added Cloudflare Companion to auto create CNAMEs for services
+- Replaces Cloudflare DDNS with Oznu's image
 
 ## May 19, 2020
 

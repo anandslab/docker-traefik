@@ -50,7 +50,7 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 - HA-Dockermon - Manage Docker containers in Home Assistant
 - Mosquitto - MQTT Broker
 - ZoneMinder - Video Surveillance
-- Home Assistant Core - Home Automation (OBSOLETE) 
+- Home Assistant Core - Home Automation (OBSOLETE)
 - MiFlora - MiFlora MQTT Daemon (MiFlora Plant Sensors) (OBSOLETE)
 
 ### DATABASE
@@ -125,10 +125,11 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 - Docker-GC - Automatic Docker Garbage Collection
 - Traefik Certificate Dumper - Extract Traefik SSL Certs
 - Cloudflare DDNS - Dynamic IP Updater
+- Cloudflare Companion - Automatic CNAME creation for services
 
 ## MariaDB
 
-Even though I have included a MariaDB container, I use an external MariaDB host (my Synology NAS). 
+Even though I have included a MariaDB container, I use an external MariaDB host (my Synology NAS).
 
 # Usage
 
