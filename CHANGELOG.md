@@ -4,9 +4,12 @@
 
 - Add LazyLibrarian, Calibre, Caliber-web, projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, smtp-to-telegram, fail2ban
 - tecnative docker proxy
+- traefik custom error pages https://github.com/guillaumebriday/traefik-custom-error-pages
+- improvements from https://github.com/jamescurtin/traefik-proxy
 
 ## May 31, 2020
 
+- Removed tls=true from service since tls.certresolver=dns-cloudflare auto enables TLS
 - Enabled Cloudflare proxy
 - Added Cloudflare Companion to auto create CNAMEs for services
 - Replaces Cloudflare DDNS with Oznu's image

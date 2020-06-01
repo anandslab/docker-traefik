@@ -52,6 +52,9 @@ access_control:
 #      policy: one_factor
     - domain: "*.example.com"
       policy: two_factor
+    - domain: "example.com"
+      policy: two_factor
+
 
 session:
   name: authelia_session
