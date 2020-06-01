@@ -230,20 +230,13 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.organizr-rtr.entrypoints=https"
-      # - "traefik.http.routers.organizr-rtr.rule=Host(`$DOMAINNAME`,`www.$DOMAINNAME`)"
-      - "traefik.http.routers.organizr-rtr.rule=Host(`www.$DOMAINNAME`)"
+      - "traefik.http.routers.organizr-rtr.rule=Host(`$DOMAINNAME`,`www.$DOMAINNAME`)"
       ## Middlewares
-      - "traefik.http.routers.organizr-rtr.middlewares=mydomain-nonwww@docker,chain-authelia@file"
-      #      - "traefik.http.middlewares.add-organizr.redirectregex.regex=`^http?://$DOMAINNAME/(.*)`"
-      #      - "traefik.http.middlewares.add-organizr.redirectregex.replacement=`https://www.$DOMAINNAME/$${1}`"
-      # middleware: https://www. to  https://
-      #      - "traefik.http.middlewares.trim_www.redirectregex.regex=^https://www\.(.+)"
-      #      - "traefik.http.middlewares.trim_www.redirectregex.replacement=https://$${1}"
-      #      - "traefik.http.middlewares.trim_www.redirectregex.permanent=true"
-      # Redirect non-www to www middleware
-      - "traefik.http.middlewares.mydomain-nonwww.redirectregex.regex=^https?://pivean.com/(.*)"
-      - "traefik.http.middlewares.mydomain-nonwww.redirectregex.replacement=https://www.pivean.com/$${1}"
-      - "traefik.http.middlewares.mydomain-nonwww.redirectregex.permanent=true"
+      - "traefik.http.routers.organizr-rtr.middlewares=organizr-redirect@docker,chain-authelia@file"
+        # Redirect non-www to www middleware
+      - "traefik.http.middlewares.organizr-redirect.redirectregex.regex=^https?://$DOMAINNAME/(.*)"
+      - "traefik.http.middlewares.organizr-redirect.redirectregex.replacement=https://www.$DOMAINNAME/$${1}"
+      - "traefik.http.middlewares.organizr-redirect.redirectregex.permanent=true"
       ## HTTP Services
       - "traefik.http.routers.organizr-rtr.service=organizr-svc"
       - "traefik.http.services.organizr-svc.loadbalancer.server.port=80"
