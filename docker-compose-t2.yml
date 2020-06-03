@@ -123,8 +123,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-    # Allow apps to bypass OAuth. Radarr example below will by pass OAuth if API key is present in the request (eg. from NZB360 mobile app).
-    # While this is one way, the recommended way is to bypass authentication using Traefik labels shown in some of hte apps later.
+    # Allow apps to bypass OAuth. Radarr example below will bypass OAuth if API key is present in the request (eg. from NZB360 mobile app).
+    # While this is one way, the recommended way is to bypass authentication using Traefik labels shown in some of the apps later.
     # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
     # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
@@ -136,7 +136,7 @@ services:
       - AUTH_HOST=oauth.$DOMAINNAME
       - URL_PATH=/_oauth
       - WHITELIST=$MY_EMAIL
-      - LOG_LEVEL=trace
+      - LOG_LEVEL=warn
       - LOG_FORMAT=text
       - LIFETIME=2592000 # 30 days
       - DEFAULT_ACTION=auth
@@ -363,7 +363,7 @@ services:
       - "traefik.http.routers.motioneye-rtr.entrypoints=https"
       - "traefik.http.routers.motioneye-rtr.rule=Host(`meye.$DOMAINNAME`)"
       ## Middlewares
-      - "traefik.http.routers.motioneye-rtr.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.motioneye-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.motioneye-rtr.service=motioneye-svc"
       - "traefik.http.services.motioneye-svc.loadbalancer.server.port=8765"
@@ -808,7 +808,105 @@ services:
       - "traefik.http.routers.sonarr-rtr-bypass.service=sonarr-svc"
       - "traefik.http.services.sonarr-svc.loadbalancer.server.port=8989"
 
+  # Lazylibrarian  – Ebooks and Management
+  lazylibrarian:
+    image: linuxserver/lazylibrarian
+    container_name: lazylibrarian
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #  - "$LAZYLIBRARIAN_PORT:5299"
+    volumes:
+      - $USERDIR/docker/lazylibrarian:/config
+      - $USERDIR/Downloads:/downloads
+      - /media:/nas
+      - "/etc/localtime:/etc/localtime:ro"
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      DOCKER_MODS: linuxserver/calibre-web:calibre # set the path to converter tool to /usr/bin/calibredb
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers Auth
+      - "traefik.http.routers.lazylibrarian-rtr.entrypoints=https"
+      - "traefik.http.routers.lazylibrarian-rtr.rule=Host(`lazy.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.lazylibrarian-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.lazylibrarian-rtr.service=lazylibrarian-svc"
+      - "traefik.http.services.lazylibrarian-svc.loadbalancer.server.port=5299"
+
   ############################# MEDIA
+
+  # Calibre-web  – Ebooks and Management (Plex of Ebooks)
+  calibre-web:
+    image: linuxserver/calibre-web
+    container_name: calibre-web
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #  - "$CALIBRE_WEB_PORT:8083"
+    volumes:
+      - ${USERDIR}/docker/calibre_web:/config
+      - /media:/nas
+      - "/etc/localtime:/etc/localtime:ro"
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      DOCKER_MODS: linuxserver/calibre-web:calibre # set the path to converter tool to /usr/bin/calibredb
+      # - UMASK=022
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers Auth
+      - "traefik.http.routers.calibre-web-rtr.entrypoints=https"
+      - "traefik.http.routers.calibre-web-rtr.rule=Host(`calweb.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.calibre-web-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.calibre-web-rtr.service=calibre-web-svc"
+      - "traefik.http.services.calibre-web-svc.loadbalancer.server.port=8083"
+
+  # Calibre  – Ebooks and Management (Server)
+  calibre:
+    image: linuxserver/calibre
+    container_name: calibre
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #  - "$CALIBRE_PORT:8080" # Desktop GUI
+    #  - "$CALIBRE_PORT:8081" # Webserver GUI
+    volumes:
+      # - ${USERDIR}/Downloads/completed:/import
+      - /media:/nas
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      # - GUAC_USER=abc #Gucamole user optional
+      # - GUAC_PASS=900150983cd24fb0d6963f7d28e17f72 #Guacamole password optional
+      # - UMASK_SET=022 #optional
+      # - CLI_ARGS= #optional
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers Auth
+      - "traefik.http.routers.calibre-rtr.entrypoints=https"
+      - "traefik.http.routers.calibre-rtr.rule=Host(`calib.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.calibre-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.calibre-rtr.service=calibre-svc"
+      - "traefik.http.services.calibre-svc.loadbalancer.server.port=8080"
 
   # AirSonic - Music Server
   airsonic:
@@ -1652,4 +1750,3 @@ services:
       - "traefik.http.routers.smokeping-rtr.rule=Host(`shell.$DOMAINNAME`)"
       - "traefik.http.routers.smokeping-rtr.rule=Host(`syno.$DOMAINNAME`)"
       - "traefik.http.routers.smokeping-rtr.rule=Host(`ufi.$DOMAINNAME`)"
-      # - "traefik.http.routers.smokeping-rtr.rule=Host(`www.$DOMAINNAME`)"
