@@ -616,7 +616,7 @@ services:
       - "traefik.http.routers.sabnzbd-rtr.priority=99"
       ## Middlewares
       - "traefik.http.routers.sabnzbd-rtr-bypass.middlewares=chain-no-auth@file"
-      - "traefik.http.routers.sabnzbd-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.sabnzbd-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.sabnzbd-rtr.service=sabnzbd-svc"
       - "traefik.http.routers.sabnzbd-rtr-bypass.service=sabnzbd-svc"
