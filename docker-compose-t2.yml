@@ -854,7 +854,7 @@ services:
     # ports:
     #  - "$CALIBRE_WEB_PORT:8083"
     volumes:
-      - ${USERDIR}/docker/calibre_web:/config
+      - $USERDIR/docker/calibre_web:/config
       - /media:/nas
       - "/etc/localtime:/etc/localtime:ro"
     environment:
@@ -887,12 +887,12 @@ services:
     #  - "$CALIBRE_PORT:8080" # Desktop GUI
     #  - "$CALIBRE_PORT:8081" # Webserver GUI
     volumes:
-      # - ${USERDIR}/Downloads/completed:/import
+      - $USERDIR/docker/calibre:/config
       - /media:/nas
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
       # - GUAC_USER=abc #Gucamole user optional
       # - GUAC_PASS=900150983cd24fb0d6963f7d28e17f72 #Guacamole password optional
       # - UMASK_SET=022 #optional
