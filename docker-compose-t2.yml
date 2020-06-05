@@ -901,7 +901,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers Auth
       - "traefik.http.routers.calibre-rtr.entrypoints=https"
-      - "traefik.http.routers.calibre-rtr.rule=Host(`calib.$DOMAINNAME`)"
+      - "traefik.http.routers.calibre-rtr.rule=Host(`calibre.$DOMAINNAME`)"
       ## Middlewares
       - "traefik.http.routers.calibre-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
