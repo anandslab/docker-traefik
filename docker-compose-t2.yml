@@ -359,13 +359,20 @@ services:
       TZ: $TZ
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers
+      ## HTTP Routers Auth Bypass
+      # - "traefik.http.routers.motioneye-rtr-bypass.entrypoints=https"
+      # - "traefik.http.routers.motioneye-rtr-bypass.rule=Headers(`$MOTIONEYE_BYPASS_KEY`, `$MOTIONEYE_BYPASS_VALUE`)"
+      # - "traefik.http.routers.motioneye-rtr-bypass.priority=100"
+      ## HTTP Routers Auth
       - "traefik.http.routers.motioneye-rtr.entrypoints=https"
       - "traefik.http.routers.motioneye-rtr.rule=Host(`meye.$DOMAINNAME`)"
+      - "traefik.http.routers.motioneye-rtr.priority=99"
       ## Middlewares
-      - "traefik.http.routers.motioneye-rtr.middlewares=chain-authelia@file"
+      # - "traefik.http.routers.motioneye-rtr-bypass.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.motioneye-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.motioneye-rtr.service=motioneye-svc"
+      # - "traefik.http.routers.motioneye-rtr-bypass.service=motioneye-svc"
       - "traefik.http.services.motioneye-svc.loadbalancer.server.port=8765"
 
   ############################# DATABASE
