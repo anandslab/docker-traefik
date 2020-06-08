@@ -83,10 +83,10 @@ services:
         published: 443
         protocol: tcp
         mode: host
-      - target: 8080
-        published: 8080
-        protocol: tcp
-        mode: host
+    #      - target: 8080
+    #        published: 8080
+    #        protocol: tcp
+    #        mode: host
     volumes:
       - $USERDIR/docker/traefik2/rules:/rules # file provider directory
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -251,8 +251,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-    ports:
-      - "$HEIMDALL_PORT:80"
+    #    ports:
+    #      - "$HEIMDALL_PORT:80"
     volumes:
       - $USERDIR/docker/heimdall:/config
     environment:
@@ -347,6 +347,7 @@ services:
     ports:
       - "$MOTIONEYE_CAM1:8081"
       - "$MOTIONEYE_CAM2:8082"
+      - "$MOTIONEYE_CAM3:8083"
       - "$MOTIONEYE_PORT:8765"
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -719,7 +720,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.lidarr-rtr-bypass.entrypoints=https"
-      - "traefik.http.routers.lidarr-rtr-bypass.rule=Headers(`X-Api-Key`, `$LIDARR_API_KEY`)"
+      - "traefik.http.routers.lidarr-rtr-bypass.rule=Headers(`X-Api-Key`, `$LIDARR_API_KEY`) || Query(`apikey`, `$LIDARR_API_KEY`)"
       - "traefik.http.routers.lidarr-rtr-bypass.priority=100"
       ## HTTP Routers Auth
       - "traefik.http.routers.lidarr-rtr.entrypoints=https"
@@ -760,7 +761,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.radarr-rtr-bypass.entrypoints=https"
-      - "traefik.http.routers.radarr-rtr-bypass.rule=Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
+      - "traefik.http.routers.radarr-rtr-bypass.rule=Headers(`X-Api-Key`, `$RADARR_API_KEY`) || Query(`apikey`, `$RADARR_API_KEY`)"
       - "traefik.http.routers.radarr-rtr-bypass.priority=100"
       ## HTTP Routers Auth
       - "traefik.http.routers.radarr-rtr.entrypoints=https"
@@ -801,7 +802,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.sonarr-rtr-bypass.entrypoints=https"
-      - "traefik.http.routers.sonarr-rtr-bypass.rule=Headers(`X-Api-Key`, `$SONARR_API_KEY`)"
+      - "traefik.http.routers.sonarr-rtr-bypass.rule=Headers(`X-Api-Key`, `$SONARR_API_KEY`) || Query(`apikey`, `$SONARR_API_KEY`)"
       - "traefik.http.routers.sonarr-rtr-bypass.priority=100"
       ## HTTP Routers Auth
       - "traefik.http.routers.sonarr-rtr.entrypoints=https"
@@ -924,8 +925,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-    ports:
-      - "$AIRSONIC_PORT:4040"
+    # ports:
+    #   - "$AIRSONIC_PORT:4040"
     volumes:
       - /media:/nas:ro
       - $USERDIR/docker/airsonic/podcasts:/podcasts
@@ -1067,8 +1068,8 @@ services:
     restart: unless-stopped
     networks:
       - t2_proxy
-    ports:
-      - "$OMBI_PORT:3579"
+    # ports:
+    #  - "$OMBI_PORT:3579"
     security_opt:
       - no-new-privileges:true
     volumes:
@@ -1099,8 +1100,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-    ports:
-      - "$TAUTULLI_PORT:8181"
+    # ports:
+    #  - "$TAUTULLI_PORT:8181"
     volumes:
       - $USERDIR/docker/tautulli/config:/config
       - $USERDIR/docker/tautulli/logs:/logs:ro
@@ -1141,8 +1142,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-    ports:
-      - "$PHOTOSHOW_PORT:80"
+    # ports:
+    #  - "$PHOTOSHOW_PORT:80"
     volumes:
       - $USERDIR/docker/photoshow/config:/config
       - $USERDIR/docker/photoshow/thumbs:/Thumbs
@@ -1173,8 +1174,8 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-    ports:
-      - "$BAZARR_PORT:6767"
+    # ports:
+    #  - "$BAZARR_PORT:6767"
     volumes:
       - $USERDIR/docker/bazarr:/config
       - /media:/nas
