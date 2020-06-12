@@ -4,7 +4,7 @@
 
 host: 0.0.0.0
 port: 9091
-log_level: info
+log_level: warn
 
 # This secret can also be set using the env variables AUTHELIA_JWT_SECRET_FILE
 # I used this site to generate the secret: https://www.grc.com/passwords.htm
@@ -65,7 +65,7 @@ session:
   inactivity: 300 # 5 minutes
   domain: example.com # Should match whatever your root protected domain is
 
-# Optional. Can improve performance on a busy system.
+# Optional. Can improve performance on a busy system. If not enabled, session info is stored in memory.
 #  redis:
 #    host: redis
 #    port: 6379
