@@ -1,11 +1,20 @@
 # Changelog
 
+- Only showing high-level changes. Smaller changes are too many to list.
+
 ## Planned:
 
-- Add LazyLibrarian, Calibre, Caliber-web, projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, smtp-to-telegram, fail2ban
+- Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, smtp-to-telegram, fail2ban
 - tecnative docker proxy
 - traefik custom error pages https://github.com/guillaumebriday/traefik-custom-error-pages
 - improvements from https://github.com/jamescurtin/traefik-proxy
+
+## June 12, 2020 
+
+- Added Home Assistant Core
+- Added Redis and Redis Commander
+- Enabled Authelia to use Redis
+- Added LazyLibrarian, CAlibre, and Caliber-web 
 
 ## May 31, 2020
 

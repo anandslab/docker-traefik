@@ -212,38 +212,6 @@ services:
       - "traefik.http.routers.code-server-rtr.service=code-server-svc"
       - "traefik.http.services.code-server-svc.loadbalancer.server.port=8443"
 
-  # Home Assistant Core - Home Automation
-  homeassistant:
-    container_name: homeassistant
-    restart: unless-stopped
-    image: homeassistant/home-assistant:stable
-    networks:
-      - t2_proxy
-    devices:
-      - /dev/ttyUSB0:/dev/ttyUSB0
-      - /dev/ttyUSB1:/dev/ttyUSB1
-      - /dev/ttyACM0:/dev/ttyACM0
-    volumes:
-      - ${USERDIR}/docker/hassio/homeassistant:/config
-      - /etc/localtime:/etc/localtime:ro
-      - ${USERDIR}/docker/shared:/shared
-      - ${USERDIR}/docker/open-zwave:/open-zwave
-    ports:
-      - "$HOMEASSISTANT_PORT:8123"
-    environment:
-      - TZ=${TZ}
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.homeassistant-rtr.entrypoints=https"
-      - "traefik.http.routers.homeassistant-rtr.rule=Host(`hassio.$DOMAINNAME`)"
-      - "traefik.http.routers.homeassistant-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.homeassistant-rtr.middlewares=chain-no-auth@file"
-      ## HTTP Services
-      - "traefik.http.routers.homeassistant-rtr.service=homeassistant-svc"
-      - "traefik.http.services.homeassistant-svc.loadbalancer.server.port=8123"
-
   # qBittorrent - Torrent downloader
   # Needs trailing / if using PathPrefixStrip
   qbittorrent:

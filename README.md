@@ -47,10 +47,11 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 
 ### SMART HOME
 
+- Home Assistant Core - Home Automation
 - HA-Dockermon - Manage Docker containers in Home Assistant
 - Mosquitto - MQTT Broker
+- MotionEye - Video Surveillance
 - ZoneMinder - Video Surveillance
-- Home Assistant Core - Home Automation (OBSOLETE)
 - MiFlora - MiFlora MQTT Daemon (MiFlora Plant Sensors) (OBSOLETE)
 
 ### DATABASE
@@ -61,6 +62,8 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 - Postgres - Database
 - Grafana - Graphical data visualization for InfluxDB data
 - Varken - Monitor Plex, Sonarr, Radarr, and Other Data (OBSOLETE)
+- Redis - Key value store
+- Redis Commander - Redis management
 
 ### DOWNLOADERS
 
@@ -79,10 +82,13 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 - Lidarr - Music Management
 - Radarr - Movie management
 - Sonarr - TV Shows management
+- LazyLibrarian - Books Management
 
 ### MEDIA SERVER
 
 - AirSonic - Music Server
+- Calibre - Ebook/Audiobook Server 
+- Calibre-Web - Ebook/Audiobook Reader
 - Plex - Media Server
 - Emby - Media Server
 - Jellyfin - Media Server
