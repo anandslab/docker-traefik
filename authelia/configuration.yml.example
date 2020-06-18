@@ -27,7 +27,7 @@ totp:
 
 authentication_backend:
   file:
-    path: /etc/authelia/users_database.yml
+    path: /config/users_database.yml
     # customize passwords based on https://docs.authelia.com/configuration/authentication/file.html
     password:
       algorithm: argon2id
@@ -80,7 +80,7 @@ regulation:
 storage:
 # For local storage, uncomment lines below and comment out mysql. https://docs.authelia.com/configuration/storage/sqlite.html
 #  local:
-#    path: /var/lib/authelia/db.sqlite3
+#    path: /config/db.sqlite3
   mysql:
   # MySQL allows running multiple authelia instances. Create database and enter details below.
     host: MYSQL_HOST
