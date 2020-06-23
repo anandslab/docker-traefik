@@ -155,7 +155,9 @@ services:
   # Authelia (Lite) - Self-Hosted Single Sign-On and Two-Factor Authentication
   authelia:
     container_name: authelia
-    image: authelia/authelia:latest
+    # Check this before upgrading: https://github.com/authelia/authelia/blob/master/BREAKING.md
+    # image: authelia/authelia:latest
+    image: authelia/authelia:4.20
     restart: always
     networks:
       - t2_proxy
@@ -939,15 +941,16 @@ services:
     # ports:
     #  - "$CALIBRE_WEB_PORT:8083"
     volumes:
-      - $USERDIR/docker/calibre_web:/config
-      - /media:/nas
-      - "/etc/localtime:/etc/localtime:ro"
+      - $USERDIR/docker/calibre-web:/config
+      # - /media/ds918/media/books:/books
+      # - add path to calibre books folder
+      - $USERDIR/docker/calibre/books:/books:rw
     environment:
       PUID: $PUID
       PGID: $PGID
       TZ: $TZ
       DOCKER_MODS: linuxserver/calibre-web:calibre # set the path to converter tool to /usr/bin/calibredb
-      # - UMASK=022
+      UMASK: 002
     labels:
       - "traefik.enable=true"
       ## HTTP Routers Auth
@@ -972,15 +975,16 @@ services:
     #  - "$CALIBRE_PORT:8080" # Desktop GUI
     #  - "$CALIBRE_PORT:8081" # Webserver GUI
     volumes:
-      - $USERDIR/docker/calibre:/config
-      - /media:/nas
+      - $USERDIR/docker/calibre:/config:rw
+      #      - /media/ds918/media/books:/config/Calibre Library:rw
+      - $USERDIR/Downloads:/downloads:rw
     environment:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
       # - GUAC_USER=abc #Gucamole user optional
       # - GUAC_PASS=900150983cd24fb0d6963f7d28e17f72 #Guacamole password optional
-      # - UMASK_SET=022 #optional
+      - UMASK_SET=002 #optional
       # - CLI_ARGS= #optional
     labels:
       - "traefik.enable=true"
@@ -1830,8 +1834,8 @@ services:
     labels:
       # Add hosts specified in rules here to force cf-companion to create the CNAMEs
       # Since cf-companion creates CNAMEs based on host rules, this a workaround for non-docker/external apps
-      - "traefik.http.routers.smokeping-rtr.rule=Host(`hassio.$DOMAINNAME`)"
-      - "traefik.http.routers.smokeping-rtr.rule=Host(`pihole.$DOMAINNAME`)"
-      - "traefik.http.routers.smokeping-rtr.rule=Host(`shell.$DOMAINNAME`)"
-      - "traefik.http.routers.smokeping-rtr.rule=Host(`syno.$DOMAINNAME`)"
-      - "traefik.http.routers.smokeping-rtr.rule=Host(`ufi.$DOMAINNAME`)"
+      - "traefik.http.routers.cf-companion-rtr.rule=Host(`hassio.$DOMAINNAME`)"
+      - "traefik.http.routers.cf-companion-rtr.rule=Host(`pihole.$DOMAINNAME`)"
+      - "traefik.http.routers.cf-companion-rtr.rule=Host(`shell.$DOMAINNAME`)"
+      - "traefik.http.routers.cf-companion-rtr.rule=Host(`syno.$DOMAINNAME`)"
+      - "traefik.http.routers.cf-companion-rtr.rule=Host(`ufi.$DOMAINNAME`)"
