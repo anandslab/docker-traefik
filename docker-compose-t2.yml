@@ -909,13 +909,14 @@ services:
     volumes:
       - $USERDIR/docker/lazylibrarian:/config
       - $USERDIR/Downloads:/downloads
-      - /media:/nas
+      # - /media:/nas
+      - $USERDIR/docker/calibre/books:/books:rw
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       PUID: $PUID
       PGID: $PGID
       TZ: $TZ
-      DOCKER_MODS: linuxserver/calibre-web:calibre # set the path to converter tool to /usr/bin/calibredb
+      DOCKER_MODS: linuxserver/calibre-web:calibre # set the path to converter tool to /app/calibre/ebook-convert
     labels:
       - "traefik.enable=true"
       ## HTTP Routers Auth
@@ -949,7 +950,7 @@ services:
       PUID: $PUID
       PGID: $PGID
       TZ: $TZ
-      DOCKER_MODS: linuxserver/calibre-web:calibre # set the path to converter tool to /usr/bin/calibredb
+      DOCKER_MODS: linuxserver/calibre-web:calibre # set the path to converter tool to /app/calibre/ebook-convert
       UMASK: 002
     labels:
       - "traefik.enable=true"
