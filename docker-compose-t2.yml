@@ -1039,6 +1039,8 @@ services:
     restart: unless-stopped
     networks:
       - t2_proxy
+    devices:
+      - /dev/dri:/dev/dri
     security_opt:
       - no-new-privileges:true
     ports:
@@ -1083,6 +1085,8 @@ services:
     restart: unless-stopped
     networks:
       - t2_proxy
+    devices:
+      - /dev/dri:/dev/dri
     security_opt:
       - no-new-privileges:true
     ports:
@@ -1117,6 +1121,8 @@ services:
     restart: unless-stopped
     networks:
       - t2_proxy
+    devices:
+      - /dev/dri:/dev/dri
     security_opt:
       - no-new-privileges:true
     ports:

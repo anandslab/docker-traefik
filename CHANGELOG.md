@@ -9,12 +9,19 @@
 - traefik custom error pages https://github.com/guillaumebriday/traefik-custom-error-pages
 - improvements from https://github.com/jamescurtin/traefik-proxy
 
-## June 12, 2020 
+## June 25, 2020
+
+- Updated Authelia volumes to reflect the current structure
+- Cleaned up LazyLibrarian, Calibre, and Caliber-web
+- Bug fixes and typos
+- Added /dev/dri volumes to support hardware transcoding in Plex, Emby, and Jellyfin
+
+## June 12, 2020
 
 - Added Home Assistant Core
 - Added Redis and Redis Commander
 - Enabled Authelia to use Redis
-- Added LazyLibrarian, CAlibre, and Caliber-web 
+- Added LazyLibrarian, Calibre, and Caliber-web
 
 ## May 31, 2020
 
