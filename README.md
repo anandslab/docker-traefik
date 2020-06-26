@@ -3,10 +3,11 @@
 This is the updated docker-compose repo of all the media and home server apps described in the following guides on our website:
 
 - Docker Media Server with Traefik 2 Reverse Proxy: [https://www.smarthomebeginner.com/traefik-2-docker-tutorial/](https://www.smarthomebeginner.com/traefik-2-docker-tutorial/)
-- Cloudflare Settings for Traefik Docker: DDNS, CNAMEs, & Tweaks [https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/](https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/)
+- Cloudflare Settings for Traefik Docker: DDNS, CNAMEs, & Tweaks: [https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/](https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/)
 
-  <STRONG>Old Posts:</STRONG>
-  The following 3 posts have been combined and updated for Traefik v2 (linked above):
+### Old Posts:
+
+The following 3 posts have been combined and updated for Traefik v2 (linked above):
 
 - Docker Media Server without Reverse Proxy (- [https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/)
 - Docker Media Server with Traefik 1 Reverse Proxy - [https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/](https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/)
