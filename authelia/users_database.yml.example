@@ -9,6 +9,7 @@
 # List of users
 users:
   USERNAME:
+    displayname: "John Doe"
     password: "HASHED_PASSWORD"
     email: USER_EMAIL
     groups:
@@ -16,6 +17,7 @@ users:
       - dev
 # EXAMPLE USER
 #  john:
+#    displayname: "John Doe"
 #    password: "$argon2id$v=19$m=1048576,p=john_strong_hashed_password"
 #    email: john@example.com
 #    groups:

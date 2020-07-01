@@ -253,3 +253,41 @@ services:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
+
+  # Home Assistant Core - Home Automation
+  # Added temporarily since HASS.io (Home Assistant Supervised) on Docker has been deprecated.
+  homeassistant:
+    container_name: hass-core
+    restart: unless-stopped
+    image: homeassistant/home-assistant:0.111.0
+    networks:
+      - t2_proxy
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/ttyUSB1:/dev/ttyUSB1
+      - /dev/ttyACM0:/dev/ttyACM0
+    ports:
+      - target: 8123
+        published: $HOMEASSISTANT_PORT
+        protocol: tcp
+        mode: host
+    privileged: true
+    volumes:
+      - ${USERDIR}/docker/hassio/homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/docker/open-zwave:/open-zwave
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.homeassistant-rtr.entrypoints=https"
+      - "traefik.http.routers.homeassistant-rtr.rule=Host(`hassio.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.homeassistant-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.homeassistant-rtr.service=homeassistant-svc"
+      - "traefik.http.services.homeassistant-svc.loadbalancer.server.port=8123"

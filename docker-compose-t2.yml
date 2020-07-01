@@ -157,7 +157,7 @@ services:
     container_name: authelia
     # Check this before upgrading: https://github.com/authelia/authelia/blob/master/BREAKING.md
     # image: authelia/authelia:latest
-    image: authelia/authelia:4.20
+    image: authelia/authelia:4.21.0
     restart: always
     networks:
       - t2_proxy
@@ -295,44 +295,6 @@ services:
       - "traefik.http.services.autoindex-svc.loadbalancer.server.port=80"
 
   ############################# SMART HOME
-
-  # Home Assistant Core - Home Automation
-  # Added temporarily since HASS.io (Home Assistant Supervised) on Docker has been deprecated.
-  homeassistant:
-    container_name: hass-core
-    restart: unless-stopped
-    image: homeassistant/home-assistant:0.111.0
-    networks:
-      - t2_proxy
-    devices:
-      - /dev/ttyUSB0:/dev/ttyUSB0
-      - /dev/ttyUSB1:/dev/ttyUSB1
-      - /dev/ttyACM0:/dev/ttyACM0
-    ports:
-      - target: 8123
-        published: $HOMEASSISTANT_PORT
-        protocol: tcp
-        mode: host
-    privileged: true
-    volumes:
-      - ${USERDIR}/docker/hassio/homeassistant:/config
-      - /etc/localtime:/etc/localtime:ro
-      - ${USERDIR}/docker/shared:/shared
-      - ${USERDIR}/docker/open-zwave:/open-zwave
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.homeassistant-rtr.entrypoints=https"
-      - "traefik.http.routers.homeassistant-rtr.rule=Host(`hassio.$DOMAINNAME`)"
-      ## Middlewares
-      - "traefik.http.routers.homeassistant-rtr.middlewares=chain-no-auth@file"
-      ## HTTP Services
-      - "traefik.http.routers.homeassistant-rtr.service=homeassistant-svc"
-      - "traefik.http.services.homeassistant-svc.loadbalancer.server.port=8123"
 
   # HA-Dockermon - Manage Docker containers in Home Assistant
   ha-dockermon:
@@ -1846,3 +1808,4 @@ services:
       - "traefik.http.routers.cf-companion-rtr.rule=Host(`shell.$DOMAINNAME`)"
       - "traefik.http.routers.cf-companion-rtr.rule=Host(`syno.$DOMAINNAME`)"
       - "traefik.http.routers.cf-companion-rtr.rule=Host(`ufi.$DOMAINNAME`)"
+      - "traefik.http.routers.cf-companion-rtr.rule=Host(`webmin.$DOMAINNAME`)"
