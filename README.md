@@ -49,7 +49,7 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 
 ### SMART HOME
 
-- Home Assistant Core - Home Automation
+- Home Assistant Core - Home Automation (OBSOLETE - since Home Assistant Supervised now works on Docker)
 - HA-Dockermon - Manage Docker containers in Home Assistant
 - Mosquitto - MQTT Broker
 - MotionEye - Video Surveillance
