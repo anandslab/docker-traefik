@@ -1,7 +1,7 @@
 [http.routers]
   [http.routers.hassio-rtr]
       entryPoints = ["https"]
-      rule = "Host(`hassio.example.com`)"
+      rule = "HostHeader(`hassio.example.com`)"
       service = "hassio-svc"
       middlewares = ["chain-no-auth"]
       [http.routers.hassio-rtr.tls]
