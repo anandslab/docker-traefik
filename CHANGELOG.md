@@ -8,11 +8,19 @@
 - tecnative docker proxy
 - traefik custom error pages https://github.com/guillaumebriday/traefik-custom-error-pages
 - improvements from https://github.com/jamescurtin/traefik-proxy
+- implement secrets
+- move from toml to yaml
 
-## July 14, 2020 
+## July 16, 2020
+
+- Removed USER from docker group to enforce use of sudo for docker commands (improve security)
+- Updated bash_aliases
+- Implemented Docker secrets
+
+## July 14, 2020
 
 - Added Synology Docker Compose for Traefik 2
-- Introduced new environmental variable $DOCKERDIR for simplicity
+- Introduced new environmental variable \$DOCKERDIR for simplicity
 
 ## June 25, 2020
 

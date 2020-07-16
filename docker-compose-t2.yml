@@ -96,6 +96,8 @@ services:
     environment:
       - CF_API_EMAIL=$CLOUDFLARE_EMAIL
       - CF_API_KEY=$CLOUDFLARE_API_KEY
+    - CF_API_EMAIL_FILE=/run/secrets/cloudflare-api-email
+    - CF_API_KEY_FILE=/run/secrets/cloudflare-api-key
     labels:
       - "traefik.enable=true"
       # HTTP-to-HTTPS Redirect
