@@ -9,14 +9,14 @@
 - traefik custom error pages https://github.com/guillaumebriday/traefik-custom-error-pages
 - improvements from https://github.com/jamescurtin/traefik-proxy
 - implement secrets
-- move from toml to yaml
 
 ## July 16, 2020
 
 - Removed USER from docker group to enforce use of sudo for docker commands (improve security)
 - Updated bash_aliases
-- Implemented Docker secrets
+- Partially implemented Docker secrets
 - passHostHeader is true by default. Removed from rules.
+- Moved from toml to yml. Included examples for both in repo.
 
 ## July 14, 2020
 
