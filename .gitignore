@@ -38,4 +38,6 @@ traefik2/rules/*
 !authelia
 authelia/*
 !authelia/*.example
+!secrets
+secrets/*
 !secrets/cloudflare_email.example
