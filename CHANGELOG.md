@@ -17,6 +17,8 @@
 - Partially implemented Docker secrets
 - passHostHeader is true by default. Removed from rules.
 - Moved from toml to yml. Included examples for both in repo.
+- Added $SECRETSDIR env variable
+- Expanded bash_aliases
 
 ## July 14, 2020
 
