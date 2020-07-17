@@ -1,0 +1,57 @@
+http:
+  middlewares:
+    middlewares-basic-auth:
+      basicAuth:
+        # users:
+        #   - "user:$apsdfs.$EntPC0w3FtswWvC/6fTVJ7IUVtX1"
+        usersFile: "/shared/.htpasswd" #be sure to mount the volume through docker-compose.yml
+        realm: "Traefik 2 Basic Auth"
+
+    middlewares-rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+
+    middlewares-secure-headers:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - OPTIONS
+          - PUT
+        accessControlMaxAge: 100
+        hostsProxyHeaders:
+          - "X-Forwarded-Host"
+        sslRedirect: true
+        stsSeconds: 63072000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        forceSTSHeader: true
+        # frameDeny: true #overwritten by customFrameOptionsValue
+        customFrameOptionsValue: "allow-from https:example.com" #CSP takes care of this but may be needed for organizr.
+        contentTypeNosniff: true
+        browserXssFilter: true
+        # sslForceHost: true # add sslHost to all of the services
+        # sslHost: "example.com"
+        referrerPolicy: "same-origin"
+        # Setting contentSecurityPolicy is more secure but it can break things. Proper auth will reduce the risk.
+        # the below line also breaks some apps due to 'none' - sonarr, radarr, etc.
+        # contentSecurityPolicy: "frame-ancestors '*.example.com:*';object-src 'none';script-src 'none';"
+        featurePolicy: "camera 'none'; geolocation 'none'; microphone 'none'; payment 'none'; usb 'none'; vr 'none';"
+        customResponseHeaders:
+          X-Robots-Tag: "none,noarchive,nosnippet,notranslate,noimageindex,"
+          server: ""
+
+    middlewares-oauth:
+      forwardAuth:
+        address: "http://oauth:4181" # Make sure you have the OAuth service in docker-compose.yml
+        trustForwardHeader: true
+        authResponseHeaders:
+          - "X-Forwarded-User"
+
+    middlewares-authelia:
+      forwardAuth:
+        address: "http://authelia:9091/api/verify?rd=https://authelia.example.com"
+        trustForwardHeader: true
+        authResponseHeaders:
+          - "Remote-User"
+          - "Remote-Groups"

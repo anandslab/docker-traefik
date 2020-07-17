@@ -16,6 +16,7 @@
 - Removed USER from docker group to enforce use of sudo for docker commands (improve security)
 - Updated bash_aliases
 - Implemented Docker secrets
+- passHostHeader is true by default. Removed from rules.
 
 ## July 14, 2020
 

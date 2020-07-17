@@ -12,4 +12,4 @@
     [http.services.hassio-svc.loadBalancer]
       passHostHeader = true
       [[http.services.hassio-svc.loadBalancer.servers]]
-        url = "http://HASSIO-IP:8123" 
+        url = "http://HASSIO-IP:8123"  # or whatever your external host's IP:port is 

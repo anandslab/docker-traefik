@@ -1,0 +1,16 @@
+http:
+  routers:
+    hassio-rtr:
+      rule: "HostHeader(`hassio.example.com`)" 
+      entryPoints:
+        - https
+      middlewares:
+        - chain-no-auth
+      service: hassio-svc
+      tls:
+        certResolver: dns-cloudflare
+  services:
+    hassio-svc:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.5.90:8123"  # or whatever your external host's IP:port is 

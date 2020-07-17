@@ -14,6 +14,21 @@ networks:
   default:
     driver: bridge
 
+########################### SECRETS
+secrets:
+  cloudflare_email:
+    file: $SECRETSDIR/cloudflare_email
+  cloudflare_api_key:
+    file: $SECRETSDIR/cloudflare_api_key
+  oauth_secret:
+    file: $SECRETSDIR/oauth_secret
+  google_client_secret:
+    file: $SECRETSDIR/google_client_secret
+  google_client_id:
+    file: $SECRETSDIR/google_client_id
+  my_email:
+    file: $SECRETSDIR/my_email
+
 ########################### SERVICES
 services:
   ############################# FRONTENDS
@@ -39,7 +54,7 @@ services:
       # - --api.insecure=true
       # - --serversTransport.insecureSkipVerify=true
       - --log=true
-      - --log.level=WARN # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --log.level=INFO # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
       - --accessLog=true
       - --accessLog.filePath=/traefik.log
       - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
@@ -94,10 +109,11 @@ services:
       - $DOCKERDIR/traefik2/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
       - $DOCKERDIR/shared:/shared
     environment:
-      - CF_API_EMAIL=$CLOUDFLARE_EMAIL
-      - CF_API_KEY=$CLOUDFLARE_API_KEY
-    - CF_API_EMAIL_FILE=/run/secrets/cloudflare-api-email
-    - CF_API_KEY_FILE=/run/secrets/cloudflare-api-key
+      - CF_API_EMAIL=/run/secrets/cloudflare_email
+      - CF_API_KEY=/run/secrets/cloudflare_api_key
+    secrets:
+      - cloudflare_email
+      - cloudflare_api_key
     labels:
       - "traefik.enable=true"
       # HTTP-to-HTTPS Redirect
@@ -112,6 +128,7 @@ services:
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## Middlewares
       - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file"
+
 
   # Google OAuth - Single Sign On using OAuth 2.0
   # https://hub.docker.com/r/thomseddon/traefik-forward-auth
@@ -130,19 +147,24 @@ services:
     # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
     # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
-      - CLIENT_ID=$GOOGLE_CLIENT_ID
-      - CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
-      - SECRET=$OAUTH_SECRET
+      - CLIENT_ID=/run/secrets/google_client_id
+      - CLIENT_SECRET=/run/secrets/google_client_secret
+      - SECRET=/run/secrets/oauth_secret
       - COOKIE_DOMAIN=$DOMAINNAME
       - INSECURE_COOKIE=false
       - AUTH_HOST=oauth.$DOMAINNAME
       - URL_PATH=/_oauth
-      - WHITELIST=$MY_EMAIL
+      - WHITELIST_FILE=/run/secrets/my_email
       - LOG_LEVEL=warn
       - LOG_FORMAT=text
       - LIFETIME=2592000 # 30 days
       - DEFAULT_ACTION=auth
       - DEFAULT_PROVIDER=google
+    secrets:
+      - google_client_id
+      - google_client_secret
+      - oauth_secret
+      - my_email
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1802,13 +1824,16 @@ services:
     environment:
       - TIMEZONE=$TZ
       - TRAEFIK_VERSION=2
-      - CF_EMAIL=$CLOUDFLARE_EMAIL # Same as traefik
-      # - CF_TOKEN=$CLOUDFLARE_API_TOKEN # Scoped api token not working. Error 10000.
-      - CF_TOKEN=$CLOUDFLARE_API_KEY # Same as traefik
+      - CF_EMAIL=/run/secrets/cloudflare_email # Same as traefik
+      # - CF_TOKEN=/run/secrets/cloudflare-api-token # Scoped api token not working. Error 10000.
+      - CF_TOKEN=/run/secrets/cloudflare_api_key # Same as traefik
       - TARGET_DOMAIN=$DOMAINNAME
       - DOMAIN1=$DOMAINNAME
       - DOMAIN1_ZONE_ID=$CLOUDFLARE_ZONEID # Copy from Cloudflare Overview page
       - DOMAIN1_PROXIED=TRUE
+    secrets:
+      - cloudflare_email
+      - cloudflare_api_key
     labels:
       # Add hosts specified in rules here to force cf-companion to create the CNAMEs
       # Since cf-companion creates CNAMEs based on host rules, this a workaround for non-docker/external apps

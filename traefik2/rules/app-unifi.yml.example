@@ -1,0 +1,18 @@
+tcp:
+  routers:
+    unifi-rtr:
+      rule: "HostSNI(`unifi.example.com`)" # will only work with cloudflare Full SSL (not Strict)
+      entryPoints:
+        - https
+      middlewares:
+        - chain-authelia
+      service: unifi-svc
+      tls:
+        certResolver: dns-cloudflare
+        passthrough: true
+  services:
+    unifi-svc:
+      loadBalancer:
+        servers:
+          - address: "192.168.5.254:8443"
+

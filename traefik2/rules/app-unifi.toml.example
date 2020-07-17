@@ -1,0 +1,16 @@
+[tcp.routers]
+  [tcp.routers.unifi-rtr]
+      entryPoints = ["https"]
+      rule = "HostSNI(`unifi.example.com`)" # will only work with cloudflare Full SSL (not Strict)
+      service = "unifi-svc"
+      middlewares = ["chain-authelia"]
+      [tcp.routers.unifi-rtr.tls]
+        certresolver = "dns-cloudflare"
+        passthrough = true
+[tcp.services]
+  [tcp.services.unifi-svc]
+    [tcp.services.unifi-svc.loadBalancer]
+      passHostHeader = true
+      [[tcp.services.unifi-svc.loadBalancer.servers]]
+        address = "192.168.5.254:8443"
+
