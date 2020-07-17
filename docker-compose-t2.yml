@@ -1843,3 +1843,5 @@ services:
       - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`syno.$DOMAINNAME`)"
       - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`ufi.$DOMAINNAME`)"
       - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`webmin.$DOMAINNAME`)"
+      - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`synplex.$DOMAINNAME`)"
+      - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`pwt.$DOMAINNAME`)"
