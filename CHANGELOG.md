@@ -4,11 +4,15 @@
 
 ## Planned:
 
-- Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, smtp-to-telegram, fail2ban
-- tecnative docker proxy
+- Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, smtp-to-telegram, fail2ban, ofelia
 - traefik custom error pages https://github.com/guillaumebriday/traefik-custom-error-pages
 - improvements from https://github.com/jamescurtin/traefik-proxy
-- implement secrets
+- implement secrets and remove variables from .env
+- Replace Ouroboros (stopped development + requires POST permissions on Socket Proxy) with Watchtower
+
+## July 22, 2020
+
+- Implemented socket proxy - Traefik, Portainer, Dozzle, Glances, cf-Companion, Docker-GC, WatchTower. Exception: ha-dockermon.
 
 ## July 16, 2020
 
@@ -17,7 +21,7 @@
 - Partially implemented Docker secrets
 - passHostHeader is true by default. Removed from rules.
 - Moved from toml to yml. Included examples for both in repo.
-- Added $SECRETSDIR env variable
+- Added \$SECRETSDIR env variable
 - Expanded bash_aliases
 
 ## July 14, 2020

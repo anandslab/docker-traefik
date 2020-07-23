@@ -291,3 +291,34 @@ services:
       ## HTTP Services
       - "traefik.http.routers.homeassistant-rtr.service=homeassistant-svc"
       - "traefik.http.services.homeassistant-svc.loadbalancer.server.port=8123"
+
+  # Watchtower - Automatic Docker Container Updates
+  # creating config.json https://github.com/containrrr/watchtower/issues/99
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    networks:
+      - socket_proxy
+      - t2_proxy
+    # depends_on:
+    #  - socket-proxy
+    volumes:
+      # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+      - $DOCKERDIR/watchtower/config.json:/config.json # Only needed for private registries
+    environment:
+      - TZ=$TZ
+      # - WATCHTOWER_CLEANUP=true # Cleanup old images
+      - DOCKER_HOST=tcp://socket-proxy:2375
+      # - WATCHTOWER_INCLUDE_STOPPED=false
+      - WATCHTOWER_NOTIFICATIONS_LEVEL=info # panic, fatal, error, warn, info (default), debug or trace
+      # - WATCHTOWER_POLL_INTERVAL=60 # 1 week in seconds 604800
+      # - WATCHTOWER_SCHEDULE=0 0 1 * * SUN # Every Sunday at 1 am
+      - WATCHTOWER_RUN_ONCE=true
+      - WATCHTOWER_MONITOR_ONLY=true
+      # - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_DEBUG=true
+      # - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      # - WATCHTOWER_NOTIFICATION_URL="telegram://$TGRAM_BOT_TOKEN@$TGRAM_CHAT_ID"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true" # Add this to services to enable updates

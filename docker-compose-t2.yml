@@ -13,6 +13,9 @@ networks:
       name: t2_proxy
   default:
     driver: bridge
+  socket_proxy:
+    external:
+      name: socket_proxy
 
 ########################### SECRETS
 secrets:
@@ -20,6 +23,10 @@ secrets:
     file: $SECRETSDIR/cloudflare_email
   cloudflare_api_key:
     file: $SECRETSDIR/cloudflare_api_key
+  cloudflare_api_token:
+    file: $SECRETSDIR/cloudflare_api_token
+  cloudflare_zoneid:
+    file: $SECRETSDIR/cloudflare_zoneid
   oauth_secret:
     file: $SECRETSDIR/oauth_secret
   google_client_secret:
@@ -28,6 +35,38 @@ secrets:
     file: $SECRETSDIR/google_client_id
   my_email:
     file: $SECRETSDIR/my_email
+  mysql_root_password:
+    file: $SECRETSDIR/mysql_root_password
+  jdown_vnc_password:
+    file: $SECRETSDIR/jdown_vnc_password
+  ipvanish_username:
+    file: $SECRETSDIR/ipvanish_username
+  ipvanish_password:
+    file: $SECRETSDIR/ipvanish_password
+  transmission_rpc_username:
+    file: $SECRETSDIR/transmission_rpc_username
+  transmission_rpc_password:
+    file: $SECRETSDIR/transmission_rpc_password
+  plex_claim:
+    file: $SECRETSDIR/plex_claim
+  handbrake_vnc_password:
+    file: $SECRETSDIR/handbrake_vnc_password
+  mkvtoolnix_vnc_password:
+    file: $SECRETSDIR/mkvtoolnix_vnc_password
+  makemkv_vnc_password:
+    file: $SECRETSDIR/makemkv_vnc_password
+  filebot_vnc_password:
+    file: $SECRETSDIR/filebot_vnc_password
+  firefox_vnc_password:
+    file: $SECRETSDIR/firefox_vnc_password
+  qdirstat_vnc_password:
+    file: $SECRETSDIR/qdirstat_vnc_password
+  guac_mysql_user:
+    file: $SECRETSDIR/guac_mysql_user
+  guac_mysql_password:
+    file: $SECRETSDIR/guac_mysql_password
+  vscode_password:
+    file: $SECRETSDIR/vscode_password
 
 ########################### SERVICES
 services:
@@ -60,11 +99,12 @@ services:
       - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
       - --accessLog.filters.statusCodes=400-499
       - --providers.docker=true
-      - --providers.docker.endpoint=unix:///var/run/docker.sock
+      # - --providers.docker.endpoint=unix:///var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+      - --providers.docker.endpoint=tcp://socket-proxy:2375
       # - --providers.docker.defaultrule=HostHeader(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME`)
       - --providers.docker.exposedByDefault=false
       # - --entrypoints.https.http.middlewares=chain-authelia@file
-      # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services.
+      # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services
       - --entrypoints.https.http.tls.certresolver=dns-cloudflare
       - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME
       - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME
@@ -72,8 +112,8 @@ services:
       # - --entrypoints.https.http.tls.domains[1].sans=*.$DOMAIN # Pulls wildcard cert for second domain
       - --providers.docker.network=t2_proxy
       - --providers.docker.swarmMode=false
-      - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory.
-      # - --providers.file.filename=/path/to/file # Load dynamic configuration from a file.
+      - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory
+      # - --providers.file.filename=/path/to/file # Load dynamic configuration from a file
       - --providers.file.watch=true # Only works on top level files in the rules folder
       # - --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # LetsEncrypt Staging Server - uncomment when testing
       - --certificatesResolvers.dns-cloudflare.acme.email=$CLOUDFLARE_EMAIL
@@ -84,8 +124,11 @@ services:
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
-    # networks:
-    #   - t2_proxy
+      # networks:
+      #   - t2_proxy
+      socket_proxy:
+    depends_on:
+      - socket-proxy
     security_opt:
       - no-new-privileges:true
     ports:
@@ -104,7 +147,7 @@ services:
     #        mode: host
     volumes:
       - $DOCKERDIR/traefik2/rules:/rules # file provider directory
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/traefik2/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
       - $DOCKERDIR/traefik2/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
       - $DOCKERDIR/shared:/shared
@@ -129,6 +172,52 @@ services:
       ## Middlewares
       - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file"
 
+  # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
+  socket-proxy:
+    container_name: socket-proxy
+    image: tecnativa/docker-socket-proxy
+    restart: always
+    networks:
+      # t2_proxy:
+      socket_proxy:
+        ipv4_address: 192.168.91.254 # You can specify a static IP
+    privileged: true
+    # ports:
+    #  - "2375:2375"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      - LOG_LEVEL=info # debug,info,notice,warning,err,crit,alert,emerg
+      ## Variables match the URL prefix (i.e. AUTH blocks access to /auth/* parts of the API, etc.).
+      # 0 to revoke access.
+      # 1 to grant access.
+      ## Granted by Default
+      - EVENTS=1
+      - PING=1
+      - VERSION=1
+      ## Revoked by Default
+      # Security critical
+      - AUTH=0
+      - SECRETS=0
+      - POST=1 # Ouroboros
+      # Not always needed
+      - BUILD=0
+      - COMMIT=0
+      - CONFIGS=0
+      - CONTAINERS=1 # Traefik, portainer, etc.
+      - DISTRIBUTION=0
+      - EXEC=0
+      - IMAGES=1 # Portainer
+      - INFO=1 # Portainer
+      - NETWORKS=1 # Portainer
+      - NODES=0
+      - PLUGINS=0
+      - SERVICES=1 # Portainer
+      - SESSION=0
+      - SWARM=0
+      - SYSTEM=0
+      - TASKS=1 # Portaienr
+      - VOLUMES=1 # Portainer
 
   # Google OAuth - Single Sign On using OAuth 2.0
   # https://hub.docker.com/r/thomseddon/traefik-forward-auth
@@ -207,15 +296,19 @@ services:
     container_name: portainer
     image: portainer/portainer:latest
     restart: unless-stopped
-    command: -H unix:///var/run/docker.sock
+    # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
+    # command: -H tcp://socket-proxy:2375 # appears to not work. Workaround was to create a new socket-proxy:2375 endpoint on portainer settings
     networks:
       - t2_proxy
+      - socket_proxy
+    depends_on:
+      - socket-proxy
     security_opt:
       - no-new-privileges:true
     ports:
       - "$PORTAINER_PORT:9000"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/portainer/data:/data # Change to local directory if you want to save/transfer config locally
     environment:
       - TZ=$TZ
@@ -325,17 +418,20 @@ services:
     image: philhawthorne/ha-dockermon:latest
     container_name: ha-dockermon
     restart: unless-stopped
+    networks:
+      - socket_proxy
     security_opt:
       - no-new-privileges:true
     ports:
       - "$HA_DOCKERMON_PORT:8126"
     volumes:
       - $DOCKERDIR/ha-dockermon:/config
-      - /var/run/docker.sock:/var/run/docker.sock
+      # - /var/run/docker.sock:/var/run/docker.sock
     environment:
       PUID: $PUID
       PGID: $PGID
       TZ: $TZ
+      DOCKER_HOST: tcp://socket-proxy:2375
 
   # Mosquitto - MQTT Broker
   # Create mosquitto.conf, passwd, mosquitto.log files  and set permissions to 775 user:docker
@@ -422,7 +518,9 @@ services:
     environment:
       - PUID=$PUID
       - PGID=$PGID
-      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
+    secrets:
+      - mysql_root_password
 
   # phpMyAdmin - Database management
   # Create a new user with admin privileges. Cannot login as MySQL root for some reason.
@@ -442,7 +540,9 @@ services:
       # - PMA_HOST=$DB_HOST
       - PMA_PORT=$DB_PORT
       - PMA_ARBITRARY=1
-      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+      - MYSQL_ROOT_PASSWORD=/run/secrets/mysql_root_password
+    secrets:
+      - mysql_root_password
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -576,7 +676,9 @@ services:
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
-      VNC_PASSWORD: $JDOWN_VNC_PASSWD
+      VNC_PASSWORD_FILE: /run/secrets/jdown_vnc_password
+    secrets:
+      - jdown_vnc_password
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -616,8 +718,8 @@ services:
       - $USERDIR/Downloads:/downloads
     environment:
       OPENVPN_PROVIDER: IPVANISH
-      OPENVPN_USERNAME: $IPVANISH_USERNAME
-      OPENVPN_PASSWORD: $IPVANISH_PASSWORD
+      OPENVPN_USERNAME_FILE: /run/secrets/ipvanish_username
+      OPENVPN_PASSWORD_FILE: /run/secrets/ipvanish_password
       OPENVPN_CONFIG: "ipvanish-CH-Zurich-zrh-c07"
       OPENVPN_OPTS: --inactive 3600 --ping 10 --ping-exit 60
       LOCAL_NETWORK: "$LOCAL_NETWORK"
@@ -627,8 +729,8 @@ services:
       UMASK_SET: 2
       TRANSMISSION_RPC_AUTHENTICATION_REQUIRED: "true"
       TRANSMISSION_RPC_HOST_WHITELIST: "127.0.0.1,$SERVER_IP"
-      TRANSMISSION_RPC_PASSWORD: $TRANSMISSION_RPC_PASSWORD
-      TRANSMISSION_RPC_USERNAME: $TRANSMISSION_RPC_USERNAME
+      TRANSMISSION_RPC_PASSWORD_FILE: /run/secrets/transmission_rpc_password
+      TRANSMISSION_RPC_USERNAME_FILE: /run/secrets/transmission_rpc_username
       TRANSMISSION_UMASK: 002
       TRANSMISSION_RATIO_LIMIT: 0.01
       TRANSMISSION_RATIO_LIMIT_ENABLED: "true"
@@ -644,6 +746,11 @@ services:
       TRANSMISSION_WATCH_DIR: /downloads
       TRANSMISSION_WATCH_DIR_ENABLED: "true"
       TRANSMISSION_DOWNLOAD_DIR: /downloads/completed
+    secrets:
+      - ipvanish_username
+      - ipvanish_password
+      - transmission_rpc_username
+      - transmission_rpc_password
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1049,10 +1156,12 @@ services:
     environment:
       TZ: $TZ
       HOSTNAME: "nucPlex"
-      PLEX_CLAIM: $PLEX_CLAIM
+      PLEX_CLAIM_FILE: /run/secrets/plex_claim
       PLEX_UID: $PUID
       PLEX_GID: $PGID
       ADVERTISE_IP: http://$SERVER_IP:$PLEX_PORT/
+    secrets:
+      - plex_claim
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1328,7 +1437,9 @@ services:
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
       AUTOMATED_CONVERSION_KEEP_SOURCE: 1
-      VNC_PASSWORD: $HANDBRAKE_VNC_PASSWD
+      VNC_PASSWORD_FILE: /run/secrets/handbrake_vnc_password
+    secrets:
+      - handbrake_vnc_password
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1363,7 +1474,9 @@ services:
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
-      VNC_PASSWORD: $MKVTOOLNIX_VNC_PASSWD
+      VNC_PASSWORD_FILE: /run/secrets/mkvtoolnix_vnc_password
+    secrets:
+      - mkvtoolnix_vnc_password
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1400,7 +1513,9 @@ services:
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
-      VNC_PASSWORD: $MAKEMKV_VNC_PASSWD
+      VNC_PASSWORD_FILE: /run/secrets/makemkv_vnc_password
+    secrets:
+      - makemkv_vnc_password
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1438,7 +1553,9 @@ services:
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
-      VNC_PASSWD: $FILEBOT_VNC_PASSWD
+      VNC_PASSWD_FILE: /run/secrets/filebot_vnc_password
+    secrets:
+      - filebot_vnc_password
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1478,7 +1595,9 @@ services:
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
-      VNC_PASSWD: $FIREFOX_VNC_PASSWD
+      VNC_PASSWD_FILE: /run/secrets/firefox_vnc_password
+    secrets:
+      - firefox_vnc_password
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1499,6 +1618,9 @@ services:
     # network_mode: host
     networks:
       - t2_proxy
+      - socket_proxy
+    depends_on:
+      - socket-proxy
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1506,10 +1628,11 @@ services:
     pid: host
     volumes:
       - $DOCKERDIR/glances/glances.conf:/glances/conf/glances.conf # Use this if you want to add a glances.conf file
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
     environment:
       # GLANCES_OPT: "-C /glances/conf/glances.conf --quiet --export influxdb"
       GLANCES_OPT: "-w"
+      DOCKER_HOST: tcp://socket-proxy:2375
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1565,7 +1688,9 @@ services:
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
-      VNC_PASSWORD: $QDIRSTAT_VNC_PASSWD
+      VNC_PASSWORD_FILE: /run/secrets/qdirstat_vnc_password
+    secrets:
+      - qdirstat_vnc_password
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1594,8 +1719,11 @@ services:
       MYSQL_HOSTNAME: $DB_HOST
       MYSQL_PORT: $DB_PORT
       MYSQL_DATABASE: guacamole
-      MYSQL_USER: $GUAC_MYSQL_USER
-      MYSQL_PASSWORD: $GUAC_MYSQL_PASSWORD
+      MYSQL_USER_FILE: /run/secrets/guac_mysql_user
+      MYSQL_PASSWORD_FILE: /run/secrets/guac_mysql_password
+    secrets:
+      - guac_mysql_user
+      - guac_mysql_password
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1625,6 +1753,9 @@ services:
     restart: unless-stopped
     networks:
       - t2_proxy
+      - socket_proxy
+    depends_on:
+      - socket-proxy
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1634,8 +1765,9 @@ services:
       DOZZLE_TAILSIZE: 300
       DOZZLE_FILTER: "status=running"
       # DOZZLE_FILTER: "label=log_me" # limits logs displayed to containers with this label
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      DOCKER_HOST: tcp://socket-proxy:2375
+    # volumes:
+    #  - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1733,6 +1865,8 @@ services:
       # Run as root first, create the directories, then change permissions to user:docker and 775. Disable run as root below.
       user: $PUID:$PGID
       # user: "0"
+    secrets: # NOT WORKING
+      - vscode_password
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1753,16 +1887,21 @@ services:
     restart: unless-stopped
     networks:
       - default
+      - socket_proxy
+    # depends_on:
+    #  - socket-proxy
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+      - $DOCKERDIR/watchtower/config.json:/root/.docker/config.json:ro
     environment:
       TZ: $TZ
       INTERVAL: 86400
-      LOG_LEVEL: debug
+      LOG_LEVEL: info
       SELF_UPDATE: "true"
       CLEANUP: "true"
       IGNORE: traefik influxdb hassio_dns homeassistant hassio_supervisor addon_core_check_config addon_62c7908d_autobackup plexms
       NOTIFIERS: "tgram://$TGRAM_BOT_TOKEN/$TGRAM_CHAT_ID/"
+      DOCKER_SOCKETS: tcp://socket-proxy:2375 # POST to be enabled on Socket Proxy
 
   # Docker-GC - Automatic Docker Garbage Collection
   # Create docker-gc-exclude file
@@ -1770,18 +1909,24 @@ services:
     image: clockworksoul/docker-gc-cron:latest
     container_name: docker-gc
     restart: unless-stopped
-    network_mode: none
+    networks:
+      - socket_proxy
+    depends_on:
+      - socket-proxy
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude
     environment:
-      CRON: 0 0 * * *
+      CRON: 0 0 0 * * ? # Everyday at midnight. Previously 0 0 * * *
       FORCE_IMAGE_REMOVAL: 1
       FORCE_CONTAINER_REMOVAL: 0
       GRACE_PERIOD_SECONDS: 604800
       DRY_RUN: 0
       CLEAN_UP_VOLUMES: 1
       TZ: $TZ
+      DOCKER_HOST: tcp://socket-proxy:2375
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true" # Add this to services to enable updates
 
   # Traefik Certs Dumper - Extract LetsEncrypt Certificates - Traefik2 Compatible
   certdumper:
@@ -1793,7 +1938,7 @@ services:
     volumes:
       - $DOCKERDIR/traefik2/acme:/traefik:ro
       - $DOCKERDIR/shared/certs:/output:rw
-      # - /var/run/docker.sock:/var/run/docker.sock:ro # only needed if restarting containers
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Only needed if restarting containers (use Docker Socket Proxy instead)
     environment:
       DOMAIN: $DOMAINNAME
 
@@ -1805,12 +1950,14 @@ services:
     security_opt:
       - no-new-privileges:true
     environment:
-      - API_KEY=$CLOUDFLARE_API_TOKEN
-      - ZONE=$DOMAINNAME
-      - PROXIED=true
-      - RRTYPE=A
-      - DELETE_ON_STOP=false
-      - DNS_SERVER=1.1.1.1
+      API_KEY: $CLOUDFLARE_API_TOKEN
+      ZONE: $DOMAINNAME
+      PROXIED: "true"
+      RRTYPE: A
+      DELETE_ON_STOP: "false"
+      DNS_SERVER: 1.1.1.1
+    secrets: # not working
+      - cloudflare_api_token
 
   # Cloudflare-Companion - Automatic CNAME DNS Creation
   cf-companion:
@@ -1819,21 +1966,27 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - socket_proxy
+    depends_on:
+      - socket-proxy
+    # volumes:
+    #  - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
     environment:
       - TIMEZONE=$TZ
       - TRAEFIK_VERSION=2
-      - CF_EMAIL=/run/secrets/cloudflare_email # Same as traefik
-      # - CF_TOKEN=/run/secrets/cloudflare-api-token # Scoped api token not working. Error 10000.
-      - CF_TOKEN=/run/secrets/cloudflare_api_key # Same as traefik
+      - CF_EMAIL=$CLOUDFLARE_EMAIL # Same as traefik
+      # - CF_TOKEN=$CLOUDFLARE_API_TOKEN # Scoped api token not working. Error 10000.
+      - CF_TOKEN=$CLOUDFLARE_API_KEY # Same as traefik
       - TARGET_DOMAIN=$DOMAINNAME
       - DOMAIN1=$DOMAINNAME
       - DOMAIN1_ZONE_ID=$CLOUDFLARE_ZONEID # Copy from Cloudflare Overview page
       - DOMAIN1_PROXIED=TRUE
-    secrets:
+      - DOCKER_HOST=tcp://socket-proxy:2375
+    secrets: # not working
       - cloudflare_email
       - cloudflare_api_key
+      - cloudflare_zoneid
     labels:
       # Add hosts specified in rules here to force cf-companion to create the CNAMEs
       # Since cf-companion creates CNAMEs based on host rules, this a workaround for non-docker/external apps

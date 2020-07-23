@@ -18,7 +18,7 @@ alias fixsecrets='sudo chown -R root:root /home/USER/docker/secrets ; sudo chmod
 alias 1down='cd /home/USER/docker ; dcdown1v ; dcdown1'
 alias 1up='cd /home/USER/docker ; sudo docker network create t1_proxy ; dcrec1 plexms ; dcup1 ; dcup1v'
 alias 2down='cd /home/USER/docker ; dcdown2v ; dcdown2'
-alias 2up='cd /home/USER/docker ; sudo docker network create --gateway 192.168.90.1 --subnet 192.168.90.0/24 t2_proxy ; dcrec2 plexms ; dcup2 ; dcup2v'
+alias 2up='cd /home/USER/docker ; sudo docker network create --gateway 192.168.91.1 --subnet 192.168.91.0/24 socket_proxy ; sudo docker network create --gateway 192.168.90.1 --subnet 192.168.90.0/24 t2_proxy ; dcrec2 plexms ; dcup2 ; dcup2v'
 
 # DOCKER TRAEFIK 1
 alias dcrun1='cd /home/USER/docker ; sudo docker-compose -f /home/USER/docker/docker-compose-t1.yml '
