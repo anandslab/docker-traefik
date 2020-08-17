@@ -162,6 +162,28 @@ services:
       ## Middlewares
       - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file"
 
+  # Traefik - Custom Error Pages
+  traefik-errorpage:
+    container_name: traefik-errorpage
+    image: guillaumebriday/traefik-custom-error-pages
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.traefik-errorpage-rtr.entrypoints=https"
+      - "traefik.http.routers.traefik-errorpage-rtr.rule=HostRegexp(`{host:.+}`)"
+      - "traefik.http.routers.traefik-errorpage-rtr.priority=1"
+      # Middlewares
+      - "traefik.http.routers.traefik-errorpage-rtr.middlewares=traefik-errorpage"
+      - "traefik.http.middlewares.traefik-errorpage.errors.service=traefik-errorpage-svc"
+      - "traefik.http.middlewares.traefik-errorpage.errors.status=401,403,404,429,500,502,503"
+      - "traefik.http.middlewares.traefik-errorpage.errors.query=/{status}.html"
+      # HTTP Services
+      - "traefik.http.routers.traefik-errorpage-rtr.service=traefik-errorpage-svc"
+      - "traefik.http.services.traefik-errorpage-svc.loadbalancer.server.port=80"
+
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
     container_name: socket-proxy
