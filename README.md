@@ -5,7 +5,8 @@ This is the updated docker-compose repo of all the media and home server apps de
 - Docker Media Server with Traefik 2 Reverse Proxy: [https://www.smarthomebeginner.com/traefik-2-docker-tutorial/](https://www.smarthomebeginner.com/traefik-2-docker-tutorial/)
 - Cloudflare Settings for Traefik Docker: DDNS, CNAMEs, & Tweaks: [https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/](https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/)
 - Synology Docker Media Server with Traefik, Docker Compose, and Cloudflare: [https://www.smarthomebeginner.com/synology-docker-media-server/](https://www.smarthomebeginner.com/synology-docker-media-server/)
-- Docker with Google OAuth 2 - [https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/](https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/)
+- Google OAuth 2 MFA Protection for Docker - [https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/](https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/)
+- Authelia MFA Protection for Docker - [https://www.smarthomebeginner.com/docker-authelia-tutorial/](https://www.smarthomebeginner.com/docker-authelia-tutorial/)
 
 ### Old Posts:
 
@@ -23,10 +24,11 @@ The following posts have been combined and updated for Traefik v2 (linked above)
 - docker-compose-t2.yml
 - docker-compose-t2-vpn.yml
 - docker-compose-t2-obsolete.yml (Apps that I do not use anymore)
+- docker-compose-t2-web.yml (Docker stack on Virtual Private Server that Runs Wordpress and Other Websites)
 
 ### Traefik 2 (CURRENT - SYNOLOGY)
 
-- docker-compose-synology-t2.yml (Apps that I run on Synology NAS using Docker Compose)
+- docker-compose-t2-synology.yml (Apps that I run on Synology NAS using Docker Compose)
 - Almost any app from the Traefik v2 docker-compose files listed above can be copy-pasted to the Synology Docker-Compose. I run a few on Synology and the rest on my Intel NUC Linux home server.
 
 ### Traefik 1 (NOT ACTIVELY MAINTAINED)
@@ -55,11 +57,11 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 
 ### SMART HOME
 
-- Home Assistant Core - Home Automation (OBSOLETE - since Home Assistant Supervised now works on Docker)
-- HA-Dockermon - Manage Docker containers in Home Assistant
+- Home Assistant Core - Home Automation
+- HA-Dockermon - Manage Docker containers in Home Assistant (OBSOLETE)
 - Mosquitto - MQTT Broker
 - MotionEye - Video Surveillance
-- ZoneMinder - Video Surveillance
+- ZoneMinder - Video Surveillance (OBSOLETE)
 - MiFlora - MiFlora MQTT Daemon (MiFlora Plant Sensors) (OBSOLETE)
 
 ### DATABASE
@@ -67,7 +69,7 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 - MariaDB - MySQL Database
 - phpMyAdmin - Database management
 - InfluxDB - Database for sensor data
-- Postgres - Database
+- Postgres - Database (OBSOLETE)
 - Grafana - Graphical data visualization for InfluxDB data
 - Varken - Monitor Plex, Sonarr, Radarr, and Other Data (OBSOLETE)
 - Redis - Key value store
@@ -126,7 +128,7 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 - Dozzle - Docker logs viewer
 - qDirStat - Directory Statistics
 - StatPing - Status Page & Monitoring Server
-- SmokePing - Network Latency Monitoring
+- SmokePing - Network Latency Monitoring (OBSOLETE)
 - VS Code Server - Code Editor
 - Logarr - Log Management (OBSOLETE)
 - Monitorr - Webfront to display the status of any webapp or service (OBSOLETE)

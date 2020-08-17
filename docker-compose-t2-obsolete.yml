@@ -254,44 +254,6 @@ services:
       - PGID=$PGID
       - TZ=$TZ
 
-  # Home Assistant Core - Home Automation
-  # Added temporarily since HASS.io (Home Assistant Supervised) on Docker has been deprecated.
-  homeassistant:
-    container_name: hass-core
-    restart: unless-stopped
-    image: homeassistant/home-assistant:0.111.0
-    networks:
-      - t2_proxy
-    devices:
-      - /dev/ttyUSB0:/dev/ttyUSB0
-      - /dev/ttyUSB1:/dev/ttyUSB1
-      - /dev/ttyACM0:/dev/ttyACM0
-    ports:
-      - target: 8123
-        published: $HOMEASSISTANT_PORT
-        protocol: tcp
-        mode: host
-    privileged: true
-    volumes:
-      - ${USERDIR}/docker/hassio/homeassistant:/config
-      - /etc/localtime:/etc/localtime:ro
-      - ${USERDIR}/docker/shared:/shared
-      - ${USERDIR}/docker/open-zwave:/open-zwave
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.homeassistant-rtr.entrypoints=https"
-      - "traefik.http.routers.homeassistant-rtr.rule=Host(`hassio.$DOMAINNAME`)"
-      ## Middlewares
-      - "traefik.http.routers.homeassistant-rtr.middlewares=chain-no-auth@file"
-      ## HTTP Services
-      - "traefik.http.routers.homeassistant-rtr.service=homeassistant-svc"
-      - "traefik.http.services.homeassistant-svc.loadbalancer.server.port=8123"
-
   # Watchtower - Automatic Docker Container Updates
   # creating config.json https://github.com/containrrr/watchtower/issues/99
   watchtower:
@@ -322,3 +284,100 @@ services:
       # - WATCHTOWER_NOTIFICATION_URL="telegram://$TGRAM_BOT_TOKEN@$TGRAM_CHAT_ID"
     labels:
       - "com.centurylinklabs.watchtower.enable=true" # Add this to services to enable updates
+
+  # SmokePing - Network latency Monitoring
+  smokeping:
+    image: linuxserver/smokeping:latest
+    container_name: smokeping
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #  - "$SMOKEPING_PORT:80"
+    volumes:
+      - $DOCKERDIR/smokeping/config:/config
+      - $DOCKERDIR/smokeping/data:/data
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.smokeping-rtr.entrypoints=https"
+      - "traefik.http.routers.smokeping-rtr.rule=HostHeader(`smokeping.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.smokeping-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.smokeping-rtr.service=smokeping-svc"
+      - "traefik.http.services.smokeping-svc.loadbalancer.server.port=80"
+
+  # HA-Dockermon - Manage Docker containers in Home Assistant
+  ha-dockermon:
+    image: philhawthorne/ha-dockermon:latest
+    container_name: ha-dockermon
+    restart: unless-stopped
+    networks:
+      - socket_proxy
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "$HA_DOCKERMON_PORT:8126"
+    volumes:
+      - $DOCKERDIR/ha-dockermon:/config
+      # - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      DOCKER_HOST: tcp://socket-proxy:2375
+
+  # Postgres - Database
+  postgres:
+    image: postgres
+    container_name: postgres
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - $DOCKERDIR/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: $STATPING_DB_PASS
+      POSTGRES_USER: $STATPING_DB_USER
+      POSTGRES_DB: $STATPING_DB
+
+  # UniFi Controller - Managing UniFi Network
+  unifi:
+    container_name: unifi
+    image: jacobalberty/unifi:stable
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+      - "3478:3478/udp"
+      - "10001:10001/udp"
+      - "6789:6789"
+    volumes:
+      - ${DOCKERDIR}/unifi:/unifi
+    environment:
+      UNIFI_UID: $PUID
+      UNIFI_GID: $PGID
+      TZ: America/New_York
+      RUNAS_UID0: "false"
+      BIND_PRIV: "false"
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.unifi-rtr.entrypoints=https"
+      - "traefik.http.routers.unifi-rtr.rule=HostHeader(`ufi.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.unifi-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.unifi-rtr.service=unifi-svc"
+      - "traefik.http.services.unifi-svc.loadbalancer.server.port=8443"

@@ -9,7 +9,8 @@
 !docker-compose-t2.yml
 !docker-compose-t2-vpn.yml
 !docker-compose-t2-obsolete.yml
-!docker-compose-synology-t2.yml
+!docker-compose-t2-synology.yml
+!docker-compose-t2-web.yml
 !.env.example
 !README.md
 !CHANGELOG.md

@@ -3,8 +3,10 @@ version: "3.7"
 ########################### NETWORKS
 # Create t2_proxy network
 # docker network create t2_proxy
+# docker network create socket_proxy
 # Alternatively, you can specify the gateway and subnet to use
 # docker network create --gateway 192.168.90.1 --subnet 192.168.90.0/24 t2_proxy
+# docker network create --gateway 192.168.91.1 --subnet 192.168.91.0/24 socket_proxy
 # Subnet range 192.168.0.0/16 covers 192.168.0.0 to 192.168.255.255
 
 networks:
@@ -27,6 +29,16 @@ secrets:
     file: $SECRETSDIR/cloudflare_api_token
   cloudflare_zoneid:
     file: $SECRETSDIR/cloudflare_zoneid
+  authelia_jwt_secret:
+    file: $SECRETSDIR/authelia_jwt_secret
+  authelia_session_secret:
+    file: $SECRETSDIR/authelia_session_secret
+  authelia_storage_mysql_password:
+    file: $SECRETSDIR/authelia_storage_mysql_password
+  authelia_notifier_smtp_password:
+    file: $SECRETSDIR/authelia_notifier_smtp_password
+  authelia_duo_api_secret_key:
+    file: $SECRETSDIR/authelia_duo_api_secret_key
   oauth_secret:
     file: $SECRETSDIR/oauth_secret
   google_client_secret:
@@ -37,36 +49,14 @@ secrets:
     file: $SECRETSDIR/my_email
   mysql_root_password:
     file: $SECRETSDIR/mysql_root_password
-  jdown_vnc_password:
-    file: $SECRETSDIR/jdown_vnc_password
-  ipvanish_username:
-    file: $SECRETSDIR/ipvanish_username
-  ipvanish_password:
-    file: $SECRETSDIR/ipvanish_password
-  transmission_rpc_username:
-    file: $SECRETSDIR/transmission_rpc_username
-  transmission_rpc_password:
-    file: $SECRETSDIR/transmission_rpc_password
   plex_claim:
     file: $SECRETSDIR/plex_claim
-  handbrake_vnc_password:
-    file: $SECRETSDIR/handbrake_vnc_password
-  mkvtoolnix_vnc_password:
-    file: $SECRETSDIR/mkvtoolnix_vnc_password
-  makemkv_vnc_password:
-    file: $SECRETSDIR/makemkv_vnc_password
-  filebot_vnc_password:
-    file: $SECRETSDIR/filebot_vnc_password
-  firefox_vnc_password:
-    file: $SECRETSDIR/firefox_vnc_password
-  qdirstat_vnc_password:
-    file: $SECRETSDIR/qdirstat_vnc_password
+  guac_db_name:
+    file: $SECRETSDIR/guac_db_name
   guac_mysql_user:
     file: $SECRETSDIR/guac_mysql_user
   guac_mysql_password:
     file: $SECRETSDIR/guac_mysql_password
-  vscode_password:
-    file: $SECRETSDIR/vscode_password
 
 ########################### SERVICES
 services:
@@ -152,8 +142,8 @@ services:
       - $DOCKERDIR/traefik2/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
       - $DOCKERDIR/shared:/shared
     environment:
-      - CF_API_EMAIL=/run/secrets/cloudflare_email
-      - CF_API_KEY=/run/secrets/cloudflare_api_key
+      - CF_API_EMAIL_FILE=/run/secrets/cloudflare_email
+      - CF_API_KEY_FILE=/run/secrets/cloudflare_api_key
     secrets:
       - cloudflare_email
       - cloudflare_api_key
@@ -182,8 +172,8 @@ services:
       socket_proxy:
         ipv4_address: 192.168.91.254 # You can specify a static IP
     privileged: true
-    # ports:
-    #  - "2375:2375"
+    ports:
+      - "2375:2375"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
     environment:
@@ -269,8 +259,7 @@ services:
   authelia:
     container_name: authelia
     # Check this before upgrading: https://github.com/authelia/authelia/blob/master/BREAKING.md
-    # image: authelia/authelia:latest
-    image: authelia/authelia:4.21.0
+    image: authelia/authelia:latest
     restart: always
     networks:
       - t2_proxy
@@ -280,6 +269,17 @@ services:
       - $DOCKERDIR/authelia:/config
     environment:
       - TZ=$TZ
+      - AUTHELIA_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
+      - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
+      - AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE=/run/secrets/authelia_storage_mysql_password
+      - AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE=/run/secrets/authelia_notifier_smtp_password
+      - AUTHELIA_DUO_API_SECRET_KEY_FILE=/run/secrets/authelia_duo_api_secret_key
+    secrets:
+      - authelia_jwt_secret
+      - authelia_session_secret
+      - authelia_storage_mysql_password
+      - authelia_notifier_smtp_password
+      - authelia_duo_api_secret_key
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -292,39 +292,7 @@ services:
       - "traefik.http.services.authelia-svc.loadbalancer.server.port=9091"
 
   # Portainer - WebUI for Containers
-  portainer:
-    container_name: portainer
-    image: portainer/portainer:latest
-    restart: unless-stopped
-    # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
-    # command: -H tcp://socket-proxy:2375 # appears to not work. Workaround was to create a new socket-proxy:2375 endpoint on portainer settings
-    networks:
-      - t2_proxy
-      - socket_proxy
-    depends_on:
-      - socket-proxy
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - "$PORTAINER_PORT:9000"
-    volumes:
-      # - /var/run/docker.sock:/var/run/docker.sock:ro # # Use Docker Socket Proxy instead for improved security
-      - $DOCKERDIR/portainer/data:/data # Change to local directory if you want to save/transfer config locally
-    environment:
-      - TZ=$TZ
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.portainer-rtr.entrypoints=https"
-      - "traefik.http.routers.portainer-rtr.rule=HostHeader(`portainer.$DOMAINNAME`)"
-      ## Middlewares
-      # - "traefik.http.routers.portainer-rtr.middlewares=chain-no-auth@file" # No Authentication
-      # - "traefik.http.routers.portainer-rtr.middlewares=chain-basic-auth@file" # Basic Authentication
-      # - "traefik.http.routers.portainer-rtr.middlewares=chain-oauth@file" # Google OAuth 2.0
-      - "traefik.http.routers.portainer-rtr.middlewares=chain-authelia@file" # Authelia
-      ## HTTP Services
-      - "traefik.http.routers.portainer-rtr.service=portainer-svc"
-      - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
+  # Moved to NAS and added this stack as to Portainer as a separate endpoint.
 
   # Organizr - Unified Frontend
   organizr:
@@ -347,7 +315,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.organizr-rtr.entrypoints=https"
-      - "traefik.http.routers.organizr-rtr.rule=HostHeader(`$DOMAINNAME`,`www.$DOMAINNAME`)"
+      - "traefik.http.routers.organizr-rtr.rule=HostHeader(`$DOMAINNAME`) || HostHeader(`www.$DOMAINNAME`)"
       ## Middlewares
       - "traefik.http.routers.organizr-rtr.middlewares=organizr-redirect@docker,chain-authelia@file"
         # Redirect non-www to www middleware
@@ -413,47 +381,55 @@ services:
 
   ############################# SMART HOME
 
-  # HA-Dockermon - Manage Docker containers in Home Assistant
-  ha-dockermon:
-    image: philhawthorne/ha-dockermon:latest
-    container_name: ha-dockermon
+  # Home Assistant Core - Home Automation
+  # Added temporarily since HASS.io (Home Assistant Supervised) on Docker has been deprecated.
+  homeassistant:
+    container_name: hass-core
     restart: unless-stopped
-    networks:
-      - socket_proxy
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - "$HA_DOCKERMON_PORT:8126"
+    image: homeassistant/home-assistant:0.113.3
+    network_mode: host
+    #    networks:
+    #      - t2_proxy
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/ttyUSB1:/dev/ttyUSB1
+      - /dev/ttyACM0:/dev/ttyACM0
+    privileged: true
     volumes:
-      - $DOCKERDIR/ha-dockermon:/config
-      # - /var/run/docker.sock:/var/run/docker.sock
+      - ${USERDIR}/docker/homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
     environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
-      DOCKER_HOST: tcp://socket-proxy:2375
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
 
-  # Mosquitto - MQTT Broker
-  # Create mosquitto.conf, passwd, mosquitto.log files  and set permissions to 775 user:docker
-  # dexec mosquitto /bin/sh -> mosquitto_passwd -b /mosquitto/config/passwd username passwd
-  mosquitto:
-    image: eclipse-mosquitto:latest
-    container_name: mosquitto
+  # Home Assistant Core - Home Automation
+  # Added temporarily since HASS.io (Home Assistant Supervised) on Docker has been deprecated.
+  hassio:
+    container_name: hassio
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
+    image: homeassistant/home-assistant:0.111.0
+    networks:
+      - t2_proxy
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/ttyUSB1:/dev/ttyUSB1
+      - /dev/ttyACM0:/dev/ttyACM0
     ports:
-      - "$MOSQUITTO_HTTP_PORT:1883" #http
-      - "9001:9001" #websockets
-      # - "$MOSQUITTO_HTTPS_PORT:8883" #https
+      - target: 8123
+        published: $HOMEASSISTANT_PORT
+        protocol: tcp
+        mode: host
+    privileged: true
     volumes:
-      - $DOCKERDIR/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - $DOCKERDIR/mosquitto/config/passwd:/mosquitto/config/passwd
-      - $DOCKERDIR/shared:/shared
+      - ${USERDIR}/docker/hassio/homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/docker/open-zwave:/open-zwave
     environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
 
   # MotionEye - Video Surveillance
   motioneye:
@@ -473,7 +449,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - $DOCKERDIR/shared:/shared
       - $DOCKERDIR/motioneye/etc:/etc/motioneye
-      - $DOCKERDIR/motioneye/var:/var/lib/motioneye
+      - /media/ssd/motioneye:/var/lib/motioneye
     environment:
       PUID: $PUID
       PGID: $PGID
@@ -497,30 +473,8 @@ services:
       - "traefik.http.services.motioneye-svc.loadbalancer.server.port=8765"
 
   ############################# DATABASE
-
-  # MariaDB - MySQL Database
-  mariadb:
-    container_name: mariadb
-    image: linuxserver/mariadb:latest
-    restart: always
-    networks:
-      # - default
-      t2_proxy:
-        ipv4_address: 192.168.90.250
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - "3306:3306"
-    volumes:
-      - $DOCKERDIR/mariadb/data:/config
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
-    secrets:
-      - mysql_root_password
+  # Mariadb moved to NAS
+  # Influxdb moved to NAS
 
   # phpMyAdmin - Database management
   # Create a new user with admin privileges. Cannot login as MySQL root for some reason.
@@ -537,10 +491,10 @@ services:
     # volumes:
     #   - $DOCKERDIR/phpmyadmin:/etc/phpmyadmin
     environment:
-      # - PMA_HOST=$DB_HOST
+      - PMA_HOST=$DB_HOST
       - PMA_PORT=$DB_PORT
-      - PMA_ARBITRARY=1
-      - MYSQL_ROOT_PASSWORD=/run/secrets/mysql_root_password
+      #- PMA_ARBITRARY=1
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
     secrets:
       - mysql_root_password
     labels:
@@ -554,53 +508,10 @@ services:
       - "traefik.http.routers.phpmyadmin-rtr.service=phpmyadmin-svc"
       - "traefik.http.services.phpmyadmin-svc.loadbalancer.server.port=80"
 
-  # InfluxDB - Database for sensor data
-  # Create influxdb.conf
-  influxdb:
-    image: influxdb
-    container_name: influxdb
-    restart: always
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - "$INFLUXDB_PORT:8086"
-    volumes:
-      # - $DOCKERDIR/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
-      - $DOCKERDIR/influxdb/db:/var/lib/influxdb
-  #    command: -config /etc/influxdb/influxdb.conf
-
-  # Postgres - Database
-  postgres:
-    image: postgres
-    container_name: postgres
-    restart: always
-    security_opt:
-      - no-new-privileges:true
-    volumes:
-      - $DOCKERDIR/postgres:/var/lib/postgresql/data
-    environment:
-      POSTGRES_PASSWORD: $STATPING_DB_PASS
-      POSTGRES_USER: $STATPING_DB_USER
-      POSTGRES_DB: $STATPING_DB
-
   # Redis - Key-value Store
-  redis:
-    container_name: redis
-    image: redis:latest
-    restart: unless-stopped
-    entrypoint: redis-server --appendonly yes
-    networks:
-      - t2_proxy
-    ports:
-      - "6379:6379"
-    security_opt:
-      - no-new-privileges:true
-    volumes:
-      - $DOCKERDIR/redis/data:/data
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
+  # Moved to NAS
 
-  ## Redis Commander - Redis Management Tool
+  # Redis Commander - Redis Management Tool
   rediscommander:
     container_name: rediscommander
     image: rediscommander/redis-commander:latest
@@ -612,7 +523,7 @@ services:
     security_opt:
       - no-new-privileges:true
     environment:
-      - REDIS_HOST=redis
+      - REDIS_HOST=$NAS_IP
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -676,9 +587,7 @@ services:
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
-      VNC_PASSWORD_FILE: /run/secrets/jdown_vnc_password
-    secrets:
-      - jdown_vnc_password
+      VNC_PASSWORD: $JDOWN_VNC_PASSWD
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -718,8 +627,8 @@ services:
       - $USERDIR/Downloads:/downloads
     environment:
       OPENVPN_PROVIDER: IPVANISH
-      OPENVPN_USERNAME_FILE: /run/secrets/ipvanish_username
-      OPENVPN_PASSWORD_FILE: /run/secrets/ipvanish_password
+      OPENVPN_USERNAME: $IPVANISH_USERNAME
+      OPENVPN_PASSWORD: $IPVANISH_PASSWORD
       OPENVPN_CONFIG: "ipvanish-CH-Zurich-zrh-c07"
       OPENVPN_OPTS: --inactive 3600 --ping 10 --ping-exit 60
       LOCAL_NETWORK: "$LOCAL_NETWORK"
@@ -729,8 +638,8 @@ services:
       UMASK_SET: 2
       TRANSMISSION_RPC_AUTHENTICATION_REQUIRED: "true"
       TRANSMISSION_RPC_HOST_WHITELIST: "127.0.0.1,$SERVER_IP"
-      TRANSMISSION_RPC_PASSWORD_FILE: /run/secrets/transmission_rpc_password
-      TRANSMISSION_RPC_USERNAME_FILE: /run/secrets/transmission_rpc_username
+      TRANSMISSION_RPC_PASSWORD: $TRANSMISSION_RPC_PASSWORD
+      TRANSMISSION_RPC_USERNAME: $TRANSMISSION_RPC_USERNAME
       TRANSMISSION_UMASK: 002
       TRANSMISSION_RATIO_LIMIT: 0.01
       TRANSMISSION_RATIO_LIMIT_ENABLED: "true"
@@ -746,11 +655,6 @@ services:
       TRANSMISSION_WATCH_DIR: /downloads
       TRANSMISSION_WATCH_DIR_ENABLED: "true"
       TRANSMISSION_DOWNLOAD_DIR: /downloads/completed
-    secrets:
-      - ipvanish_username
-      - ipvanish_password
-      - transmission_rpc_username
-      - transmission_rpc_password
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1437,9 +1341,7 @@ services:
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
       AUTOMATED_CONVERSION_KEEP_SOURCE: 1
-      VNC_PASSWORD_FILE: /run/secrets/handbrake_vnc_password
-    secrets:
-      - handbrake_vnc_password
+      VNC_PASSWORD: $HANDBRAKE_VNC_PASSWD
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1474,9 +1376,7 @@ services:
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
-      VNC_PASSWORD_FILE: /run/secrets/mkvtoolnix_vnc_password
-    secrets:
-      - mkvtoolnix_vnc_password
+      VNC_PASSWORD: $MKVTOOLNIX_VNC_PASSWD
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1513,9 +1413,7 @@ services:
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
-      VNC_PASSWORD_FILE: /run/secrets/makemkv_vnc_password
-    secrets:
-      - makemkv_vnc_password
+      VNC_PASSWORD: $MAKEMKV_VNC_PASSWD
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1553,9 +1451,7 @@ services:
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
-      VNC_PASSWD_FILE: /run/secrets/filebot_vnc_password
-    secrets:
-      - filebot_vnc_password
+      VNC_PASSWD: $FILEBOT_VNC_PASSWD
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1595,9 +1491,7 @@ services:
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
-      VNC_PASSWD_FILE: /run/secrets/firefox_vnc_password
-    secrets:
-      - firefox_vnc_password
+      VNC_PASSWD: $FIREFOX_VNC_PASSWD
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1688,9 +1582,7 @@ services:
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
-      VNC_PASSWORD_FILE: /run/secrets/qdirstat_vnc_password
-    secrets:
-      - qdirstat_vnc_password
+      VNC_PASSWORD: $QDIRSTAT_VNC_PASSWD
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1718,10 +1610,11 @@ services:
       GUACD_HOSTNAME: guacd
       MYSQL_HOSTNAME: $DB_HOST
       MYSQL_PORT: $DB_PORT
-      MYSQL_DATABASE: guacamole
+      MYSQL_DATABASE_FILE: /run/secrets/guac_db_name
       MYSQL_USER_FILE: /run/secrets/guac_mysql_user
       MYSQL_PASSWORD_FILE: /run/secrets/guac_mysql_password
     secrets:
+      - guac_db_name
       - guac_mysql_user
       - guac_mysql_password
     labels:
@@ -1815,35 +1708,6 @@ services:
       - "traefik.http.routers.statping-rtr.service=statping-svc"
       - "traefik.http.services.statping-svc.loadbalancer.server.port=8080"
 
-  # SmokePing - Network latency Monitoring
-  smokeping:
-    image: linuxserver/smokeping:latest
-    container_name: smokeping
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
-    # ports:
-    #  - "$SMOKEPING_PORT:80"
-    volumes:
-      - $DOCKERDIR/smokeping/config:/config
-      - $DOCKERDIR/smokeping/data:/data
-    environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.smokeping-rtr.entrypoints=https"
-      - "traefik.http.routers.smokeping-rtr.rule=HostHeader(`smokeping.$DOMAINNAME`)"
-      ## Middlewares
-      - "traefik.http.routers.smokeping-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.smokeping-rtr.service=smokeping-svc"
-      - "traefik.http.services.smokeping-svc.loadbalancer.server.port=80"
-
   # VSCode - VSCode Editing
   vscode:
     image: codercom/code-server:latest
@@ -1856,7 +1720,8 @@ services:
     volumes:
       - $USERDIR/server:/home/coder/server
       - $DOCKERDIR:/home/coder/docker
-      - $DOCKERDIR/hassio/homeassistant:/home/coder/homeassistant
+      - $DOCKERDIR/hassio/homeassistant:/home/coder/hassio
+      - $DOCKERDIR/homeassistant:/home/coder/homeassistant
       - $USERDIR/Downloads:/home/coder/Downloads
       - $DOCKERDIR/vscode:/home/coder
       - /media/sdocker:/home/coder/sdocker
@@ -1865,8 +1730,6 @@ services:
       # Run as root first, create the directories, then change permissions to user:docker and 775. Disable run as root below.
       user: $PUID:$PGID
       # user: "0"
-    secrets: # NOT WORKING
-      - vscode_password
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -1892,7 +1755,7 @@ services:
     #  - socket-proxy
     volumes:
       # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
-      - $DOCKERDIR/watchtower/config.json:/root/.docker/config.json:ro
+      - $DOCKERDIR/ouroboros/config.json:/root/.docker/config.json:ro
     environment:
       TZ: $TZ
       INTERVAL: 86400
@@ -1925,13 +1788,12 @@ services:
       CLEAN_UP_VOLUMES: 1
       TZ: $TZ
       DOCKER_HOST: tcp://socket-proxy:2375
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true" # Add this to services to enable updates
 
   # Traefik Certs Dumper - Extract LetsEncrypt Certificates - Traefik2 Compatible
   certdumper:
     container_name: traefik_certdumper
     image: humenius/traefik-certs-dumper:latest
+    network_mode: none
     security_opt:
       - no-new-privileges:true
     # command: --restart-containers container1,container2,container3
@@ -1943,21 +1805,7 @@ services:
       DOMAIN: $DOMAINNAME
 
   # Cloudflare DDNS - Dynamic DNS Updater
-  cf-ddns:
-    container_name: cf-ddns
-    image: oznu/cloudflare-ddns:latest
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    environment:
-      API_KEY: $CLOUDFLARE_API_TOKEN
-      ZONE: $DOMAINNAME
-      PROXIED: "true"
-      RRTYPE: A
-      DELETE_ON_STOP: "false"
-      DNS_SERVER: 1.1.1.1
-    secrets: # not working
-      - cloudflare_api_token
+  # Moved to NAS
 
   # Cloudflare-Companion - Automatic CNAME DNS Creation
   cf-companion:
@@ -1976,8 +1824,8 @@ services:
       - TIMEZONE=$TZ
       - TRAEFIK_VERSION=2
       - CF_EMAIL=$CLOUDFLARE_EMAIL # Same as traefik
-      # - CF_TOKEN=$CLOUDFLARE_API_TOKEN # Scoped api token not working. Error 10000.
-      - CF_TOKEN=$CLOUDFLARE_API_KEY # Same as traefik
+      - CF_TOKEN=$CLOUDFLARE_API_TOKEN # Scoped api token not working. Error 10000.
+      # - CF_TOKEN=$CLOUDFLARE_API_KEY # Same as traefik
       - TARGET_DOMAIN=$DOMAINNAME
       - DOMAIN1=$DOMAINNAME
       - DOMAIN1_ZONE_ID=$CLOUDFLARE_ZONEID # Copy from Cloudflare Overview page
@@ -1990,11 +1838,4 @@ services:
     labels:
       # Add hosts specified in rules here to force cf-companion to create the CNAMEs
       # Since cf-companion creates CNAMEs based on host rules, this a workaround for non-docker/external apps
-      - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`hassio.$DOMAINNAME`)"
-      - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`pihole.$DOMAINNAME`)"
-      - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`shell.$DOMAINNAME`)"
-      - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`syno.$DOMAINNAME`)"
-      - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`ufi.$DOMAINNAME`)"
-      - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`webmin.$DOMAINNAME`)"
-      - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`synplex.$DOMAINNAME`)"
-      - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`pwt.$DOMAINNAME`)"
+      - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`pihole.$DOMAINNAME`) || HostHeader(`shell.$DOMAINNAME`) || HostHeader(`syno.$DOMAINNAME`) || HostHeader(`webmin.$DOMAINNAME`) || HostHeader(`synplex.$DOMAINNAME`) || HostHeader(`pwt.$DOMAINNAME`)"

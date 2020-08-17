@@ -1,0 +1,282 @@
+version: "3.7"
+
+######### IMPORTANT #############
+# You will find only a few apps (only those that I run on Synology NAS) in this Docker Compose file.
+# But you can copy-paste almost any app from the other Docker Compose files in this repo to add the app to your Synology Docker stack.
+
+########################### NETWORKS
+# Create socket_proxy network
+# docker network create socket_proxy
+# Alternatively, you can specify the gateway and subnet to use
+# docker network create --gateway 192.168.253.1 --subnet 192.168.253.0/24 socket_proxy
+# Subnet range 192.168.0.0/16 covers 192.168.0.0 to 192.168.255.255
+
+networks:
+  default:
+    driver: bridge
+  socket_proxy:
+    external:
+      name: socket_proxy
+
+########################### SECRETS
+secrets:
+  mysql_root_password:
+    file: $SECRETSDIR/mysql_root_password
+  plex_claim:
+    file: $SECRETSDIR/plex_claim
+
+########################### SERVICES
+services:
+  # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
+  socket-proxy:
+    container_name: socket-proxy
+    image: tecnativa/docker-socket-proxy
+    restart: always
+    networks:
+      socket_proxy:
+        ipv4_address: 192.168.253.254 # You can specify a static IP
+    privileged: true
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      - LOG_LEVEL=info # debug,info,notice,warning,err,crit,alert,emerg
+      ## Variables match the URL prefix (i.e. AUTH blocks access to /auth/* parts of the API, etc.).
+      # 0 to revoke access.
+      # 1 to grant access.
+      ## Granted by Default
+      - EVENTS=1
+      - PING=1
+      - VERSION=1
+      ## Revoked by Default
+      # Security critical
+      - AUTH=0
+      - SECRETS=0
+      - POST=1 # Ouroboros
+      # Not always needed
+      - BUILD=0
+      - COMMIT=0
+      - CONFIGS=0
+      - CONTAINERS=1 # Traefik, portainer, etc.
+      - DISTRIBUTION=0
+      - EXEC=0
+      - IMAGES=1 # Portainer
+      - INFO=1 # Portainer
+      - NETWORKS=1 # Portainer
+      - NODES=0
+      - PLUGINS=0
+      - SERVICES=1 # Portainer
+      - SESSION=0
+      - SWARM=0
+      - SYSTEM=0
+      - TASKS=1 # Portaienr
+      - VOLUMES=1 # Portainer
+
+  # Portainer - WebUI for Containers
+  portainer:
+    container_name: portainer
+    image: portainer/portainer:latest
+    restart: unless-stopped
+    # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
+    # command: -H tcp://socket-proxy:2375 # appears to not work. Workaround was to create a new socket-proxy:2375 endpoint on portainer settings
+    networks:
+      - socket_proxy
+    ports:
+      - "$PORTAINER_PORT:9000"
+    depends_on:
+      - socket-proxy
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # # Use Docker Socket Proxy instead for improved security
+      - $DOCKERDIR/portainer/data:/data # Change to local directory if you want to save/transfer config locally
+    environment:
+      - TZ=$TZ
+
+  ############################# SMART HOME
+
+  # Mosquitto - MQTT Broker
+  # Create mosquitto.conf, passwd, mosquitto.log files  and set permissions to 775 user:docker
+  # dexec mosquitto /bin/sh -> mosquitto_passwd -b /mosquitto/config/passwd username passwd
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "$MOSQUITTO_HTTP_PORT:1883" #http
+      - "9001:9001" #websockets
+      # - "$MOSQUITTO_HTTPS_PORT:8883" #https
+    volumes:
+      - $DOCKERDIR/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - $DOCKERDIR/mosquitto/config/passwd:/mosquitto/config/passwd
+      - $DOCKERDIR/shared:/shared
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+
+  ############################# DATABASE
+
+  # MariaDB - MySQL Database
+  # After starting container for first time dexec and mysqladmin -u root password <password>
+  mariadb:
+    container_name: mariadb
+    image: linuxserver/mariadb:latest
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "$MARIADB_PORT:3306"
+    volumes:
+      - $DOCKERDIR/mariadb/data:/config
+      - /etc/TZ:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password # Not taking this pw during initialization
+    secrets:
+      - mysql_root_password
+
+  # InfluxDB - Database for sensor data
+  # Create influxdb.conf
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "$INFLUXDB_PORT:8086"
+    volumes:
+      # - $DOCKERDIR/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
+      - $DOCKERDIR/influxdb/db:/var/lib/influxdb
+  #    command: -config /etc/influxdb/influxdb.conf
+
+  # Redis - Key-value Store
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: unless-stopped
+    entrypoint: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "$REDIS_PORT:6379"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - $DOCKERDIR/redis/data:/data
+      - /etc/TZ:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+
+  ############################# MEDIA
+
+  # Plex - Media Server
+  plexms:
+    image: plexinc/pms-docker:public
+    container_name: plexms
+    restart: unless-stopped
+    network_mode: "host"
+    # privileged: true
+    devices:
+      - /dev/dri:/dev/dri # for hardware transcoding
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - $DOCKERDIR/plexms:/config
+      - $MEDIADIR:/media
+      - /dev/shm:/transcode
+    environment:
+      TZ: $TZ
+      HOSTNAME: "synPlex"
+      PLEX_CLAIM_FILE: /run/secrets/plex_claim
+      PLEX_UID: $PUID
+      PLEX_GID: $PGID
+      ADVERTISE_IP: http://$SERVER_IP:32400/
+    secrets:
+      - plex_claim
+
+  ############################# UTILITIES
+
+  # Glances - System Information
+  glances:
+    image: nicolargo/glances:latest
+    container_name: glances
+    restart: unless-stopped
+    privileged: true
+    # network_mode: host
+    networks:
+      - socket_proxy
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "$GLANCES_PORT:61208"
+    pid: host
+    volumes:
+      - $DOCKERDIR/glances/glances.conf:/glances/conf/glances.conf # Use this if you want to add a glances.conf file
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
+    environment:
+      # GLANCES_OPT: "-C /glances/conf/glances.conf --quiet --export influxdb"
+      GLANCES_OPT: "-w"
+      DOCKER_HOST: tcp://socket-proxy:2375
+
+  ############################# MAINTENANCE
+
+  # Ouroboros - Automatic Docker Container Updates
+  ouroboros:
+    image: pyouroboros/ouroboros:latest
+    container_name: ouroboros
+    restart: unless-stopped
+    networks:
+      - default
+      - socket_proxy
+    volumes:
+      # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+      - $DOCKERDIR/ouroboros/config.json:/root/.docker/config.json:ro
+    environment:
+      TZ: $TZ
+      INTERVAL: 86400
+      LOG_LEVEL: info
+      SELF_UPDATE: "true"
+      CLEANUP: "true"
+      #IGNORE: influxdb plexms
+      NOTIFIERS: "tgram://$TGRAM_BOT_TOKEN/$TGRAM_CHAT_ID/"
+      DOCKER_SOCKETS: tcp://socket-proxy:2375 # POST to be enabled on Socket Proxy
+
+  # Docker-GC - Automatic Docker Garbage Collection
+  # Create docker-gc-exclude file
+  dockergc:
+    image: clockworksoul/docker-gc-cron:latest
+    container_name: docker-gc
+    restart: unless-stopped
+    networks:
+      - socket_proxy
+    volumes:
+      # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+      - $DOCKERDIR/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude
+    environment:
+      CRON: 0 0 0 * * ? # Everyday at midnight. Previously 0 0 * * *
+      FORCE_IMAGE_REMOVAL: 1
+      FORCE_CONTAINER_REMOVAL: 0
+      GRACE_PERIOD_SECONDS: 604800
+      DRY_RUN: 0
+      CLEAN_UP_VOLUMES: 1
+      TZ: $TZ
+      DOCKER_HOST: tcp://socket-proxy:2375
+
+  # Cloudflare DDNS - Dynamic DNS Updater
+  cf-ddns:
+    container_name: cf-ddns
+    image: oznu/cloudflare-ddns:latest
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      API_KEY: $CLOUDFLARE_API_TOKEN
+      ZONE: $DOMAINNAME
+      PROXIED: "true"
+      RRTYPE: A
+      DELETE_ON_STOP: "false"
+      DNS_SERVER: 1.1.1.1
+    #secrets: # not working
+    #  - cloudflare_api_token
