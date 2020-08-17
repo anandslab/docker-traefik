@@ -4,7 +4,7 @@
 
 ## Planned:
 
-- Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, smtp-to-telegram, fail2ban, ofelia
+- Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, fail2ban, ofelia
 - improvements from https://github.com/jamescurtin/traefik-proxy
 - implement secrets and remove variables from .env
 - Replace Ouroboros (stopped development + requires POST permissions on Socket Proxy) with Watchtower
@@ -24,6 +24,7 @@
 - Updated Authelia configuration.yml.example
 - Obsoleted ZoneMinder. Moved to MotionEye
 - Added Traefik Custom Error Pages
+- Added SMTP to Telegram
 
 ## July 22, 2020
 

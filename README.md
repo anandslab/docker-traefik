@@ -135,6 +135,7 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 - Monitorr - Webfront to display the status of any webapp or service (OBSOLETE)
 - Cloud Commander - Web File Manager (OBSOLETE)
 - Cloud9 - Cloud IDE (OBSOLETE)
+- SMTP To Telegram - Sends all incoming Email messages to Telegram 
 
 ### MAINTENANCE
 
