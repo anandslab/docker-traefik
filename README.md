@@ -48,6 +48,7 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 ### FRONTENDS
 
 - Traefik - Reverse Proxy
+- Traefik Custom Error Pages
 - OAuth - Forward Authentication (Google OAuth 2.0)
 - Authelia - Private Forward Authentication (Default)
 - Portainer - Container Management

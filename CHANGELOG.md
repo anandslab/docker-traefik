@@ -5,10 +5,25 @@
 ## Planned:
 
 - Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, smtp-to-telegram, fail2ban, ofelia
-- traefik custom error pages https://github.com/guillaumebriday/traefik-custom-error-pages
 - improvements from https://github.com/jamescurtin/traefik-proxy
 - implement secrets and remove variables from .env
 - Replace Ouroboros (stopped development + requires POST permissions on Socket Proxy) with Watchtower
+
+## August 17, 2020
+
+- Moved some of the apps to Synology docker stack (dockerc-compose-t2-synology.yml) - Portainer, MariaDB, InfluxDB, Mosquitto MQTT Broker, Cloudflare DDNS, Redis. Add my NUC stack as a separate endpoint NAS Portainer.
+- Implemented Tecnativa Socket Proxy - Traefik, Portainer, Glances, Dozzle, Ouroboros, Docker-GC, Cloudflare Companion
+- Moved from Home Assistant Supervised to Home Assistant Core
+- Fixed multihost CNAME creation in Cloudflare Companion
+- Fully rolled out Docker secrets - Traefik, Authelia, Plex, Guacamole, OAuth, MariaDB, etc.. There are still some images that do not support secrets.
+- Renamed docker-compose-synology-t2.yml to docker-compose-t2-synology.yml
+- Obsoleted SmokePing
+- Obsoleted HA-DockerMon
+- Obsoleted UniFi Controller
+- Obsoleted Postgres
+- Updated Authelia configuration.yml.example
+- Obsoleted ZoneMinder. Moved to MotionEye
+- Added Traefik Custom Error Pages
 
 ## July 22, 2020
 
