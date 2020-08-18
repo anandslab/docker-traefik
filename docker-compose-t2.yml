@@ -1531,7 +1531,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.glances-rtr.entrypoints=https"
-      - "traefik.http.routers.glances-rtr.rule=HostHeader(`glances.$DOMAINNAME`)"
+      - "traefik.http.routers.glances-rtr.rule=HostHeader(`nglances.$DOMAINNAME`)"
       ## Middlewares
       - "traefik.http.routers.glances-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
@@ -1838,4 +1838,4 @@ services:
     labels:
       # Add hosts specified in rules here to force cf-companion to create the CNAMEs
       # Since cf-companion creates CNAMEs based on host rules, this a workaround for non-docker/external apps
-      - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`pihole.$DOMAINNAME`) || HostHeader(`shell.$DOMAINNAME`) || HostHeader(`syno.$DOMAINNAME`) || HostHeader(`webmin.$DOMAINNAME`) || HostHeader(`synplex.$DOMAINNAME`) || HostHeader(`pwt.$DOMAINNAME`)"
+      - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`portainer.$DOMAINNAME`) || `synglances.$DOMAINNAME`) || `pihole.$DOMAINNAME`) || HostHeader(`shell.$DOMAINNAME`) || HostHeader(`syno.$DOMAINNAME`) || HostHeader(`webmin.$DOMAINNAME`) || HostHeader(`synplex.$DOMAINNAME`) || HostHeader(`pwt.$DOMAINNAME`)"
