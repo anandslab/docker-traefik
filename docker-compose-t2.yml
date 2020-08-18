@@ -162,6 +162,28 @@ services:
       ## Middlewares
       - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file"
 
+  # Traefik - Custom Error Pages
+  traefik-error-pages:
+    container_name: traefik-error-pages
+    image: guillaumebriday/traefik-custom-error-pages
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.traefik-error-pages-rtr.entrypoints=https"
+      - "traefik.http.routers.traefik-error-pages-rtr.rule=HostRegexp(`{host:.+}`)"
+      - "traefik.http.routers.traefik-error-pages-rtr.priority=1"
+      # Middlewares
+      - "traefik.http.routers.traefik-error-pages-rtr.middlewares=traefik-error-pages"
+      - "traefik.http.middlewares.traefik-error-pages.errors.service=traefik-error-pages-svc"
+      - "traefik.http.middlewares.traefik-error-pages.errors.status=401,403,404,429,500,502,503"
+      - "traefik.http.middlewares.traefik-error-pages.errors.query=/{status}.html"
+      # HTTP Services
+      - "traefik.http.routers.traefik-error-pages-rtr.service=traefik-error-pages-svc"
+      - "traefik.http.services.traefik-error-pages-svc.loadbalancer.server.port=80"
+
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
     container_name: socket-proxy
@@ -1740,6 +1762,18 @@ services:
       ## HTTP Services
       - "traefik.http.routers.vscode-rtr.service=vscode-svc"
       - "traefik.http.services.vscode-svc.loadbalancer.server.port=8080"
+
+  smtp_to_telegram:
+    image: kostyaesmukov/smtp_to_telegram
+    container_name: smtp_to_telegram
+    restart: always
+    networks:
+      - default
+    environment:
+      TZ: ${TZ}
+      ST_TELEGRAM_CHAT_IDS: ${TGRAM_CHAT_ID}
+      ST_TELEGRAM_BOT_TOKEN: ${TGRAM_BOT_TOKEN}
+      ST_TELEGRAM_MESSAGE_TEMPLATE: "{subject}\\n{body}"
 
   ############################# MAINTENANCE
 
