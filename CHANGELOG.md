@@ -7,7 +7,9 @@
 - Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, fail2ban, ofelia
 - improvements from https://github.com/jamescurtin/traefik-proxy
 - implement secrets and remove variables from .env
-- Replace Ouroboros (stopped development + requires POST permissions on Socket Proxy) with Watchtower
+
+## August 20, 2020
+- Replaced Ouroboros with Watchtower
 
 ## August 17, 2020
 
