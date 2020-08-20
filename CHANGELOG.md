@@ -10,6 +10,7 @@
 
 ## August 20, 2020
 - Replaced Ouroboros with Watchtower
+- Changed Docker-Socket-Proxy from tecnativa to fluencelabs image - More granualirity on permissions
 
 ## August 17, 2020
 

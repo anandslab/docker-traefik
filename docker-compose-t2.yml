@@ -189,7 +189,7 @@ services:
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
     container_name: socket-proxy
-    image: tecnativa/docker-socket-proxy
+    image: fluencelabs/docker-socket-proxy
     restart: always
     networks:
       # t2_proxy:
@@ -214,7 +214,8 @@ services:
       - AUTH=0
       - SECRETS=0
       - POST=1 # Watchtower
-      # Not always needed
+      - DELETE=1 # Watchtower
+       # GET Optons
       - BUILD=0
       - COMMIT=0
       - CONFIGS=0
@@ -232,6 +233,13 @@ services:
       - SYSTEM=0
       - TASKS=1 # Portaienr
       - VOLUMES=1 # Portainer
+      # POST Options
+      - CONTAINERS_CREATE=1   # WatchTower
+      - CONTAINERS_START=1    # WatchTower
+      - CONTAINERS_UPDATE=1   # WatchTower
+      # DELETE Options
+      - CONTAINERS_DELETE=1   # WatchTower
+      - IMAGES_DELETE=1       # WatchTower
 
   # Google OAuth - Single Sign On using OAuth 2.0
   # https://hub.docker.com/r/thomseddon/traefik-forward-auth

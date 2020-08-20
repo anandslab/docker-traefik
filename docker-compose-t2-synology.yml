@@ -30,7 +30,7 @@ services:
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
     container_name: socket-proxy
-    image: tecnativa/docker-socket-proxy
+    image: fluencelabs/docker-socket-proxy
     restart: always
     networks:
       socket_proxy:
@@ -51,17 +51,18 @@ services:
       # Security critical
       - AUTH=0
       - SECRETS=0
-      - POST=1 # Ouroboros
-      # Not always needed
+      - POST=1 # Watchtower
+      - DELETE=1 # Watchtower
+       # GET Optons
       - BUILD=0
       - COMMIT=0
       - CONFIGS=0
       - CONTAINERS=1 # Traefik, portainer, etc.
       - DISTRIBUTION=0
       - EXEC=0
-      - IMAGES=1 # Portainer
+      - IMAGES=1 # Portainer, Watchtower
       - INFO=1 # Portainer
-      - NETWORKS=1 # Portainer
+      - NETWORKS=1 # Portainer, Watchtower
       - NODES=0
       - PLUGINS=0
       - SERVICES=1 # Portainer
@@ -70,6 +71,14 @@ services:
       - SYSTEM=0
       - TASKS=1 # Portaienr
       - VOLUMES=1 # Portainer
+      # POST Options
+      - CONTAINERS_CREATE=1   # WatchTower
+      - CONTAINERS_START=1    # WatchTower
+      - CONTAINERS_UPDATE=1   # WatchTower
+      # DELETE Options
+      - CONTAINERS_DELETE=1   # WatchTower
+      - IMAGES_DELETE=1       # WatchTower
+
 
   # Portainer - WebUI for Containers
   portainer:
@@ -222,26 +231,28 @@ services:
 
   ############################# MAINTENANCE
 
-  # Ouroboros - Automatic Docker Container Updates
-  ouroboros:
-    image: pyouroboros/ouroboros:latest
-    container_name: ouroboros
+   # WatchTower - Automatic Docker Container Updates
+   watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
     restart: unless-stopped
     networks:
       - default
       - socket_proxy
-    volumes:
-      # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
-      - $DOCKERDIR/ouroboros/config.json:/root/.docker/config.json:ro
+    depends_on:
+      - socket-proxy
     environment:
-      TZ: $TZ
-      INTERVAL: 86400
-      LOG_LEVEL: info
-      SELF_UPDATE: "true"
-      CLEANUP: "true"
-      #IGNORE: influxdb plexms
-      NOTIFIERS: "tgram://$TGRAM_BOT_TOKEN/$TGRAM_CHAT_ID/"
-      DOCKER_SOCKETS: tcp://socket-proxy:2375 # POST to be enabled on Socket Proxy
+      TZ: ${TZ}
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_REMOVE_VOLUMES: "true"
+      WATCHTOWER_INCLUDE_STOPPED: "true"
+      WATCHTOWER_NO_STARTUP_MESSAGE: "true"
+      WATCHTOWER_SCHEDULE: "0 30 12 * * *" # Everyday at 12:30
+      WATCHTOWER_NOTIFICATIONS: shoutrrr
+      WATCHTOWER_NOTIFICATION_URL: "telegram://${TGRAM_BOT_TOKEN}@telegram?channels=${TGRAM_CHAT_ID}"
+      WATCHTOWER_NOTIFICATIONS_LEVEL: info
+      DOCKER_HOST: tcp://socket-proxy:2375
+      DOCKER_API_VERSION: "1.40"
 
   # Docker-GC - Automatic Docker Garbage Collection
   # Create docker-gc-exclude file
