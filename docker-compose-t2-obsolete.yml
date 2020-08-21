@@ -254,37 +254,6 @@ services:
       - PGID=$PGID
       - TZ=$TZ
 
-  # Watchtower - Automatic Docker Container Updates
-  # creating config.json https://github.com/containrrr/watchtower/issues/99
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    restart: unless-stopped
-    networks:
-      - socket_proxy
-      - t2_proxy
-    # depends_on:
-    #  - socket-proxy
-    volumes:
-      # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
-      - $DOCKERDIR/watchtower/config.json:/config.json # Only needed for private registries
-    environment:
-      - TZ=$TZ
-      # - WATCHTOWER_CLEANUP=true # Cleanup old images
-      - DOCKER_HOST=tcp://socket-proxy:2375
-      # - WATCHTOWER_INCLUDE_STOPPED=false
-      - WATCHTOWER_NOTIFICATIONS_LEVEL=info # panic, fatal, error, warn, info (default), debug or trace
-      # - WATCHTOWER_POLL_INTERVAL=60 # 1 week in seconds 604800
-      # - WATCHTOWER_SCHEDULE=0 0 1 * * SUN # Every Sunday at 1 am
-      - WATCHTOWER_RUN_ONCE=true
-      - WATCHTOWER_MONITOR_ONLY=true
-      # - WATCHTOWER_LABEL_ENABLE=true
-      - WATCHTOWER_DEBUG=true
-      # - WATCHTOWER_NOTIFICATIONS=shoutrrr
-      # - WATCHTOWER_NOTIFICATION_URL="telegram://$TGRAM_BOT_TOKEN@$TGRAM_CHAT_ID"
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true" # Add this to services to enable updates
-
   # SmokePing - Network latency Monitoring
   smokeping:
     image: linuxserver/smokeping:latest
@@ -381,3 +350,73 @@ services:
       ## HTTP Services
       - "traefik.http.routers.unifi-rtr.service=unifi-svc"
       - "traefik.http.services.unifi-svc.loadbalancer.server.port=8443"
+
+  # Ouroboros - Automatic Docker Container Updates
+  ouroboros:
+    image: pyouroboros/ouroboros:latest
+    container_name: ouroboros
+    restart: unless-stopped
+    networks:
+      - default
+      - socket_proxy
+    # depends_on:
+    #  - socket-proxy
+    volumes:
+      # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+      - $DOCKERDIR/ouroboros/config.json:/root/.docker/config.json:ro
+    environment:
+      TZ: $TZ
+      INTERVAL: 86400
+      LOG_LEVEL: info
+      SELF_UPDATE: "true"
+      CLEANUP: "true"
+      IGNORE: traefik influxdb hassio_dns homeassistant hassio_supervisor addon_core_check_config addon_62c7908d_autobackup plexms
+      NOTIFIERS: "tgram://$TGRAM_BOT_TOKEN/$TGRAM_CHAT_ID/"
+      DOCKER_SOCKETS: tcp://socket-proxy:2375 # POST to be enabled on Socket Proxy
+
+  # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
+  socket-proxy:
+    container_name: socket-proxy
+    image: tecnativa/docker-socket-proxy
+    restart: always
+    networks:
+      # t2_proxy:
+      socket_proxy:
+        ipv4_address: 192.168.91.254 # You can specify a static IP
+    privileged: true
+    ports:
+      - "2375:2375"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      - LOG_LEVEL=info # debug,info,notice,warning,err,crit,alert,emerg
+      ## Variables match the URL prefix (i.e. AUTH blocks access to /auth/* parts of the API, etc.).
+      # 0 to revoke access.
+      # 1 to grant access.
+      ## Granted by Default
+      - EVENTS=1
+      - PING=1
+      - VERSION=1
+      ## Revoked by Default
+      # Security critical
+      - AUTH=0
+      - SECRETS=0
+      - POST=1 # Ouroboros
+      # Not always needed
+      - BUILD=0
+      - COMMIT=0
+      - CONFIGS=0
+      - CONTAINERS=1 # Traefik, portainer, etc.
+      - DISTRIBUTION=0
+      - EXEC=0
+      - IMAGES=1 # Portainer
+      - INFO=1 # Portainer
+      - NETWORKS=1 # Portainer
+      - NODES=0
+      - PLUGINS=0
+      - SERVICES=1 # Portainer
+      - SESSION=0
+      - SWARM=0
+      - SYSTEM=0
+      - TASKS=1 # Portaienr
+      - VOLUMES=1 # Portainer

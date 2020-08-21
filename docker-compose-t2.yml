@@ -161,8 +161,6 @@ services:
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## Middlewares
       - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file"
-      ## Exclude From Watchtower
-      - "com.centurylinklabs.watchtower.enable=false"
 
   # Traefik - Custom Error Pages
   traefik-error-pages:
@@ -215,7 +213,7 @@ services:
       - SECRETS=0
       - POST=1 # Watchtower
       - DELETE=1 # Watchtower
-       # GET Optons
+        # GET Optons
       - BUILD=0
       - COMMIT=0
       - CONFIGS=0
@@ -234,12 +232,12 @@ services:
       - TASKS=1 # Portaienr
       - VOLUMES=1 # Portainer
       # POST Options
-      - CONTAINERS_CREATE=1   # WatchTower
-      - CONTAINERS_START=1    # WatchTower
-      - CONTAINERS_UPDATE=1   # WatchTower
+      - CONTAINERS_CREATE=1 # WatchTower
+      - CONTAINERS_START=1 # WatchTower
+      - CONTAINERS_UPDATE=1 # WatchTower
       # DELETE Options
-      - CONTAINERS_DELETE=1   # WatchTower
-      - IMAGES_DELETE=1       # WatchTower
+      - CONTAINERS_DELETE=1 # WatchTower
+      - IMAGES_DELETE=1 # WatchTower
 
   # Google OAuth - Single Sign On using OAuth 2.0
   # https://hub.docker.com/r/thomseddon/traefik-forward-auth
@@ -428,12 +426,12 @@ services:
       - /dev/ttyACM0:/dev/ttyACM0
     privileged: true
     volumes:
-      - ${USERDIR}/docker/homeassistant:/config
+      - $USERDIR/docker/homeassistant:/config
       - /etc/localtime:/etc/localtime:ro
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
     labels:
       ## Exclude From Watchtower
       - "com.centurylinklabs.watchtower.enable=false"
@@ -457,14 +455,14 @@ services:
         mode: host
     privileged: true
     volumes:
-      - ${USERDIR}/docker/hassio/homeassistant:/config
+      - $USERDIR/docker/hassio/homeassistant:/config
       - /etc/localtime:/etc/localtime:ro
-      - ${USERDIR}/docker/shared:/shared
-      - ${USERDIR}/docker/open-zwave:/open-zwave
+      - $USERDIR/docker/shared:/shared
+      - $USERDIR/docker/open-zwave:/open-zwave
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
     labels:
       ## Exclude From Watchtower
       - "com.centurylinklabs.watchtower.enable=false"
@@ -1114,8 +1112,6 @@ services:
       ## HTTP Services
       - "traefik.http.routers.plexms-rtr.service=plexms-svc"
       - "traefik.http.services.plexms-svc.loadbalancer.server.port=32400"
-      ## Exclude From Watchtower
-      - "com.centurylinklabs.watchtower.enable=false"
 
   # Emby - Media Server
   embyms:
@@ -1781,6 +1777,8 @@ services:
       - "traefik.http.routers.vscode-rtr.service=vscode-svc"
       - "traefik.http.services.vscode-svc.loadbalancer.server.port=8080"
 
+  # SMTP to Telegram - Send SMTP Notifications as Telegram Message
+  # Use case: https://github.com/htpcBeginner/docker-traefik/issues/78
   smtp_to_telegram:
     image: kostyaesmukov/smtp_to_telegram
     container_name: smtp_to_telegram
@@ -1788,9 +1786,9 @@ services:
     networks:
       - default
     environment:
-      TZ: ${TZ}
-      ST_TELEGRAM_CHAT_IDS: ${TGRAM_CHAT_ID}
-      ST_TELEGRAM_BOT_TOKEN: ${TGRAM_BOT_TOKEN}
+      TZ: $TZ
+      ST_TELEGRAM_CHAT_IDS: $TGRAM_CHAT_ID
+      ST_TELEGRAM_BOT_TOKEN: $TGRAM_BOT_TOKEN
       ST_TELEGRAM_MESSAGE_TEMPLATE: "{subject}\\n{body}"
 
   ############################# MAINTENANCE
@@ -1806,14 +1804,14 @@ services:
     depends_on:
       - socket-proxy
     environment:
-      TZ: ${TZ}
+      TZ: $TZ
       WATCHTOWER_CLEANUP: "true"
       WATCHTOWER_REMOVE_VOLUMES: "true"
       WATCHTOWER_INCLUDE_STOPPED: "true"
-      WATCHTOWER_NO_STARTUP_MESSAGE: "true"
+      WATCHTOWER_NO_STARTUP_MESSAGE: "false"
       WATCHTOWER_SCHEDULE: "0 30 12 * * *" # Everyday at 12:30
       WATCHTOWER_NOTIFICATIONS: shoutrrr
-      WATCHTOWER_NOTIFICATION_URL: "telegram://${TGRAM_BOT_TOKEN}@telegram?channels=${TGRAM_CHAT_ID}"
+      WATCHTOWER_NOTIFICATION_URL: "telegram://$TGRAM_BOT_TOKEN@telegram?channels=$TGRAM_CHAT_ID"
       WATCHTOWER_NOTIFICATIONS_LEVEL: info
       DOCKER_HOST: tcp://socket-proxy:2375
       DOCKER_API_VERSION: "1.40"
@@ -1876,8 +1874,8 @@ services:
       - TIMEZONE=$TZ
       - TRAEFIK_VERSION=2
       - CF_EMAIL=$CLOUDFLARE_EMAIL # Same as traefik
-      - CF_TOKEN=$CLOUDFLARE_API_TOKEN # Scoped api token not working. Error 10000.
-      # - CF_TOKEN=$CLOUDFLARE_API_KEY # Same as traefik
+      # - CF_TOKEN=$CLOUDFLARE_API_TOKEN # Scoped api token not working. Error 10000.
+      - CF_TOKEN=$CLOUDFLARE_API_KEY # Same as traefik
       - TARGET_DOMAIN=$DOMAINNAME
       - DOMAIN1=$DOMAINNAME
       - DOMAIN1_ZONE_ID=$CLOUDFLARE_ZONEID # Copy from Cloudflare Overview page

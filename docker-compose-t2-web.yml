@@ -390,7 +390,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers SHB
       - "traefik.http.routers.nginx-shb-rtr.entrypoints=https"
-      - "traefik.http.routers.nginx-shb-rtr.rule=HostHeader(`shb20.$DOMAINNAME`)"
+      - "traefik.http.routers.nginx-shb-rtr.rule=HostHeader(`www.$DOMAINNAME`)"
       ## HTTP Routers SHB
       - "traefik.http.routers.nginx-dash-rtr.entrypoints=https"
       - "traefik.http.routers.nginx-dash-rtr.rule=HostHeader(`dash.$DOMAINNAME`)"
@@ -429,43 +429,7 @@ services:
       - $DOCKERDIR/sites/khub/html:/var/www/html/khub
       - $DOCKERDIR/sites/dash/html:/var/www/html/dash
 
-  # Memcached - Object Cache
-  memcached:
-    container_name: memcached
-    image: memcached:alpine
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-
   ########################### MONITORING
-
-  # cAdvisor - Container Advisor
-  cadvisor:
-    image: gcr.io/google-containers/cadvisor:latest
-    container_name: cadvisor
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    #ports:
-    #  - 8080:8080
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-    #depends_on:
-    #  - redis
-    # privileged: true # Only needed for CentOS, Fedora, Red Hat, etc.
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.cadvisor-rtr.entrypoints=https"
-      - "traefik.http.routers.cadvisor-rtr.rule=HostHeader(`cad.$DOMAINNAME`)"
-      ## Middlewares
-      - "traefik.http.routers.cadvisor-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.cadvisor-rtr.service=cadvisor-svc"
-      - "traefik.http.services.cadvisor-svc.loadbalancer.server.port=8080"
 
   # Glances - System Information
   glances:

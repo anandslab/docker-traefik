@@ -30,6 +30,7 @@ services:
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
     container_name: socket-proxy
+    hostname: synology-soc
     image: fluencelabs/docker-socket-proxy
     restart: always
     networks:
@@ -53,7 +54,7 @@ services:
       - SECRETS=0
       - POST=1 # Watchtower
       - DELETE=1 # Watchtower
-       # GET Optons
+        # GET Optons
       - BUILD=0
       - COMMIT=0
       - CONFIGS=0
@@ -72,13 +73,12 @@ services:
       - TASKS=1 # Portaienr
       - VOLUMES=1 # Portainer
       # POST Options
-      - CONTAINERS_CREATE=1   # WatchTower
-      - CONTAINERS_START=1    # WatchTower
-      - CONTAINERS_UPDATE=1   # WatchTower
+      - CONTAINERS_CREATE=1 # WatchTower
+      - CONTAINERS_START=1 # WatchTower
+      - CONTAINERS_UPDATE=1 # WatchTower
       # DELETE Options
-      - CONTAINERS_DELETE=1   # WatchTower
-      - IMAGES_DELETE=1       # WatchTower
-
+      - CONTAINERS_DELETE=1 # WatchTower
+      - IMAGES_DELETE=1 # WatchTower
 
   # Portainer - WebUI for Containers
   portainer:
@@ -231,8 +231,8 @@ services:
 
   ############################# MAINTENANCE
 
-   # WatchTower - Automatic Docker Container Updates
-   watchtower:
+  # WatchTower - Automatic Docker Container Updates
+  watchtower:
     image: containrrr/watchtower
     container_name: watchtower
     restart: unless-stopped
@@ -242,17 +242,17 @@ services:
     depends_on:
       - socket-proxy
     environment:
-      TZ: ${TZ}
+      TZ: $TZ
       WATCHTOWER_CLEANUP: "true"
       WATCHTOWER_REMOVE_VOLUMES: "true"
       WATCHTOWER_INCLUDE_STOPPED: "true"
-      WATCHTOWER_NO_STARTUP_MESSAGE: "true"
-      WATCHTOWER_SCHEDULE: "0 30 12 * * *" # Everyday at 12:30
+      WATCHTOWER_NO_STARTUP_MESSAGE: "false"
+      WATCHTOWER_SCHEDULE: "0 30 1 * * *" # Everyday at 1:30
       WATCHTOWER_NOTIFICATIONS: shoutrrr
-      WATCHTOWER_NOTIFICATION_URL: "telegram://${TGRAM_BOT_TOKEN}@telegram?channels=${TGRAM_CHAT_ID}"
+      WATCHTOWER_NOTIFICATION_URL: "telegram://$TGRAM_BOT_TOKEN@telegram?channels=$TGRAM_CHAT_ID"
       WATCHTOWER_NOTIFICATIONS_LEVEL: info
       DOCKER_HOST: tcp://socket-proxy:2375
-      DOCKER_API_VERSION: "1.40"
+      DOCKER_API_VERSION: "1.39"
 
   # Docker-GC - Automatic Docker Garbage Collection
   # Create docker-gc-exclude file
