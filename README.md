@@ -139,7 +139,7 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 
 ### MAINTENANCE
 
-- Ouroboros - Automatic Docker Container Updates
+- Watchtower - Automatic Docker Container Updates
 - Docker-GC - Automatic Docker Garbage Collection
 - Traefik Certificate Dumper - Extract Traefik SSL Certs
 - Cloudflare DDNS - Dynamic IP Updater
