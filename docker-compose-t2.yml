@@ -560,6 +560,7 @@ services:
       - no-new-privileges:true
     environment:
       - REDIS_HOST=$NAS_IP
+      - REDIS_PASSWORD=$REDIS_PASSWORD
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
