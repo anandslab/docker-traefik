@@ -27,8 +27,6 @@ secrets:
     file: $SECRETSDIR/cloudflare_api_key
   cloudflare_api_token:
     file: $SECRETSDIR/cloudflare_api_token
-  cloudflare_zoneid:
-    file: $SECRETSDIR/cloudflare_zoneid
   authelia_jwt_secret:
     file: $SECRETSDIR/authelia_jwt_secret
   authelia_session_secret:
@@ -1867,25 +1865,24 @@ services:
     restart: unless-stopped
     networks:
       - socket_proxy
-    depends_on:
-      - socket-proxy
+    #depends_on:
+    #  - socket-proxy
     # volumes:
     #  - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
     environment:
       - TIMEZONE=$TZ
       - TRAEFIK_VERSION=2
-      - CF_EMAIL=$CLOUDFLARE_EMAIL # Same as traefik
-      # - CF_TOKEN=$CLOUDFLARE_API_TOKEN # Scoped api token not working. Error 10000.
-      - CF_TOKEN=$CLOUDFLARE_API_KEY # Same as traefik
+      - API_MODE=SCOPED
+      - CF_EMAIL_FILE=/run/secrets/cloudflare_email # Same as traefik
+      - CF_API_TOKEN_FILE=/run/secrets/cloudflare_api_token # Scoped api token
       - TARGET_DOMAIN=$DOMAINNAME
       - DOMAIN1=$DOMAINNAME
       - DOMAIN1_ZONE_ID=$CLOUDFLARE_ZONEID # Copy from Cloudflare Overview page
       - DOMAIN1_PROXIED=TRUE
       - DOCKER_HOST=tcp://socket-proxy:2375
-    secrets: # not working
+    secrets: # not working yet https://github.com/tiredofit/docker-traefik-cloudflare-companion/issues/20
       - cloudflare_email
-      - cloudflare_api_key
-      - cloudflare_zoneid
+      - cloudflare_api_token
     labels:
       # Add hosts specified in rules here to force cf-companion to create the CNAMEs
       # Since cf-companion creates CNAMEs based on host rules, this a workaround for non-docker/external apps
