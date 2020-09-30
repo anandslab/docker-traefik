@@ -32,18 +32,6 @@ secrets:
     file: $SECRETSDIR/authelia_notifier_smtp_password
   authelia_duo_api_secret_key:
     file: $SECRETSDIR/authelia_duo_api_secret_key
-  wordpress_db_name:
-    file: $SECRETSDIR/wordpress_db_name
-  wordpress_db_user:
-    file: $SECRETSDIR/wordpress_db_user
-  wordpress_db_password:
-    file: $SECRETSDIR/wordpress_db_password
-  guac_db_name:
-    file: $SECRETSDIR/guac_db_name
-  guac_mysql_user:
-    file: $SECRETSDIR/guac_mysql_user
-  guac_mysql_password:
-    file: $SECRETSDIR/guac_mysql_password
 
 ########################### SERVICES
 services:
@@ -246,7 +234,7 @@ services:
   # Portainer - WebUI for Containers
   portainer:
     container_name: portainer
-    image: portainer/portainer:latest
+    image: portainer/portainer-ce:latest
     restart: unless-stopped
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
     # command: -H tcp://socket-proxy:2375 # appears to not work. Workaround was to create a new socket-proxy:2375 endpoint on portainer settings
@@ -279,7 +267,7 @@ services:
   # After starting container for first time dexec and mysqladmin -u root password <password>
   mariadb:
     container_name: mariadb
-    image: linuxserver/mariadb:latest
+    image: linuxserver/mariadb:110.4.14mariabionic-ls77
     restart: always
     networks:
       t2_proxy:
@@ -300,9 +288,9 @@ services:
   # Redis - Key-value Store
   redis:
     container_name: redis
-    image: redis:latest
+    image: redis:6.0.6
     restart: unless-stopped
-    entrypoint: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    entrypoint: redis-server --appendonly yes --requirepass $REDIS_PASSWORD --maxmemory 512mb --maxmemory-policy allkeys-lru
     networks:
       - t2_proxy
     security_opt:
@@ -323,6 +311,7 @@ services:
       - no-new-privileges:true
     environment:
       - REDIS_HOST=redis
+      - REDIS_PASSWORD=$REDIS_PASSWORD
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -371,7 +360,7 @@ services:
   # Nginx - Web Server
   nginx:
     container_name: nginx
-    image: nginx:stable-alpine
+    image: nginx:1.18
     restart: unless-stopped
     depends_on:
       - php7
@@ -390,22 +379,25 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers SHB
       - "traefik.http.routers.nginx-shb-rtr.entrypoints=https"
-      - "traefik.http.routers.nginx-shb-rtr.rule=HostHeader(`www.$DOMAINNAME`)"
-      ## HTTP Routers SHB
+      - "traefik.http.routers.nginx-shb-rtr.rule=HostHeader(`$DOMAINNAME`) || HostHeader(`www.$DOMAINNAME`)"
+      ## HTTP Routers DASH
       - "traefik.http.routers.nginx-dash-rtr.entrypoints=https"
       - "traefik.http.routers.nginx-dash-rtr.rule=HostHeader(`dash.$DOMAINNAME`)"
       ## HTTP Routers KHUB
       - "traefik.http.routers.nginx-khub-rtr.entrypoints=https"
-      - "traefik.http.routers.nginx-khub-rtr.rule=HostHeader(`www.$DOMAINNAME1`)"
+      - "traefik.http.routers.nginx-khub-rtr.rule=HostHeader(`$DOMAINNAME1`) || HostHeader(`www.$DOMAINNAME1`)"
       ## Middlewares
-      - "traefik.http.routers.nginx-khub-rtr.middlewares=chain-no-auth@file"
-      - "traefik.http.routers.nginx-shb-rtr.middlewares=chain-authelia-wp@file"
+      - "traefik.http.routers.nginx-khub-rtr.middlewares=khub-redirect,chain-no-auth@file"
+      - "traefik.http.routers.nginx-shb-rtr.middlewares=shb-redirect,chain-authelia-wp@file"
       - "traefik.http.routers.nginx-dash-rtr.middlewares=chain-authelia@file"
       # Redirect shb non-www to www middleware
-      #- "traefik.http.middlewares.shb-redirect.redirectregex.regex=^https?://$DOMAINNAME/(.*)"
-      #- "traefik.http.middlewares.shb-redirect.redirectregex.replacement=https://www.$DOMAINNAME/$${1}"
-      #- "traefik.http.middlewares.shb-redirect.redirectregex.permanent=true"
-      # Redirect khub non-www to www middleware - Handled by Cloudflare
+      - "traefik.http.middlewares.shb-redirect.redirectregex.regex=^https?://$DOMAINNAME/(.*)"
+      - "traefik.http.middlewares.shb-redirect.redirectregex.replacement=https://www.$DOMAINNAME/$${1}"
+      - "traefik.http.middlewares.shb-redirect.redirectregex.permanent=true"
+      # Redirect khub non-www to www middleware
+      - "traefik.http.middlewares.khub-redirect.redirectregex.regex=^https?://$DOMAINNAME1/(.*)"
+      - "traefik.http.middlewares.khub-redirect.redirectregex.replacement=https://www.$DOMAINNAME1/$${1}"
+      - "traefik.http.middlewares.khub-redirect.redirectregex.permanent=true"
       ## HTTP Services
       - "traefik.http.routers.nginx-shb-rtr.service=nginx-svc"
       - "traefik.http.routers.nginx-khub-rtr.service=nginx-svc"
@@ -415,7 +407,7 @@ services:
   # PHP - Hypertext Preprocessor
   php7:
     container_name: php7
-    image: php:7-fpm-alpine-custom
+    image: php:7.4-fpm-custom
     build:
       context: $DOCKERDIR/custom/
       dockerfile: Dockerfile-php7
@@ -441,8 +433,8 @@ services:
     networks:
       - t2_proxy
       - socket_proxy
-    depends_on:
-      - socket-proxy
+    # depends_on:
+    #   - socket-proxy
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -541,48 +533,6 @@ services:
       ## HTTP Services
       - "traefik.http.routers.vscode-rtr.service=vscode-svc"
       - "traefik.http.services.vscode-svc.loadbalancer.server.port=8080"
-
-  # Guacamole Daemon - Needed for Guacamole
-  guacd:
-    image: guacamole/guacd
-    container_name: guacd
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    networks:
-      - t2_proxy
-
-  # Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser
-  guacamole:
-    image: guacamole/guacamole:latest
-    container_name: guacamole
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
-    environment:
-      GUACD_HOSTNAME: guacd
-      MYSQL_HOSTNAME: mariadb
-      MYSQL_PORT: 3306
-      MYSQL_DATABASE_FILE: /run/secrets/guac_db_name
-      MYSQL_USER_FILE: /run/secrets/guac_mysql_user
-      MYSQL_PASSWORD_FILE: /run/secrets/guac_mysql_password
-    secrets:
-      - guac_db_name
-      - guac_mysql_user
-      - guac_mysql_password
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.guacamole-rtr.entrypoints=https"
-      - "traefik.http.routers.guacamole-rtr.rule=HostHeader(`guac.$DOMAINNAME`)"
-      ## Middlewares
-      - "traefik.http.routers.guacamole-rtr.middlewares=chain-authelia@file,add-guacamole"
-      - "traefik.http.middlewares.add-guacamole.addPrefix.prefix=/guacamole"
-      ## HTTP Services
-      - "traefik.http.routers.guacamole-rtr.service=guacamole-svc"
-      - "traefik.http.services.guacamole-svc.loadbalancer.server.port=8080"
 
   ########################### HOME
 

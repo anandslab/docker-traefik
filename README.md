@@ -7,6 +7,7 @@ This is the updated docker-compose repo of all the media and home server apps de
 - Synology Docker Media Server with Traefik, Docker Compose, and Cloudflare: [https://www.smarthomebeginner.com/synology-docker-media-server/](https://www.smarthomebeginner.com/synology-docker-media-server/)
 - Google OAuth 2 MFA Protection for Docker - [https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/](https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/)
 - Authelia MFA Protection for Docker - [https://www.smarthomebeginner.com/docker-authelia-tutorial/](https://www.smarthomebeginner.com/docker-authelia-tutorial/)
+- Traefik Docker Security Best Practices - [https://www.smarthomebeginner.com/traefik-docker-security-best-practices/](https://www.smarthomebeginner.com/traefik-docker-security-best-practices/)
 
 ### Old Posts:
 
@@ -135,7 +136,7 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 - Monitorr - Webfront to display the status of any webapp or service (OBSOLETE)
 - Cloud Commander - Web File Manager (OBSOLETE)
 - Cloud9 - Cloud IDE (OBSOLETE)
-- SMTP To Telegram - Sends all incoming Email messages to Telegram 
+- SMTP To Telegram - Sends all incoming Email messages to Telegram
 
 ### MAINTENANCE
 

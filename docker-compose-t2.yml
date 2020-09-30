@@ -67,7 +67,7 @@ services:
   # touch $DOCKERDIR/traefik2/traefik.log
   traefik:
     container_name: traefik
-    image: traefik:chevrotin # the chevrotin tag refers to v2.2.x
+    image: traefik:2.2.7 # chevrotin # the chevrotin tag refers to v2.2.x
     restart: unless-stopped
     command: # CLI arguments
       - --global.checkNewVersion=true
@@ -426,6 +426,7 @@ services:
     volumes:
       - $USERDIR/docker/homeassistant:/config
       - /etc/localtime:/etc/localtime:ro
+      #- /media/ssd/motioneye:/media/motioneye
     environment:
       - PUID=$PUID
       - PGID=$PGID
@@ -777,7 +778,7 @@ services:
 
   # NZBHydra2 - NZB meta search
   hydra:
-    image: linuxserver/hydra2:latest
+    image: linuxserver/nzbhydra2:latest
     container_name: hydra
     restart: unless-stopped
     networks:

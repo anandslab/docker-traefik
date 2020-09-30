@@ -83,7 +83,7 @@ services:
   # Portainer - WebUI for Containers
   portainer:
     container_name: portainer
-    image: portainer/portainer:latest
+    image: portainer/portainer-ce:latest
     restart: unless-stopped
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
     # command: -H tcp://socket-proxy:2375 # appears to not work. Workaround was to create a new socket-proxy:2375 endpoint on portainer settings
@@ -168,7 +168,7 @@ services:
     container_name: redis
     image: redis:latest
     restart: unless-stopped
-    entrypoint: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    entrypoint: redis-server --appendonly yes --requirepass $REDIS_PASSWORD --maxmemory 512mb --maxmemory-policy allkeys-lru
     ports:
       - "$REDIS_PORT:6379"
     security_opt:
