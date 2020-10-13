@@ -252,9 +252,9 @@ services:
     # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
     # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
-      - CLIENT_ID=/run/secrets/google_client_id
-      - CLIENT_SECRET=/run/secrets/google_client_secret
-      - SECRET=/run/secrets/oauth_secret
+      - CLIENT_ID_FILE=/run/secrets/google_client_id
+      - CLIENT_SECRET_FILE=/run/secrets/google_client_secret
+      - SECRET_FILE=/run/secrets/oauth_secret
       - COOKIE_DOMAIN=$DOMAINNAME
       - INSECURE_COOKIE=false
       - AUTH_HOST=oauth.$DOMAINNAME
@@ -265,7 +265,7 @@ services:
       - LIFETIME=2592000 # 30 days
       - DEFAULT_ACTION=auth
       - DEFAULT_PROVIDER=google
-    secrets:
+    secrets: # had trouble getting secrets to work
       - google_client_id
       - google_client_secret
       - oauth_secret

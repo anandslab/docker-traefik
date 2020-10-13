@@ -21,7 +21,6 @@ traefik1/*
 !traefik1/rules
 traefik1/rules/*
 !traefik1/rules/*.example
-!traefik1/rules/tls-opts.yml
 !shared
 shared/*
 !shared/*.example
@@ -34,6 +33,7 @@ traefik2/*
 !traefik2/rules
 traefik2/rules/*
 !traefik2/rules/*.example
+!traefik2/rules/tls-opts.yml
 !authelia
 authelia/*
 !authelia/*.example
