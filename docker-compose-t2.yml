@@ -55,6 +55,8 @@ secrets:
     file: $SECRETSDIR/guac_mysql_user
   guac_mysql_password:
     file: $SECRETSDIR/guac_mysql_password
+  traefik_pilot_token:
+    file: $SECRETSDIR/traefik_pilot_token
 
 ########################### SERVICES
 services:
@@ -77,8 +79,12 @@ services:
       # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
       - --entrypoints.https.forwardedHeaders.trustedIPs=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/12,172.64.0.0/13,131.0.72.0/22
       - --entryPoints.traefik.address=:8080
+      - --entryPoints.ping.address=:8081
       - --api=true
       # - --api.insecure=true
+      - --api.dashboard=true
+      - --ping=true
+      - --pilot.token=$TRAEFIK_PILOT_TOKEN
       # - --serversTransport.insecureSkipVerify=true
       - --log=true
       - --log.level=WARN # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
@@ -89,6 +95,7 @@ services:
       - --providers.docker=true
       # - --providers.docker.endpoint=unix:///var/run/docker.sock # Use Docker Socket Proxy instead for improved security
       - --providers.docker.endpoint=tcp://socket-proxy:2375
+      # Automatically set Host rule for services
       # - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME`)
       - --providers.docker.exposedByDefault=false
       # - --entrypoints.https.http.middlewares=chain-authelia@file
@@ -120,8 +127,11 @@ services:
     #  - socket-proxy
     security_opt:
       - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 5s
+      retries: 3
     ports:
-      # https://www.reddit.com/r/docker/comments/c1wrep/traefik_reverse_proxy_question_docker_overlay/
       - target: 80
         published: 80
         protocol: tcp
@@ -130,10 +140,14 @@ services:
         published: 443
         protocol: tcp
         mode: host
-    #      - target: 8080
-    #        published: 8080
-    #        protocol: tcp
-    #        mode: host
+      # - target: 8080
+      #   published: 8080
+      #   protocol: tcp
+      #   mode: host
+      - target: 8081
+        published: 8082
+        protocol: tcp
+        mode: host
     volumes:
       - $DOCKERDIR/traefik2/rules:/rules # file provider directory
       # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
@@ -147,6 +161,7 @@ services:
       - cloudflare_email
       - cloudflare_api_key
     labels:
+      - "autoheal=true"
       - "traefik.enable=true"
       # HTTP-to-HTTPS Redirect
       - "traefik.http.routers.http-catchall.entrypoints=http"
@@ -158,6 +173,10 @@ services:
       - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME`)"
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
+      ## Healthcheck/ping
+      - "traefik.http.routers.ping.rule=Host(`traefik.$DOMAINNAME`) && Path(`/ping`)"
+      #- "traefik.http.routers.ping.tls=true"
+      - "traefik.http.routers.ping.service=ping@internal"
       ## Middlewares
       - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file"
 
@@ -829,7 +848,7 @@ services:
   # Set url_base in radarr settings if using PathPrefix
   radarr:
     # image: aront/radarr #for mp4_automator support
-    image: linuxserver/radarr:preview
+    image: linuxserver/radarr:nightly
     container_name: radarr
     restart: unless-stopped
     networks:

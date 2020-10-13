@@ -21,6 +21,7 @@ traefik1/*
 !traefik1/rules
 traefik1/rules/*
 !traefik1/rules/*.example
+!traefik1/rules/tls-opts.yml
 !shared
 shared/*
 !shared/*.example

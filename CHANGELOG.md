@@ -8,6 +8,12 @@
 - improvements from https://github.com/jamescurtin/traefik-proxy
 - implement secrets and remove variables from .env
 
+## October 03, 2020
+
+- Upgraded to Traefik 2.3.1.
+- Obsoleted Traefik Error Pages
+- Fixed TLS Options
+
 ## August 20, 2020
 
 - Replaced Ouroboros with Watchtower
