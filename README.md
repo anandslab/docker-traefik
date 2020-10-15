@@ -49,7 +49,7 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 ### FRONTENDS
 
 - Traefik - Reverse Proxy
-- Traefik Custom Error Pages
+- Traefik Custom Error Pages (OBSOLETE)
 - OAuth - Forward Authentication (Google OAuth 2.0)
 - Authelia - Private Forward Authentication (Default)
 - Portainer - Container Management
@@ -120,9 +120,10 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 - MakeMKV - Video Editing (Ripping from Disks)
 - FileBot - File renamer
 
-### SYSTEM
+### UTILITIES
 
 - Firefox - Web Broswer
+- Duplicati - Backup App
 - Glances - System Information
 - APCUPSD - APC UPS Management
 - Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser

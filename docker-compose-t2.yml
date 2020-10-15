@@ -79,12 +79,12 @@ services:
       # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
       - --entrypoints.https.forwardedHeaders.trustedIPs=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/12,172.64.0.0/13,131.0.72.0/22
       - --entryPoints.traefik.address=:8080
-      - --entryPoints.ping.address=:8081
+      # - --entryPoints.ping.address=:8081
       - --api=true
       # - --api.insecure=true
       - --api.dashboard=true
-      - --ping=true
-      - --pilot.token=$TRAEFIK_PILOT_TOKEN
+      #- --ping=true
+      #- --pilot.token=$TRAEFIK_PILOT_TOKEN
       # - --serversTransport.insecureSkipVerify=true
       - --log=true
       - --log.level=WARN # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
@@ -127,10 +127,10 @@ services:
     #  - socket-proxy
     security_opt:
       - no-new-privileges:true
-    healthcheck:
-      test: ["CMD", "traefik", "healthcheck", "--ping"]
-      interval: 5s
-      retries: 3
+    #healthcheck:
+    #  test: ["CMD", "traefik", "healthcheck", "--ping"]
+    #  interval: 5s
+    #  retries: 3
     ports:
       - target: 80
         published: 80
@@ -144,10 +144,10 @@ services:
       #   published: 8080
       #   protocol: tcp
       #   mode: host
-      - target: 8081
-        published: 8082
-        protocol: tcp
-        mode: host
+      #- target: 8081
+      #  published: 8082
+      #  protocol: tcp
+      #  mode: host
     volumes:
       - $DOCKERDIR/traefik2/rules:/rules # file provider directory
       # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
@@ -161,7 +161,7 @@ services:
       - cloudflare_email
       - cloudflare_api_key
     labels:
-      - "autoheal=true"
+      #- "autoheal=true"
       - "traefik.enable=true"
       # HTTP-to-HTTPS Redirect
       - "traefik.http.routers.http-catchall.entrypoints=http"
@@ -174,9 +174,9 @@ services:
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## Healthcheck/ping
-      - "traefik.http.routers.ping.rule=Host(`traefik.$DOMAINNAME`) && Path(`/ping`)"
+      #- "traefik.http.routers.ping.rule=Host(`traefik.$DOMAINNAME`) && Path(`/ping`)"
       #- "traefik.http.routers.ping.tls=true"
-      - "traefik.http.routers.ping.service=ping@internal"
+      #- "traefik.http.routers.ping.service=ping@internal"
       ## Middlewares
       - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file"
 
@@ -252,20 +252,20 @@ services:
     # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
     # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
-      - CLIENT_ID_FILE=/run/secrets/google_client_id
-      - CLIENT_SECRET_FILE=/run/secrets/google_client_secret
-      - SECRET_FILE=/run/secrets/oauth_secret
+      - CLIENT_ID=$GOOGLE_CLIENT_ID
+      - CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+      - SECRET=$OAUTH_SECRET
       - COOKIE_DOMAIN=$DOMAINNAME
       - INSECURE_COOKIE=false
       - AUTH_HOST=oauth.$DOMAINNAME
       - URL_PATH=/_oauth
-      - WHITELIST_FILE=/run/secrets/my_email
+      - WHITELIST=$MY_EMAIL
       - LOG_LEVEL=warn
       - LOG_FORMAT=text
-      - LIFETIME=2592000 # 30 days
+      - LIFETIME=86400 # 1 day
       - DEFAULT_ACTION=auth
       - DEFAULT_PROVIDER=google
-    secrets: # had trouble getting secrets to work
+    secrets: # had trouble getting secrets to work: https://github.com/thomseddon/traefik-forward-auth/issues/155#issuecomment-664630985
       - google_client_id
       - google_client_secret
       - oauth_secret
@@ -1499,6 +1499,37 @@ services:
 
   ############################# UTILITIES
 
+  # Duplicati - Backup
+  duplicati:
+    image: linuxserver/duplicati:latest
+    container_name: duplicati
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #  - "$DUPLICATI_PORT:8200"
+    volumes:
+      - $DOCKERDIR/duplicati:/config
+      - /media:/nas
+      - $USERDIR:/userdir
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      # CLI_ARGS: #optional
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.duplicati-rtr.entrypoints=https"
+      - "traefik.http.routers.duplicati-rtr.rule=Host(`duplicati.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.duplicati-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.duplicati-rtr.service=duplicati-svc"
+      - "traefik.http.services.duplicati-svc.loadbalancer.server.port=8200"
+
   # Firefox - Web Broswer
   # VNC password not working - check
   firefox:
@@ -1509,6 +1540,7 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
+      - seccomp:unconfined # October 15, 2020 https://github.com/jlesage/docker-firefox/blob/master/README.md#allowing-the-membarrier-system-call
     # ports:
     #   - "$FIREFOX_PORT:5800"
     volumes:
@@ -1866,21 +1898,17 @@ services:
       - socket_proxy
     #depends_on:
     #  - socket-proxy
-    # volumes:
-    #  - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
     environment:
       - TIMEZONE=$TZ
       - TRAEFIK_VERSION=2
-      - API_MODE=SCOPED
-      - CF_EMAIL_FILE=/run/secrets/cloudflare_email # Same as traefik
-      - CF_API_TOKEN_FILE=/run/secrets/cloudflare_api_token # Scoped api token
+      #- CF_EMAIL=$CLOUDFLARE_EMAIL
+      - CF_TOKEN=$CLOUDFLARE_API_TOKEN
       - TARGET_DOMAIN=$DOMAINNAME
       - DOMAIN1=$DOMAINNAME
       - DOMAIN1_ZONE_ID=$CLOUDFLARE_ZONEID # Copy from Cloudflare Overview page
       - DOMAIN1_PROXIED=TRUE
       - DOCKER_HOST=tcp://socket-proxy:2375
-    secrets: # not working yet https://github.com/tiredofit/docker-traefik-cloudflare-companion/issues/20
-      - cloudflare_email
+    secrets: # not working
       - cloudflare_api_token
     labels:
       # Add hosts specified in rules here to force cf-companion to create the CNAMEs

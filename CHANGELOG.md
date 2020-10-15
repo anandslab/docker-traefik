@@ -8,6 +8,11 @@
 - improvements from https://github.com/jamescurtin/traefik-proxy
 - implement secrets and remove variables from .env
 
+## October 15, 2020
+
+- Added Duplicati
+- Fixed Cloudflare Companion - secrets not working in 6.3.0
+
 ## October 03, 2020
 
 - Upgraded to Traefik 2.3.1.
