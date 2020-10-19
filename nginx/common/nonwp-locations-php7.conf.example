@@ -1,0 +1,48 @@
+# NGINX CONFIGURATION FOR COMMON LOCATION
+# DO NOT MODIFY, ALL CHANGES LOST AFTER UPDATE EasyEngine (ee)
+# Basic locations files
+
+location = /favicon.ico {
+  access_log off;
+  log_not_found off;
+  expires max;
+}
+
+location = /robots.txt {
+  # Refer #340 issue
+  try_files $uri $uri/ /index.php?$args;
+  access_log off;
+  log_not_found off;
+}
+
+# Cache static files
+location ~* \.(ogg|ogv|svg|svgz|eot|otf|woff|mp4|ttf|css|rss|atom|js|jpg|jpeg|gif|png|ico|zip|tgz|gz|rar|bz2|doc|xls|exe|ppt|tar|mid|midi|wav|bmp|rtf|swf)$ {
+  add_header "Access-Control-Allow-Origin" "*";
+  access_log off;
+  log_not_found off;
+  expires max;
+}
+
+# Security settings for better privacy
+# Deny hidden files
+location ~ /\.well-known {
+  allow all;
+}
+
+location ~ /\. {
+  deny all;
+  access_log off;
+  log_not_found off;
+}
+
+# Deny backup extensions & log files
+location ~* ^.+\.(bak|log|old|orig|original|php#|php~|php_bak|save|swo|swp|sql)$ {
+  deny all;
+  access_log off;
+  log_not_found off;
+}
+
+# Return 403 forbidden for readme.(txt|html) or license.(txt|html) or example.(txt|html)
+if ($uri ~* "^.+(readme|license|example)\.(txt|html)$") {
+  return 403;
+}

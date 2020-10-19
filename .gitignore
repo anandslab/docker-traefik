@@ -42,3 +42,13 @@ php/*
 !php/php7
 !php/php7/*
 !php/php7/conf.d/*
+!nginx
+!nginx/*
+!nginx/conf.d
+!nginx/conf.d/*
+!nginx/sites
+nginx/sites/*
+!nginx/sites/*.example
+!nginx/common
+nginx/common/*
+!nginx/common/*.example

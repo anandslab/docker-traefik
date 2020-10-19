@@ -1,0 +1,36 @@
+# WPFC NGINX CONFIGURATION
+# DO NOT MODIFY, ALL CHANGES LOST AFTER UPDATE EasyEngine (ee)
+
+# Enable Nginx FastCGI Cache
+set $skip_cache 1;
+# Disable Nginx FastCGI Cache
+#set $skip_cache 1;
+
+# POST requests and URL with a query string should always go to php
+if ($request_method = POST) {
+  set $skip_cache 1;
+}
+if ($query_string != "") {
+  set $skip_cache 1;
+}
+
+# Use cached or actual file if they exists, Otherwise pass request to WordPress
+location / {
+  try_files $uri $uri/ /index.php?$args;
+}
+
+location ~ \.php$ {
+#  include common/hbgauthor.conf;
+  try_files $uri =404;
+  include fastcgi.conf;
+  fastcgi_pass php7;
+  fastcgi_cache_bypass $skip_cache;
+  fastcgi_no_cache $skip_cache;
+  fastcgi_cache WORDPRESS; #WORDPRESS cannot be changed here.
+}
+
+# Not available - Nginx Commercial Subscription Required
+# location ~ /purge(/.*) {
+#  fastcgi_cache_purge WORDPRESS "$scheme$request_method$host$1";
+#  access_log off;
+#}
