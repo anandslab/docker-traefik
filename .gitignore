@@ -37,4 +37,8 @@ traefik2/rules/*
 !authelia
 authelia/*
 !authelia/*.example
-!php/php7/*.*
+!php
+php/*
+!php/php7
+!php/php7/*
+!php/php7/conf.d/*
