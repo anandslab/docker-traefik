@@ -1,0 +1,18 @@
+server {
+    listen 80;
+    server_name dash.domain.com;
+
+    root /var/www/html/dash;
+    index index.php;
+
+    access_log off;
+    #access_log /var/log/nginx/dash-access.log;
+    error_log /var/log/nginx/dash-error.log;
+
+    # Turn on directory listing
+    autoindex on;
+
+    include common/nonwp-nfc-php7.conf;
+    include common/nonwp-common-php7.conf;
+    include common/nonwp-locations-php7.conf;
+}

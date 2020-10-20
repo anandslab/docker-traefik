@@ -1,0 +1,16 @@
+opcache.enable=1
+
+; 0 means it will check on every request
+;Development = 0. Production = 1 or comment out (default 1)
+opcache.revalidate_freq=0
+; 0 is irrelevant if opcache.validate_timestamps=0 which is desirable in production
+;Development = 1. Production = 0 or comment out (default 0)
+opcache.validate_timestamps=1
+;Development = 1. Production0 or comment out (default 0)
+opcache.consistency_checks=1
+
+opcache.max_accelerated_files=20000
+opcache.memory_consumption=192
+opcache.max_wasted_percentage=10
+opcache.interned_strings_buffer=16
+opcache.fast_shutdown=1

@@ -40,8 +40,11 @@ authelia/*
 !php
 php/*
 !php/php7
-!php/php7/*
-!php/php7/conf.d/*
+php/php7/*
+!php/php7/*.example
+!php/php7/conf.d
+php/php7/conf.d/*
+!php/php7/conf.d/*.example
 !nginx
 nginx/*
 !nginx/*.example

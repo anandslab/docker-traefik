@@ -1,0 +1,30 @@
+# WordPress COMMON SETTINGS
+# DO NOT MODIFY, ALL CHANGES LOST AFTER UPDATE EasyEngine (ee)
+# Limit access to avoid brute force attack
+location = /wp-login.php {
+  #include common/acl.conf;
+  limit_req zone=one burst=1 nodelay;
+  include fastcgi.conf;
+  fastcgi_pass php7;  
+}
+# Disable wp-config.txt
+location = /wp-config.txt {
+  deny all;
+  access_log off;
+  log_not_found off;
+}
+
+# Disable xmlrpc
+location = /xmlrpc.php {
+  deny all;
+  access_log off;
+  log_not_found off;
+}
+
+# Disallow php in upload folder
+location /wp-content/uploads/ {
+  location ~ \.php$ {
+    #Prevent Direct Access Of PHP Files From Web Browsers
+    deny all;
+  }
+}

@@ -1,0 +1,21 @@
+server {
+    listen 80;
+	server_name domain2.com;
+	return 301 $scheme://www.domain2.com$request_uri;
+}
+
+server {
+    listen 80;
+    server_name www.domain2.com;
+
+    root /var/www/html/khub;
+    index index.php;
+
+    access_log off;
+    #access_log /var/log/nginx/khub-access.log;
+    error_log /var/log/nginx/khub-error.log;
+
+    include common/nonwp-nfc-php7.conf;
+    include common/nonwp-common-php7.conf;
+    include common/nonwp-locations-php7.conf;
+}

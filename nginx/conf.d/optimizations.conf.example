@@ -1,0 +1,31 @@
+# Custom Configs
+# Prevent iframe or clickjacking https://gist.github.com/plentz/6737338
+# add_header X-Frame-Options SAMEORIGIN; # Added by Traefik
+
+# Custom Sizes https://www.digitalocean.com/community/articles/how-to-optimize-nginx-configuration
+# http://www.narga.net/recommended-nginx-configuration-high-traffic-wordpress/2/
+client_body_buffer_size 10K;
+client_header_buffer_size 1k;
+client_max_body_size 16M;
+large_client_header_buffers 2 8k; # 400 Bad Request
+
+# Caches information about open FDs, freqently accessed files.
+# Changing this setting, in my environment, brought performance up from 560k req/sec, to 904k req/sec.
+# I recommend using some varient of these options, though not the specific values listed below.
+# http://www.narga.net/recommended-nginx-configuration-high-traffic-wordpress/2/
+open_file_cache max=1000 inactive=20s;
+open_file_cache_valid 30s;
+open_file_cache_min_uses 2;
+open_file_cache_errors on;
+
+# Time Outs https://www.digitalocean.com/community/articles/how-to-optimize-nginx-configuration
+# http://www.narga.net/recommended-nginx-configuration-high-traffic-wordpress/2/
+# send the client a "request timed out" if the body is not loaded by this time. Default 60.
+client_body_timeout 12;
+client_header_timeout 12;
+
+# If the client stops reading data, free up the stale client connection after this much time. Default 60.
+send_timeout 10;
+
+#  How long an idle keepalive connection remains open.
+keepalive_timeout 15;
