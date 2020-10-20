@@ -8,7 +8,7 @@ server {
     listen 80;
     server_name www.domain.com;
 
-    root /var/www/html/wordpress;
+    root /var/www/html/shb;
     index index.php;
 
     access_log off;
