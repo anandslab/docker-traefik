@@ -1499,6 +1499,44 @@ services:
 
   ############################# UTILITIES
 
+  # Healthchecks
+  healthchecks:
+    image: linuxserver/healthchecks:latest
+    container_name: healthchecks
+    restart: always
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "$HEALTHCHECKS_PORT:8000"
+    volumes:
+      - $DOCKERDIR/healthchecks:/config
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      SITE_ROOT: "https://healthchecks.$DOMAINNAME"
+      EMAIL_HOST: "smtp_to_telegram"
+      EMAIL_PORT: "2525"
+      EMAIL_HOST_USER: "username" # smtp_to_telgram doesn't care what this is
+      EMAIL_HOST_PASSWORD: "password" # smtp_to_telgram doesn't care what this is
+      DEFAULT_FROM_EMAIL: "healthchecks@$DOMAINNAME"
+      ALLOWED_HOSTS: "*"
+      SITE_NAME: "$DOMAINNAME Healthchecks"
+      SUPERUSER_PASSWORD: "${HEALTHCHECKS_SUPERUSER_PASSWORD}"
+      SUPERUSER_EMAIL: "$MY_EMAIL"
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.healthchecks-rtr.entrypoints=https"
+      - "traefik.http.routers.healthchecks-rtr.rule=Host(`healthchecks.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.healthchecks-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.healthchecks-rtr.service=healthchecks-svc"
+      - "traefik.http.services.healthchecks-svc.loadbalancer.server.port=8000"
+
   # Duplicati - Backup
   duplicati:
     image: linuxserver/duplicati:latest
