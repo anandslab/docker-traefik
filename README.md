@@ -2,19 +2,23 @@
 
 This is the updated docker-compose repo of all the media and home server apps described in the following guides on our website:
 
-- Docker Media Server with Traefik 2 Reverse Proxy: [https://www.smarthomebeginner.com/traefik-2-docker-tutorial/](https://www.smarthomebeginner.com/traefik-2-docker-tutorial/)
-- Cloudflare Settings for Traefik Docker: DDNS, CNAMEs, & Tweaks: [https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/](https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/)
-- Synology Docker Media Server with Traefik, Docker Compose, and Cloudflare: [https://www.smarthomebeginner.com/synology-docker-media-server/](https://www.smarthomebeginner.com/synology-docker-media-server/)
-- Google OAuth 2 MFA Protection for Docker - [https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/](https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/)
-- Authelia MFA Protection for Docker - [https://www.smarthomebeginner.com/docker-authelia-tutorial/](https://www.smarthomebeginner.com/docker-authelia-tutorial/)
-- Traefik Docker Security Best Practices - [https://www.smarthomebeginner.com/traefik-docker-security-best-practices/](https://www.smarthomebeginner.com/traefik-docker-security-best-practices/)
+- [Docker Media Server with Traefik 2 Reverse Proxy](https://www.smarthomebeginner.com/traefik-2-docker-tutorial/)
+- [WordPress on Docker with Nginx, Traefik, LE SSL, Security, and Speed](https://www.smarthomebeginner.com/wordpress-on-docker-traefik/)
+- [Synology Docker Media Server with Traefik, Docker Compose, and Cloudflare](https://www.smarthomebeginner.com/synology-docker-media-server/)
 
-### Old Posts:
+<strong>Supporting Articles:</strong>
+
+- [Cloudflare Settings for Traefik Docker: DDNS, CNAMEs, & Tweaks](https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/)
+- [Google OAuth 2 MFA Protection for Docker](https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/)
+- [Authelia MFA Protection for Docker](https://www.smarthomebeginner.com/docker-authelia-tutorial/)
+- [Traefik Docker Security Best Practices](https://www.smarthomebeginner.com/traefik-docker-security-best-practices/)
+
+### Obsolete Posts:
 
 The following posts have been combined and updated for Traefik v2 (linked above):
 
-- Docker Media Server without Reverse Proxy (- [https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/)
-- Docker Media Server with Traefik 1 Reverse Proxy - [https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/](https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/)
+- [Docker Media Server without Reverse Proxy ](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/)
+- [Docker Media Server with Traefik 1 Reverse Proxy](https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/)
 
 ## A Note on Traefik 1 vs Traefik 2?
 
