@@ -43,8 +43,6 @@ secrets:
     file: $SECRETSDIR/google_client_secret
   google_client_id:
     file: $SECRETSDIR/google_client_id
-  healthchecks_superuser_password:
-    file: $SECRETSDIR/healthchecks_superuser_password
   my_email:
     file: $SECRETSDIR/my_email
   mysql_root_password:
@@ -1518,7 +1516,6 @@ services:
       PUID: $PUID
       PGID: $PGID
       TZ: $TZ
-      BASE_URL: "healthchecks.$DOMAINNAME"
       SITE_ROOT: "https://healthchecks.$DOMAINNAME"
       EMAIL_HOST: "smtp_to_telegram"
       EMAIL_PORT: "2525"
@@ -1527,7 +1524,7 @@ services:
       DEFAULT_FROM_EMAIL: "healthchecks@$DOMAINNAME"
       ALLOWED_HOSTS: "*"
       SITE_NAME: "$DOMAINNAME Healthchecks"
-      SUPERUSER_PASSWORD: /run/secrets/healthchecks_superuser_password
+      SUPERUSER_PASSWORD: "${HEALTHCHECKS_SUPERUSER_PASSWORD}"
       SUPERUSER_EMAIL: "$MY_EMAIL"
     labels:
       - "traefik.enable=true"
