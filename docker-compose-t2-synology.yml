@@ -86,13 +86,11 @@ services:
     image: portainer/portainer-ce:latest
     restart: unless-stopped
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
-    # command: -H tcp://socket-proxy:2375 # appears to not work. Workaround was to create a new socket-proxy:2375 endpoint on portainer settings
+    command: -H tcp://socket-proxy:2375
     networks:
       - socket_proxy
     ports:
       - "$PORTAINER_PORT:9000"
-    depends_on:
-      - socket-proxy
     security_opt:
       - no-new-privileges:true
     volumes:
