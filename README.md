@@ -52,108 +52,120 @@ We will try to keep this repo up-to-date. For now, here are the apps currently i
 
 ### FRONTENDS
 
-- Traefik - Reverse Proxy
+In paranthesis, the system on which it runs.
+
+- NUC - Intel NUC Home Server with Pop OS
+- SYNOLOGY - Synology DS918+ NAS
+- WEB - Digital Ocean Virtual Private Server with Ubuntu 20.04
+- OBSOLETE - Not used anymore
+
+See the corresponding Docker Compose file for the compose snippet.
+
+- Traefik - Reverse Proxy (NUC and WEB)
+- Docker Socket Proxy - Secure Proxy for Docker API (NUC, SYNOLOGY, and WEB)
 - Traefik Custom Error Pages (OBSOLETE)
-- OAuth - Forward Authentication (Google OAuth 2.0)
-- Authelia - Private Forward Authentication (Default)
-- Portainer - Container Management
-- Organizr - Unified Frontend
-- Heimdall - Unified Frontend Alternative
-- Autoindex - Plain text Index to All Files
+- OAuth - Google OAuth 2 Forward Authentication (NUC and WEB)
+- Authelia - Private Forward Authentication (NUC and WEB)
+- Portainer - Container Management (SYNOLOGY and WEB)
+- Organizr - Unified Frontend (NUC)
+- Heimdall - Unified Frontend Alternative (NUC)
+- Autoindex - Plain text Index to All Files (NUC)
 
 ### SMART HOME
 
-- Home Assistant Core - Home Automation
+- Home Assistant Core - Home Automation (NUC)
 - HA-Dockermon - Manage Docker containers in Home Assistant (OBSOLETE)
-- Mosquitto - MQTT Broker
-- MotionEye - Video Surveillance
+- Mosquitto - MQTT Broker (SYNOLOGY)
+- MotionEye - Video Surveillance (NUC)
 - ZoneMinder - Video Surveillance (OBSOLETE)
 - MiFlora - MiFlora MQTT Daemon (MiFlora Plant Sensors) (OBSOLETE)
 
 ### DATABASE
 
-- MariaDB - MySQL Database
-- phpMyAdmin - Database management
-- InfluxDB - Database for sensor data
+- MariaDB - MySQL Database (SYNOLOGY and WEB)
+- phpMyAdmin - Database management (NUC and WEB)
+- InfluxDB - Database for sensor data (SYNOLOGY)
 - Postgres - Database (OBSOLETE)
-- Grafana - Graphical data visualization for InfluxDB data
+- Grafana - Graphical data visualization for InfluxDB data (NUC)
 - Varken - Monitor Plex, Sonarr, Radarr, and Other Data (OBSOLETE)
-- Redis - Key value store
-- Redis Commander - Redis management
+- Redis - Key value store (SYNOLOGY and WEB)
+- Redis Commander - Redis management (OBSOLETE)
 
 ### DOWNLOADERS
 
-- jDownloader - Download management
-- TransmissionBT with VPN - Torrent Downloader with [IPVanish](https://www.smarthomebeginner.com/go/ipvanish) VPN.
-- SABnzbd - Binary newsgrabber (NZB downloader)
+- jDownloader - Download management (NUC)
+- TransmissionBT with VPN - Torrent Downloader with [IPVanish](https://www.smarthomebeginner.com/go/ipvanish) VPN. (NUC)
+- SABnzbd - Binary newsgrabber, NZB downloader (NUC)
 - qBittorrent with VPN - Torrent downloader (OBSOLETE)
 
 ### INDEXERS
 
-- NZBHydra2 - NZB meta search
-- Jackett - Torrent proxy
+- NZBHydra2 - NZB meta search (NUC)
+- Jackett - Torrent proxy (NUC)
 
 ### PVRS
 
-- Lidarr - Music Management
-- Radarr - Movie management
-- Sonarr - TV Shows management
-- LazyLibrarian - Books Management
+- Lidarr - Music Management (NUC)
+- Radarr - Movie management (NUC)
+- Sonarr - TV Shows management (NUC)
+- LazyLibrarian - Books Management (NUC)
 
 ### MEDIA SERVER
 
-- AirSonic - Music Server
-- Calibre - Ebook/Audiobook Server
-- Calibre-Web - Ebook/Audiobook Reader
-- Plex - Media Server
-- Emby - Media Server
-- Jellyfin - Media Server
-- Ombi - Media Requests
-- Tautulli - Previously PlexPy. Plex statistics and monitoring
-- Plex-Sync - For Syncing watched status between plex servers
-- PhotoShow - Personal Photo Gallery and viewer
+- AirSonic - Music Server (NUC)
+- Calibre - Ebook/Audiobook Server (NUC)
+- Calibre-Web - Ebook/Audiobook Reader (NUC)
+- Plex - Media Server (NUC and SYNOLOGY)
+- Emby - Media Server (NUC)
+- Jellyfin - Media Server (NUC)
+- Ombi - Media Requests (NUC)
+- Tautulli - Previously PlexPy. Plex statistics and monitoring (NUC)
+- Plex-Sync - For Syncing watched status between plex servers (NUC)
+- PhotoShow - Personal Photo Gallery and viewer (NUC)
 - TellyTv- IPTV proxy for Plex (OBSOLETE)
 - xTeve- IPTV proxy for Plex (OBSOLETE)
 
 ### MEDIA FILE MANAGEMENT
 
-- Bazarr - Subtitle Management
-- Picard - Music Library Tagging and Management
-- Handbrake - Video Conversion (Transcoding and compression)
-- MKVToolNix - Video Editing (Remuxing - changing media container while keeping original source quality)
-- MakeMKV - Video Editing (Ripping from Disks)
-- FileBot - File renamer
+- Bazarr - Subtitle Management (NUC)
+- Picard - Music Library Tagging and Management (NUC)
+- Handbrake - Video Conversion, Transcoding, and Compression (NUC)
+- MKVToolNix - Video Editing, Remuxing (changing media container while keeping original source quality) (NUC)
+- MakeMKV - Video Editing (Ripping from Disks) (NUC)
+- FileBot - File renamer (NUC)
 
 ### UTILITIES
 
-- Firefox - Web Broswer
-- Duplicati - Backup App
-- Glances - System Information
-- APCUPSD - APC UPS Management
-- Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser
-- Guacamole Daemon - Needed for Guacamole
-- Dozzle - Docker logs viewer
-- qDirStat - Directory Statistics
-- StatPing - Status Page & Monitoring Server
+- Firefox - Web Broswer (NUC)
+- Duplicati - Backup App (NUC)
+- Glances - System Information (NUC, SYNOLOGY, and WEB)
+- APCUPSD - APC UPS Management (NUC)
+- Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser (NUC)
+- Guacamole Daemon - Needed for Guacamole (NUC)
+- Dozzle - Docker logs viewer (NUC and WEB)
+- qDirStat - Directory Statistics (NUC)
+- StatPing - Status Page & Monitoring Server (NUC)
 - SmokePing - Network Latency Monitoring (OBSOLETE)
-- VS Code Server - Code Editor
+- VS Code Server - Code Editor (NUC and WEB)
 - Logarr - Log Management (OBSOLETE)
 - Monitorr - Webfront to display the status of any webapp or service (OBSOLETE)
 - Cloud Commander - Web File Manager (OBSOLETE)
 - Cloud9 - Cloud IDE (OBSOLETE)
-- SMTP To Telegram - Sends all incoming Email messages to Telegram
+- SMTP To Telegram - Sends all incoming Email messages to Telegram (NUC)
+- UniFi Controller - Controller for Ubiquiti UniFi Network Gear (WEB)
+
+### WEB
+
+- Nginx - Web Server (WEB)
+- php7 - PHP-FPM (WEB)
 
 ### MAINTENANCE
 
-- Watchtower - Automatic Docker Container Updates
-- Docker-GC - Automatic Docker Garbage Collection
-- Traefik Certificate Dumper - Extract Traefik SSL Certs
-- Cloudflare DDNS - Dynamic IP Updater
-- Cloudflare Companion - Automatic CNAME creation for services
-
-## MariaDB
-
-Even though I have included a MariaDB container, I use an external MariaDB host (my Synology NAS).
+- Watchtower - Automatic Docker Container Updates (NUC, SYNOLOGY, and WEB)
+- Docker-GC - Automatic Docker Garbage Collection (NUC, SYNOLOGY, and WEB)
+- Traefik Certificate Dumper - Extract Traefik SSL Certs (NUC and WEB)
+- Cloudflare DDNS - Dynamic IP Updater (SYNOLOGY)
+- Cloudflare Companion - Automatic CNAME creation for services (NUC)
 
 # Usage
 
@@ -162,10 +174,8 @@ Even though I have included a MariaDB container, I use an external MariaDB host 
 First, install Docker and Docker Compose, as described in our <a href="https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/">Docker Media Server guide</a>.
 
 1. Clone the repo.
-2. Configure `traefik.toml`
+2. Configure Traefik Docker-Compose snippet and CLI arguments.
 
-- Rename `traefik\traefik.toml.example` to `traefik\traefik.toml`
-- Edit it to reflect your situation
 - Edit domain name.
 - DNS Challenge (for LetsEncrypt verification) is enabled by default for cloudflare. Use the [Traefik Reverse Proxy guide](https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/) for help with this.
 - For other providers other than cloudflare, [check here](https://docs.traefik.io/v2.0/https/acme/#providers).
@@ -178,9 +188,9 @@ First, install Docker and Docker Compose, as described in our <a href="https://w
 - All variables (ie. `${XXX}`) in docker-compose.yml come from `.env` file stored in the same place as docker-compose.yml.
 - Ensure good permissions for the `.env` file (recommended: 640).
 
-5. Edit `docker-compose.yml` to include only the services you want or add additional services to it. Be sure to read the comments for each app and create any required files.
+5. Edit `docker-compose-t2.yml` to include only the services you want or add additional services to it. Be sure to read the comments for each app and create any required files. You can copy snippets between any of the various docker-compose files in the repo.
 6. Start and stop your docker stack as described in our [Docker Media Server guide](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/).
-7. (Optional) Put non-docker apps behind Traefik proxy by renaming `traefik\rules\app.toml.example` to `traefik\rules\app.toml` and editing its contents.
+7. (Optional) Put non-docker apps behind Traefik proxy by creating traefik rules based on the examples provided.
 
 ## Starting and Stopping
 

@@ -273,6 +273,7 @@ services:
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
+      - "traefik.http.routers.oauth-rtr.tls=true"
       - "traefik.http.routers.oauth-rtr.entrypoints=https"
       - "traefik.http.routers.oauth-rtr.rule=Host(`oauth.$DOMAINNAME`)"
       ## Middlewares
@@ -311,6 +312,7 @@ services:
       ## HTTP Routers
       - "traefik.http.routers.authelia-rtr.entrypoints=https"
       - "traefik.http.routers.authelia-rtr.rule=Host(`authelia.$DOMAINNAME`)"
+      - "traefik.http.routers.authelia-rtr.tls=true"
       ## Middlewares
       - "traefik.http.routers.authelia-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
@@ -1546,6 +1548,7 @@ services:
     volumes:
       - $DOCKERDIR/firefox:/config
       - $USERDIR/Downloads/completed:/config/downloads
+      - /media/ds918/downloads:/nas/downloads
       - /dev/shm:/dev/shm
       - $DOCKERDIR/shared:/shared
     environment:
