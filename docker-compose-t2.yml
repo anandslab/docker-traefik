@@ -1,23 +1,21 @@
 version: "3.7"
 
 ########################### NETWORKS
-# Create t2_proxy network
-# docker network create t2_proxy
-# docker network create socket_proxy
-# Alternatively, you can specify the gateway and subnet to use
-# docker network create --gateway 192.168.90.1 --subnet 192.168.90.0/24 t2_proxy
-# docker network create --gateway 192.168.91.1 --subnet 192.168.91.0/24 socket_proxy
-# Subnet range 192.168.0.0/16 covers 192.168.0.0 to 192.168.255.255
-
 networks:
   t2_proxy:
-    external:
-      name: t2_proxy
-  default:
+    name: t2_proxy
     driver: bridge
+    ipam: # You can specify the subnet for each network, directly or using env variables
+      config:
+        - subnet: 192.168.90.0/24
   socket_proxy:
-    external:
-      name: socket_proxy
+    name: socket_proxy
+    driver: bridge
+    ipam: 
+      config:
+        - subnet: 192.168.91.0/24
+  default: # This default bridge will be implicitly created, so it can be omitted if you do not want to assign a specific subnet
+    driver: bridge
 
 ########################### SECRETS
 secrets:
@@ -120,8 +118,6 @@ services:
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
-      # networks:
-      #   - t2_proxy
       socket_proxy:
     #depends_on:
     #  - socket-proxy
@@ -186,7 +182,6 @@ services:
     image: fluencelabs/docker-socket-proxy
     restart: always
     networks:
-      # t2_proxy:
       socket_proxy:
         ipv4_address: 192.168.91.254 # You can specify a static IP
     privileged: true
@@ -244,7 +239,7 @@ services:
     # image: thomseddon/traefik-forward-auth:2.1-arm # Use this image with Raspberry Pi
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # Allow apps to bypass OAuth. Radarr example below will bypass OAuth if API key is present in the request (eg. from NZB360 mobile app).
@@ -289,7 +284,7 @@ services:
     image: authelia/authelia:latest
     restart: always
     networks:
-      - t2_proxy
+      t2_proxy:
     # ports:
     #   - "9091:9091"
     volumes:
@@ -328,7 +323,7 @@ services:
     image: organizrtools/organizr-v2:latest
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -361,7 +356,7 @@ services:
     image: linuxserver/heimdall:latest
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     #    ports:
@@ -389,7 +384,7 @@ services:
     image: dceoy/nginx-autoindex:latest
     restart: always
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -417,7 +412,7 @@ services:
     image: homeassistant/home-assistant:0.113.3
     network_mode: host
     #    networks:
-    #      - t2_proxy
+    #      t2_proxy:
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
       - /dev/ttyUSB1:/dev/ttyUSB1
@@ -442,7 +437,7 @@ services:
     restart: unless-stopped
     image: homeassistant/home-assistant:0.111.0
     networks:
-      - t2_proxy
+      t2_proxy:
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
       - /dev/ttyUSB1:/dev/ttyUSB1
@@ -472,7 +467,7 @@ services:
     container_name: motioneye
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     ports:
@@ -518,7 +513,7 @@ services:
     container_name: phpmyadmin
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -552,7 +547,7 @@ services:
     image: rediscommander/redis-commander:latest
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     # ports:
     #   - "$REDISCOMMANDER_PORT:8081"
     security_opt:
@@ -577,7 +572,7 @@ services:
     container_name: grafana
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -606,7 +601,7 @@ services:
     container_name: jdownloader
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -642,7 +637,6 @@ services:
     container_name: transmission-vpn
     restart: always
     networks:
-      # - t2_proxy
       t2_proxy:
         ipv4_address: 192.168.90.90
     # security_opt:
@@ -710,7 +704,7 @@ services:
     container_name: sabnzbd
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     ports:
@@ -752,7 +746,7 @@ services:
     restart: always
     # network_mode: container:transmission-vpn
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     ports:
@@ -782,7 +776,7 @@ services:
     container_name: hydra
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -814,7 +808,7 @@ services:
     container_name: lidarr
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     ports:
@@ -854,7 +848,7 @@ services:
     container_name: radarr
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     ports:
@@ -895,7 +889,7 @@ services:
     container_name: sonarr
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     ports:
@@ -934,7 +928,7 @@ services:
     container_name: lazylibrarian
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -969,7 +963,7 @@ services:
     container_name: calibre-web
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1002,7 +996,7 @@ services:
     container_name: calibre
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1037,7 +1031,7 @@ services:
     image: linuxserver/airsonic:latest
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1071,7 +1065,7 @@ services:
     container_name: plexms
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     devices:
       - /dev/dri:/dev/dri # for harware transcoding
     security_opt:
@@ -1119,7 +1113,7 @@ services:
     container_name: embyms
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     devices:
       - /dev/dri:/dev/dri # for harware transcoding
     security_opt:
@@ -1155,7 +1149,7 @@ services:
     container_name: jellyfin
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     devices:
       - /dev/dri:/dev/dri # for harware transcoding
     security_opt:
@@ -1190,7 +1184,7 @@ services:
     container_name: ombi
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     # ports:
     #  - "$OMBI_PORT:3579"
     security_opt:
@@ -1220,7 +1214,7 @@ services:
     container_name: tautulli
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1262,7 +1256,7 @@ services:
     container_name: photoshow
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1294,7 +1288,7 @@ services:
     container_name: bazarr
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1323,7 +1317,7 @@ services:
     container_name: picard
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1357,7 +1351,7 @@ services:
     container_name: handbrake
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1395,7 +1389,7 @@ services:
     container_name: mkvtoolnix
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1430,7 +1424,7 @@ services:
     container_name: makemkv
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1467,7 +1461,7 @@ services:
     container_name: filebot
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1507,7 +1501,7 @@ services:
     container_name: duplicati
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1539,7 +1533,7 @@ services:
     container_name: firefox
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
       - seccomp:unconfined # October 15, 2020 https://github.com/jlesage/docker-firefox/blob/master/README.md#allowing-the-membarrier-system-call
@@ -1580,8 +1574,8 @@ services:
     privileged: true
     # network_mode: host
     networks:
-      - t2_proxy
-      - socket_proxy
+      t2_proxy:
+      socket_proxy:
     depends_on:
       - socket-proxy
     security_opt:
@@ -1614,7 +1608,7 @@ services:
     container_name: apcupsd
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     ports:
@@ -1633,7 +1627,7 @@ services:
     container_name: qdirstat
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1670,7 +1664,7 @@ services:
     container_name: guacamole
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1704,7 +1698,7 @@ services:
     container_name: guacd
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
 
@@ -1714,8 +1708,8 @@ services:
     container_name: dozzle
     restart: unless-stopped
     networks:
-      - t2_proxy
-      - socket_proxy
+      t2_proxy:
+      socket_proxy:
     depends_on:
       - socket-proxy
     security_opt:
@@ -1747,7 +1741,7 @@ services:
     container_name: statping
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1783,7 +1777,7 @@ services:
     container_name: vscode
     restart: unless-stopped
     networks:
-      - t2_proxy
+      t2_proxy:
     ports:
       - "$VSCODE_PORT:8080"
     volumes:
@@ -1817,7 +1811,7 @@ services:
     container_name: smtp_to_telegram
     restart: always
     networks:
-      - default
+      default:
     environment:
       TZ: $TZ
       ST_TELEGRAM_CHAT_IDS: $TGRAM_CHAT_ID
@@ -1832,8 +1826,8 @@ services:
     container_name: watchtower
     restart: unless-stopped
     networks:
-      - default
-      - socket_proxy
+      default:
+      socket_proxy:
     depends_on:
       - socket-proxy
     environment:
@@ -1856,7 +1850,7 @@ services:
     container_name: docker-gc
     restart: unless-stopped
     networks:
-      - socket_proxy
+      socket_proxy:
     depends_on:
       - socket-proxy
     volumes:
@@ -1898,7 +1892,7 @@ services:
       - no-new-privileges:true
     restart: unless-stopped
     networks:
-      - socket_proxy
+      socket_proxy:
     #depends_on:
     #  - socket-proxy
     environment:

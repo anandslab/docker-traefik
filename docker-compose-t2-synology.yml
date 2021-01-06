@@ -5,18 +5,15 @@ version: "3.7"
 # But you can copy-paste almost any app from the other Docker Compose files in this repo to add the app to your Synology Docker stack.
 
 ########################### NETWORKS
-# Create socket_proxy network
-# docker network create socket_proxy
-# Alternatively, you can specify the gateway and subnet to use
-# docker network create --gateway 192.168.253.1 --subnet 192.168.253.0/24 socket_proxy
-# Subnet range 192.168.0.0/16 covers 192.168.0.0 to 192.168.255.255
-
 networks:
-  default:
-    driver: bridge
   socket_proxy:
-    external:
-      name: socket_proxy
+    name: socket_proxy
+    driver: bridge
+    ipam: # You can specify the subnet for each network, directly or using env variables
+      config:
+        - subnet: 192.168.253.0/24
+  default: # This default bridge will be implicitly created, so it can be omitted if you do not want to assign a specific subnet
+    driver: bridge
 
 ########################### SECRETS
 secrets:
@@ -88,7 +85,7 @@ services:
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
     command: -H tcp://socket-proxy:2375
     networks:
-      - socket_proxy
+      socket_proxy:
     ports:
       - "$PORTAINER_PORT:9000"
     security_opt:
@@ -213,7 +210,7 @@ services:
     privileged: true
     # network_mode: host
     networks:
-      - socket_proxy
+      socket_proxy:
     security_opt:
       - no-new-privileges:true
     ports:
@@ -235,8 +232,8 @@ services:
     container_name: watchtower
     restart: unless-stopped
     networks:
-      - default
-      - socket_proxy
+      default:
+      socket_proxy:
     depends_on:
       - socket-proxy
     environment:
@@ -259,7 +256,7 @@ services:
     container_name: docker-gc
     restart: unless-stopped
     networks:
-      - socket_proxy
+      socket_proxy:
     volumes:
       # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude
