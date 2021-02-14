@@ -1,0 +1,9 @@
+/home/USER/docker/appdata/rclone/logs/* {
+    daily
+    rotate 4
+    size 10M
+    notifempty
+    missingok
+    compress
+    delaycompress
+}

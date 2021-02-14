@@ -1,0 +1,56 @@
+#!/bin/bash
+# This script is to convert my unexcrypted media on GDrive to Encrypted
+
+#status=`ps -efww | grep -w "[d]rive-to-crypt.sh" | awk -vpid=$$ '$2 != pid { print $2 }'`
+#if [ ! -z "$status" ]; then
+#    echo "[`date`] : drive-to-crypt.sh : Process is already running"
+#    exit 1;
+#fi
+
+# Variables to verify match your installation
+DOCKERFOLDER=/home/USER/docker
+RCLONE_USER=USER
+
+# Rclone Config file
+RCLONE_CONFIG=$DOCKERFOLDER/appdata/rclone/rclone.conf
+export RCLONE_CONFIG
+
+# User account that Rclone is running as
+RCLONE_USER_AGENT=$RCLONE_USER
+export RCLONE_USER_AGENT
+
+# Local Mount - Ensure this is set to your local disk only.
+#LOCAL=/media/shb-drive/media
+EXCLUDES=$DOCKERFOLDER/scripts/upload-excludes.log
+LOGFILE=$DOCKERFOLDER/appdata/rclone/logs/drive-to-crypt.log
+
+# Name of your Rclone Remote, likely cloud or cloudcrypt
+REMOTE_CRYPT=shb-crypt
+REMOTE_DRIVE=shb-drive
+
+# This will move pretty much everying (older than 1s)
+MOVEAGE=1s
+
+# Checks
+# Running Check
+if [[ $(pidof -x "$(basename "$0")" -o %PPID) ]]; then exit; fi
+
+# Exclude File Check
+if [[ ! -f $EXCLUDES ]] ; then
+    echo 'Warning: No excludes.log file found at $EXCLUDES'
+    exit 1
+fi
+
+# Local Disk Check
+#if /bin/findmnt $LOCAL -o FSTYPE -n | grep fuse; then
+#        echo "Warning: $LOCAL is not a local disk!"
+#        exit 1
+#fi
+
+# Rclone Move Command. 
+# The bwlimit will will average around 2.75 MB/s, which equates to about 237 GB per day one-way. 
+# Total bandwidth for downloading, encrypting, and re-uploading will be 237x2=474 GB. 
+# Google Drive has a maximum of 750 GB per day for Business Account
+/usr/bin/rclone move $REMOTE_DRIVE:/media $REMOTE_CRYPT:/media --log-file $LOGFILE -v --bwlimit "08:00,2M 23:00,4M" --exclude-from $EXCLUDES --fast-list --min-age $MOVEAGE
+
+fi

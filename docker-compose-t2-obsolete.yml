@@ -1,6 +1,5 @@
 version: "3.7"
-
-################ THESE ARE APPS I USED TO USE BUT NOT ANYMORE ###########
+# THESE ARE APPS I DO NOT USE ANYMORE OR TESTED BUT FOUND TO BE NOT USEFUL TO ME
 
 ########################### NETWORKS
 networks:
@@ -443,3 +442,256 @@ services:
       # HTTP Services
       - "traefik.http.routers.traefik-error-pages-rtr.service=traefik-error-pages-svc"
       - "traefik.http.services.traefik-error-pages-svc.loadbalancer.server.port=80"
+
+  # Ombi - Media Requests
+  ombi:
+    image: linuxserver/ombi:latest
+    container_name: ombi
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    # ports:
+    #  - "$OMBI_PORT:3579"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - $DOCKERDIR/appdata/ombi:/config
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      BASE_URL: /ombi #optional
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.ombi-rtr.entrypoints=https"
+      - "traefik.http.routers.ombi-rtr.rule=Host(`ombi.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.ombi-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.ombi-rtr.service=ombi-svc"
+      - "traefik.http.services.ombi-svc.loadbalancer.server.port=3579"
+
+  # Emby - Media Server
+  embyms:
+    image: emby/embyserver:latest
+    container_name: embyms
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    devices:
+      - /dev/dri:/dev/dri # for harware transcoding
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "$EMBY_PORT:8096/tcp"
+      - "8920:8920/tcp"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - $DOCKERDIR/appdata/embyms:/config
+      - /dev/shm:/data/transcode
+      - $DATADIR/media:/data/media
+      - $DATADIR/Downloads:/data/downloads
+    environment:
+      TZ: $TZ
+      HOSTNAME: "nucEmby"
+      UID: $PUID
+      GID: $PGID
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.embyms-rtr.entrypoints=https"
+      - "traefik.http.routers.embyms-rtr.rule=Host(`nucemby.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.embyms-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.embyms-rtr.service=embyms-svc"
+      - "traefik.http.services.embyms-svc.loadbalancer.server.port=8096"
+
+  # Plex-Sync - For Syncing watched status between plex servers
+  plex-sync:
+    image: patsissons/plex-sync:develop
+    container_name: plex-sync
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      INITIAL_RUN: "true"
+      # DRY_RUN: 0
+      CRON_SCHEDULE: "*/5 * * * *"
+      SECTION_MAPS: $SYN_PLEX/$SYN_PLEX_HOLLYWOOD $NUC_PLEX/$NUC_PLEX_HOLLYWOOD | $SYN_PLEX/$SYN_PLEX_TVSHOWS $NUC_PLEX/$NUC_PLEX_TVSHOWS | $SYN_PLEX/$SYN_PLEX_INDIAN $NUC_PLEX/$NUC_PLEX_INDIAN | $SYN_PLEX/$SYN_PLEX_KOLLYWOOD $NUC_PLEX/$NUC_PLEX_KOLLYWOOD | $SYN_PLEX/$SYN_PLEX_DOCMOVIES $NUC_PLEX/$NUC_PLEX_DOCMOVIES | $SYN_PLEX/$SYN_PLEX_DOCSHOWS $NUC_PLEX/$NUC_PLEX_DOCSHOWS | $SYN_PLEX/$SYN_PLEX_KIDSMOVIES $NUC_PLEX/$NUC_PLEX_KIDSMOVIES | $SYN_PLEX/$SYN_PLEX_INTERNATIONAL $NUC_PLEX/$NUC_PLEX_INTERNATIONAL
+    restart: unless-stopped
+
+  # SMTP to Telegram - Send SMTP Notifications as Telegram Message
+  # Use case: https://github.com/htpcBeginner/docker-traefik/issues/78
+  smtp_to_telegram:
+    image: kostyaesmukov/smtp_to_telegram
+    container_name: smtp_to_telegram
+    restart: always
+    networks:
+      - default
+    environment:
+      TZ: $TZ
+      ST_TELEGRAM_CHAT_IDS: $TGRAM_CHAT_ID
+      ST_TELEGRAM_BOT_TOKEN: $TGRAM_BOT_TOKEN
+      ST_TELEGRAM_MESSAGE_TEMPLATE: "{subject}\\n{body}"
+
+  # WatchTower - Automatic Docker Container Updates
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    networks:
+      - socket_proxy
+    depends_on:
+      - socket-proxy
+    environment:
+      TZ: $TZ
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_REMOVE_VOLUMES: "true"
+      WATCHTOWER_INCLUDE_STOPPED: "true"
+      WATCHTOWER_NO_STARTUP_MESSAGE: "false"
+      WATCHTOWER_SCHEDULE: "0 30 12 * * *" # Everyday at 12:30
+      WATCHTOWER_NOTIFICATIONS: shoutrrr
+      WATCHTOWER_NOTIFICATION_URL: "telegram://$TGRAM_BOT_TOKEN@telegram?channels=$TGRAM_CHAT_ID"
+      WATCHTOWER_NOTIFICATIONS_LEVEL: info
+      DOCKER_HOST: tcp://socket-proxy:2375
+      DOCKER_API_VERSION: "1.40"
+
+  # Rclone - Google Drive Mount
+  # https://github.com/openbridge/ob_bulkstash/issues/19
+  # https://github.com/romancin/rclonebrowser-docker
+  # https://github.com/romancin/rclonebrowser-docker
+  # https://hub.docker.com/r/d2dyno/rclone-gui
+  rclone-drive:
+    container_name: rclone-drive
+    hostname: rclone-drive
+    image: rclone/rclone:1.52.3 #1.50.2 # latest v1.53 and above getting 403 DownloadQuotaExceeded error.
+    restart: always
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    user: $PUID:$PGID
+    command:
+      "mount shb-drive: /data/shb-drive \
+      --read-only \
+      --use-mmap \
+      --allow-other \
+      --allow-non-empty \
+      --dir-cache-time=1000h \
+      --poll-interval=15s \
+      --uid=1000 \
+      --gid=1000 \
+      --buffer-size=128M \
+      --umask=002 \
+      --drive-chunk-size=128M \
+      --user-agent=dvm300drive \
+      --cache-dir=/data/cache/shb-drive \
+      --vfs-cache-mode=full \
+      --vfs-cache-max-age=336h \
+      --vfs-cache-max-size=768G \
+      --vfs-read-chunk-size=16M \
+      --vfs-read-chunk-size-limit=256M \
+      --log-file /config/rclone/logs/shb-drive.log \
+      --log-level NOTICE"
+      #--bwlimit 150M \
+      #--bwlimit-file 40M \
+    devices:
+      - /dev/fuse
+    volumes:
+      - $DOCKERDIR/appdata/rclone:/config/rclone
+      - /media/shb-drive:/data/shb-drive:shared
+      - /media/hdd1/cache/shb-drive:/data/cache/shb-drive
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - /etc/fuse.conf:/etc/fuse.conf:ro
+    environment:
+      - TZ=$TZ
+
+  # Rclone - Google Drive Mount
+  rclone-crypt:
+    container_name: rclone-crypt
+    hostname: rclone-crypt
+    image: rclone/rclone:1.52.3 #1.50.2 # latest v1.53 and above getting 403 DownloadQuotaExceeded error.
+    restart: always
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    user: $PUID:$PGID
+    command:
+      "mount shb-crypt: /data/shb-crypt \
+      --use-mmap \
+      --allow-other \
+      --allow-non-empty \
+      --dir-cache-time=1000h \
+      --poll-interval=15s \
+      --uid=1000 \
+      --gid=1000 \
+      --buffer-size=128M \
+      --umask=002 \
+      --drive-chunk-size=128M \
+      --user-agent=dvm300crypt \
+      --cache-dir=/data/cache/shb-crypt \
+      --vfs-cache-mode=full \
+      --vfs-cache-max-age=336h \
+      --vfs-cache-max-size=512G \
+      --vfs-read-chunk-size=16M \
+      --vfs-read-chunk-size-limit=256M \
+      --log-file /config/rclone/logs/shb-crypt.log \
+      --log-level NOTICE"
+      #--bwlimit 3M \
+      # 3M approxmimately equals 253 GB limit per day
+      # previously buffer 256 buffer 256 chunk size 128 read and limit off
+    devices:
+      - /dev/fuse
+    volumes:
+      - $DOCKERDIR/appdata/rclone:/config/rclone
+      - /media/shb-crypt:/data/shb-crypt:shared
+      - /media/hdd1/cache/shb-crypt:/data/cache/shb-crypt
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - /etc/fuse.conf:/etc/fuse.conf:ro
+    environment:
+      - TZ=$TZ
+
+  # MergerFS - A featureful union filesystem
+  mergerfs:
+    container_name: mergerfs
+    hostname: mergerfs
+    image: hotio/mergerfs:latest
+    restart: always
+    depends_on:
+      - rclone-drive
+      - rclone-crypt
+    user: $PUID:$PGID
+    command: "/data/media-local:/data/media-crypt:/data/media-drive=RO \
+      /data/media \
+      -o rw,\
+      use_ino,\
+      allow_other,\
+      func.getattr=newest,\
+      category.action=all,\
+      category.create=ff,\
+      statfs_ignore=nc,\
+      cache.files=auto-full,\
+      func.getattr=newest,\
+      dropcacheonclose=true,\
+      nonempty"
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    devices:
+      - /dev/fuse
+    environment:
+      - TZ=$TZ
+    volumes:
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - /etc/fuse.conf:/etc/fuse.conf:shared
+      #- $DATADIR:/data:slave # creates local-media and shb-media on host
+      - $DATADIR/local/media:/data/media-local:rshared
+      - /media/shb-drive/media:/data/media-drive:rshared
+      - /media/shb-crypt/media:/data/media-crypt:rshared
+      - $DATADIR/media:/data/media:rshared

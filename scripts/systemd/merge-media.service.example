@@ -1,0 +1,19 @@
+[Unit]
+Description=Mergerfs Mount Media
+Wants=rclone-drive.service rclone-crypt.service
+After=rclone-drive.service rclone-crypt.service
+RequiresMountsFor=/media/shb-drive /media/shb-crypt /media/hdd1
+
+[Service]
+Type=forking 
+ExecStart=/usr/bin/mergerfs /media/hdd1/data/local/media:/media/shb-crypt/media:/media/shb-drive/media=RO /media/hdd1/data/media \
+-o rw,use_ino,allow_other,func.getattr=newest,category.action=all,category.create=ff,statfs_ignore=nc,cache.files=auto-full,func.getattr=newest,dropcacheonclose=true,nonempty
+KillMode=process
+Restart=on-failure
+RestartSec=10
+User=USER
+Group=USER
+#async_read=false,cache.files=partial,fsname=unionfs
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,51 @@
+#!/bin/bash
+rclone_drive="/media/shb-drive"
+rclone_crypt="/media/shb-crypt"
+hdd1="/media/hdd1"
+merge_media="/media/hdd1/data/media"
+
+mounted=0
+notmounted=""
+
+if mount | grep ${rclone_drive} > /dev/null; then
+	mounted=$((mounted+1))
+#	echo -e ${rclone_drive}' mounted.'
+else 
+#	echo ${rclone_drive}' not mounted.'
+	notmounted="${notmounted} ${rclone_drive}\n"
+fi
+
+if mount | grep ${rclone_crypt} > /dev/null; then
+	mounted=$((mounted+1))
+#	echo -e ${rclone_crypt}' mounted.'
+else 
+#	echo -e ${rclone_crypt}' not mounted.'
+	notmounted="${notmounted} ${rclone_crypt}\n"
+fi
+
+if mount | grep ${hdd1} > /dev/null; then
+	mounted=$((mounted+1))
+#	echo -e ${hdd1}' mounted.'
+else 
+#	echo -e ${hdd1}' not mounted.'
+	notmounted="${notmounted} ${hdd1}\n"
+fi
+
+if mount | grep ${merge_media} > /dev/null; then
+	mounted=$((mounted+1))
+#	echo -e ${merge_media}' mounted.'
+else 
+#	echo -e ${merge_media}' not mounted.'
+	notmounted="${notmounted} ${merge_media}\n"
+fi
+
+#echo $mounted
+
+#echo -e ${notmounted}
+
+if [[ "$mounted" -ne 4 ]]; then
+	echo -e "These drives are not mounted properly:\n\n${notmounted}\n\nShutting down media containers." | mail -s "[DVM ERROR] Some drives not mounted" info@example.com -aFrom:DockerVM@example.com
+	sudo docker stop $(cat /home/USER/docker/scripts/media-services.txt)
+#else
+	#echo "All drives mounted." | mail -s "All drives mounted." info@example.com -aFrom:DockerVM@example.com
+fi

@@ -1,12 +1,24 @@
 # Changelog
 
-- Only showing high-level changes. Smaller changes are too many to list.
+- Only showing high-level changes. Smaller changes are too many to list. See commits.
 
 ## Planned:
 
 - Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, fail2ban, ofelia
 - improvements from https://github.com/jamescurtin/traefik-proxy
 - implement secrets and remove variables from .env
+- add prometheus, glances to influxdb, speedtest to influxdb
+- Merge smarthomebeginner.com docker-compose (docker-compose-t2-web.yml) to cloud/seedbox.
+- Web GUI for rclone
+- Switch to Hotio.dev's cloudflareddns,
+
+## January 6, 2020
+
+- Moved server to Proxmox on a dedicated cloud/seedbox.
+- Extensive tidying up of the setup.
+- Moved all container data to the new "appdata" folder.
+- Added Google Drive using rclone and mergerfs.
+- Removed Emby. Added Readarr and Tiny Media Manager
 
 ## October 15, 2020
 

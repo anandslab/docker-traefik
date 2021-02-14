@@ -46,128 +46,132 @@ The following posts have been combined and updated for Traefik v2 (linked above)
 
 - docker-compose-t1-swarm.yml
 
-## What apps are included in this stack?
+## MY SETUP
 
-We will try to keep this repo up-to-date. For now, here are the apps currently included in our stack:
-
-### FRONTENDS
-
-In paranthesis, the system on which it runs.
-
-- NUC - Intel NUC Home Server with Pop OS
+- MAIN - Ryzen 7 3800x Proxmox Server with Ubuntu 20.04
+- NUC - Intel NUC Home Server with Pop OS (future Proxmox)
 - SYNOLOGY - Synology DS918+ NAS
 - WEB - Digital Ocean Virtual Private Server with Ubuntu 20.04
 - OBSOLETE - Not used anymore
 
-See the corresponding Docker Compose file for the compose snippet.
+## What apps are included in this stack?
 
-- Traefik - Reverse Proxy (NUC and WEB)
-- Docker Socket Proxy - Secure Proxy for Docker API (NUC, SYNOLOGY, and WEB)
+The apps I use are scattered around in five different docker-compose files (on five hosts listed above). Some apps are used in more than one host and some on only one.
+
+### FRONTENDS
+
+- Traefik - Reverse Proxy
+- Docker Socket Proxy - Secure Proxy for Docker API
 - Traefik Custom Error Pages (OBSOLETE)
-- OAuth - Google OAuth 2 Forward Authentication (NUC and WEB)
-- Authelia - Private Forward Authentication (NUC and WEB)
-- Portainer - Container Management (SYNOLOGY and WEB)
-- Organizr - Unified Frontend (NUC)
-- Heimdall - Unified Frontend Alternative (NUC)
-- Autoindex - Plain text Index to All Files (NUC)
+- OAuth - Google OAuth 2 Forward Authentication
+- Authelia - Private Forward Authentication
+- Portainer - Container Management
+- Organizr - Unified Frontend
+- Heimdall - Unified Frontend Alternative
+- Autoindex - Plain text Index to All Files
 
 ### SMART HOME
 
-- Home Assistant Core - Home Automation (NUC)
+- Home Assistant Core - Home Automation
 - HA-Dockermon - Manage Docker containers in Home Assistant (OBSOLETE)
-- Mosquitto - MQTT Broker (SYNOLOGY)
-- MotionEye - Video Surveillance (NUC)
+- Mosquitto - MQTT Broker
+- MotionEye - Video Surveillance
 - ZoneMinder - Video Surveillance (OBSOLETE)
 - MiFlora - MiFlora MQTT Daemon (MiFlora Plant Sensors) (OBSOLETE)
 
 ### DATABASE
 
-- MariaDB - MySQL Database (SYNOLOGY and WEB)
-- phpMyAdmin - Database management (NUC and WEB)
-- InfluxDB - Database for sensor data (SYNOLOGY)
+- MariaDB - MySQL Database
+- phpMyAdmin - Database management
+- InfluxDB - Database for sensor data
 - Postgres - Database (OBSOLETE)
-- Grafana - Graphical data visualization for InfluxDB data (NUC)
+- Grafana - Graphical data visualization for InfluxDB data
 - Varken - Monitor Plex, Sonarr, Radarr, and Other Data (OBSOLETE)
-- Redis - Key value store (SYNOLOGY and WEB)
-- Redis Commander - Redis management (OBSOLETE)
+- Redis - Key value store
+- Redis Commander - Redis management
 
 ### DOWNLOADERS
 
-- jDownloader - Download management (NUC)
-- TransmissionBT with VPN - Torrent Downloader with [IPVanish](https://www.smarthomebeginner.com/go/ipvanish) VPN. (NUC)
-- SABnzbd - Binary newsgrabber, NZB downloader (NUC)
+- jDownloader - Download management
+- TransmissionBT with VPN - Torrent Downloader with [IPVanish](https://www.smarthomebeginner.com/go/ipvanish) VPN.
+- SABnzbd - Binary newsgrabber, NZB downloader
 - qBittorrent with VPN - Torrent downloader (OBSOLETE)
 
 ### INDEXERS
 
-- NZBHydra2 - NZB meta search (NUC)
-- Jackett - Torrent proxy (NUC)
+- NZBHydra2 - NZB meta search
+- Jackett - Torrent proxy
 
 ### PVRS
 
-- Lidarr - Music Management (NUC)
-- Radarr - Movie management (NUC)
-- Sonarr - TV Shows management (NUC)
-- LazyLibrarian - Books Management (NUC)
+- Lidarr - Music Management
+- Radarr - Movie management
+- Sonarr - TV Shows management
+- LazyLibrarian - Books Management
+- Readarr - Books Management
 
 ### MEDIA SERVER
 
-- AirSonic - Music Server (NUC)
-- Calibre - Ebook/Audiobook Server (NUC)
-- Calibre-Web - Ebook/Audiobook Reader (NUC)
-- Plex - Media Server (NUC and SYNOLOGY)
-- Emby - Media Server (NUC)
-- Jellyfin - Media Server (NUC)
-- Ombi - Media Requests (NUC)
-- Tautulli - Previously PlexPy. Plex statistics and monitoring (NUC)
-- Plex-Sync - For Syncing watched status between plex servers (NUC)
-- PhotoShow - Personal Photo Gallery and viewer (NUC)
+- AirSonic - Music Server
+- Calibre - Ebook/Audiobook Server
+- Calibre-Web - Ebook/Audiobook Reader
+- Plex - Media Server
+- Emby - Media Server (OBSOLETE)
+- Jellyfin - Media Server
+- Ombi - Media Requests (OBSOLETE)
+- Tautulli - Previously PlexPy. Plex statistics and monitoring
+- Plex-Sync - For Syncing watched status between plex servers
+- PhotoShow - Personal Photo Gallery and viewer
 - TellyTv- IPTV proxy for Plex (OBSOLETE)
 - xTeve- IPTV proxy for Plex (OBSOLETE)
 
 ### MEDIA FILE MANAGEMENT
 
-- Bazarr - Subtitle Management (NUC)
-- Picard - Music Library Tagging and Management (NUC)
-- Handbrake - Video Conversion, Transcoding, and Compression (NUC)
-- MKVToolNix - Video Editing, Remuxing (changing media container while keeping original source quality) (NUC)
-- MakeMKV - Video Editing (Ripping from Disks) (NUC)
-- FileBot - File renamer (NUC)
+- Bazarr - Subtitle Management
+- Picard - Music Library Tagging and Management
+- Handbrake - Video Conversion, Transcoding, and Compression
+- MKVToolNix - Video Editing, Remuxing (changing media container while keeping original source quality)
+- MakeMKV - Video Editing (Ripping from Disks)
+- FileBot - File renamer
+- Tiny Media Manager - Media Files Management
 
 ### UTILITIES
 
-- Firefox - Web Broswer (NUC)
-- Duplicati - Backup App (NUC)
-- Glances - System Information (NUC, SYNOLOGY, and WEB)
-- APCUPSD - APC UPS Management (NUC)
-- Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser (NUC)
-- Guacamole Daemon - Needed for Guacamole (NUC)
-- Dozzle - Docker logs viewer (NUC and WEB)
-- qDirStat - Directory Statistics (NUC)
-- StatPing - Status Page & Monitoring Server (NUC)
+- Firefox - Web Broswer
+- Glances - System Information
+- APCUPSD - APC UPS Management
+- Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser
+- Guacamole Daemon - Needed for Guacamole
+- Dozzle - Docker logs viewer
+- qDirStat - Directory Statistics
+- StatPing - Status Page & Monitoring Server
 - SmokePing - Network Latency Monitoring (OBSOLETE)
-- VS Code Server - Code Editor (NUC and WEB)
+- VS Code Server - Code Editor
 - Logarr - Log Management (OBSOLETE)
 - Monitorr - Webfront to display the status of any webapp or service (OBSOLETE)
 - Cloud Commander - Web File Manager (OBSOLETE)
 - Cloud9 - Cloud IDE (OBSOLETE)
-- SMTP To Telegram - Sends all incoming Email messages to Telegram (NUC)
-- UniFi Controller - Controller for Ubiquiti UniFi Network Gear (WEB)
+- SMTP To Telegram - Sends all incoming Email messages to Telegram (OBSOLETE)
+- UniFi Controller - Controller for Ubiquiti UniFi Network Gear
+- Rclone - Mount Cloud/Google Drive (OBSOLETE)
+- MergerFS - Merge local and remote file systems (OBSOLETE)
 
 ### WEB
 
-- Nginx - Web Server (WEB)
-- php7 - PHP-FPM (WEB)
+- Nginx - Web Server
+- php7 - PHP-FPM
 
 ### MAINTENANCE
 
-- Watchtower - Automatic Docker Container Updates (NUC, SYNOLOGY, and WEB)
-- Docker-GC - Automatic Docker Garbage Collection (NUC, SYNOLOGY, and WEB)
-- Traefik Certificate Dumper - Extract Traefik SSL Certs (NUC and WEB)
-- Cloudflare DDNS - Dynamic IP Updater (SYNOLOGY)
-- Cloudflare Companion - Automatic CNAME creation for services (NUC)
+- Watchtower - Automatic Docker Container Updates (OBSOLETE)
+- Docker-GC - Automatic Docker Garbage Collection
+- Traefik Certificate Dumper - Extract Traefik SSL Certs
+- Cloudflare DDNS - Dynamic IP Updater
+- Cloudflare Companion - Automatic CNAME creation for services
 
 # Usage
+
+--------- ANYTHING THAT HAS "example" IN THE NAME WILL HAVE TO RENAMED APPROPRIATELY ---------
 
 ## Installation
 

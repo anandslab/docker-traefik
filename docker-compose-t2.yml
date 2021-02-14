@@ -1,62 +1,72 @@
 version: "3.7"
+# MAIN DOCKER-COMPOSE
+# DEDICATED SERVER IN A DATACENTER
+# AMD Ryzen 7 3800X
+# 32 GB RAM
+# 480 GB SSD for Proxmox
+# 3 TB HDD for Proxmox Dumps, Rclone Cache, MerferFS Local and Downloads
 
 ########################### NETWORKS
-# Create t2_proxy network
-# docker network create t2_proxy
-# docker network create socket_proxy
-# Alternatively, you can specify the gateway and subnet to use
-# docker network create --gateway 192.168.90.1 --subnet 192.168.90.0/24 t2_proxy
-# docker network create --gateway 192.168.91.1 --subnet 192.168.91.0/24 socket_proxy
-# Subnet range 192.168.0.0/16 covers 192.168.0.0 to 192.168.255.255
+# There is no need to create any networks outside this docker-compose file.
+# You may customize the network subnets (192.168.90.0/24 and 91.0/24) below as you please.
+# Docker Compose version 3.5 or higher required to define networks this way.
 
 networks:
   t2_proxy:
-    external:
-      name: t2_proxy
+    name: t2_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.90.0/24
   default:
     driver: bridge
   socket_proxy:
-    external:
-      name: socket_proxy
+    name: socket_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.91.0/24
 
 ########################### SECRETS
 secrets:
+  htpasswd:
+    file: $DOCKERDIR/secrets/htpasswd
   cloudflare_email:
-    file: $SECRETSDIR/cloudflare_email
+    file: $DOCKERDIR/secrets/cloudflare_email
   cloudflare_api_key:
-    file: $SECRETSDIR/cloudflare_api_key
+    file: $DOCKERDIR/secrets/cloudflare_api_key
   cloudflare_api_token:
-    file: $SECRETSDIR/cloudflare_api_token
+    file: $DOCKERDIR/secrets/cloudflare_api_token
   authelia_jwt_secret:
-    file: $SECRETSDIR/authelia_jwt_secret
+    file: $DOCKERDIR/secrets/authelia_jwt_secret
   authelia_session_secret:
-    file: $SECRETSDIR/authelia_session_secret
+    file: $DOCKERDIR/secrets/authelia_session_secret
   authelia_storage_mysql_password:
-    file: $SECRETSDIR/authelia_storage_mysql_password
+    file: $DOCKERDIR/secrets/authelia_storage_mysql_password
   authelia_notifier_smtp_password:
-    file: $SECRETSDIR/authelia_notifier_smtp_password
+    file: $DOCKERDIR/secrets/authelia_notifier_smtp_password
   authelia_duo_api_secret_key:
-    file: $SECRETSDIR/authelia_duo_api_secret_key
+    file: $DOCKERDIR/secrets/authelia_duo_api_secret_key
   oauth_secret:
-    file: $SECRETSDIR/oauth_secret
+    file: $DOCKERDIR/secrets/oauth_secret
   google_client_secret:
-    file: $SECRETSDIR/google_client_secret
+    file: $DOCKERDIR/secrets/google_client_secret
   google_client_id:
-    file: $SECRETSDIR/google_client_id
+    file: $DOCKERDIR/secrets/google_client_id
   my_email:
-    file: $SECRETSDIR/my_email
-  mysql_root_password:
-    file: $SECRETSDIR/mysql_root_password
+    file: $DOCKERDIR/secrets/my_email
   plex_claim:
-    file: $SECRETSDIR/plex_claim
+    file: $DOCKERDIR/secrets/plex_claim
   guac_db_name:
-    file: $SECRETSDIR/guac_db_name
+    file: $DOCKERDIR/secrets/guac_db_name
   guac_mysql_user:
-    file: $SECRETSDIR/guac_mysql_user
+    file: $DOCKERDIR/secrets/guac_mysql_user
   guac_mysql_password:
-    file: $SECRETSDIR/guac_mysql_password
+    file: $DOCKERDIR/secrets/guac_mysql_password
   traefik_pilot_token:
-    file: $SECRETSDIR/traefik_pilot_token
+    file: $DOCKERDIR/secrets/traefik_pilot_token
+  mysql_root_password:
+    file: $DOCKERDIR/secrets/mysql_root_password
 
 ########################### SERVICES
 services:
@@ -70,7 +80,7 @@ services:
   traefik:
     container_name: traefik
     image: traefik:picodon # chevrotin # the chevrotin tag refers to v2.2.x
-    restart: unless-stopped
+    restart: always
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=true
@@ -96,16 +106,16 @@ services:
       # - --providers.docker.endpoint=unix:///var/run/docker.sock # Use Docker Socket Proxy instead for improved security
       - --providers.docker.endpoint=tcp://socket-proxy:2375
       # Automatically set Host rule for services
-      # - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME`)
+      # - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME0`)
       - --providers.docker.exposedByDefault=false
       # - --entrypoints.https.http.middlewares=chain-oauth@file
       - --entrypoints.https.http.tls.options=tls-opts@file
       # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services
       - --entrypoints.https.http.tls.certresolver=dns-cloudflare
-      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME
-      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME
-      # - --entrypoints.https.http.tls.domains[1].main=$DOMAIN # Pulls main cert for second domain
-      # - --entrypoints.https.http.tls.domains[1].sans=*.$DOMAIN # Pulls wildcard cert for second domain
+      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME0
+      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME0
+      # - --entrypoints.https.http.tls.domains[1].main=$DOMAINNAME1 # Pulls main cert for second domain
+      # - --entrypoints.https.http.tls.domains[1].sans=*.$DOMAINNAME1 # Pulls wildcard cert for second domain
       - --providers.docker.network=t2_proxy
       - --providers.docker.swarmMode=false
       - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory
@@ -120,11 +130,7 @@ services:
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
-      # networks:
-      #   - t2_proxy
       socket_proxy:
-    #depends_on:
-    #  - socket-proxy
     security_opt:
       - no-new-privileges:true
     #healthcheck:
@@ -144,22 +150,19 @@ services:
       #   published: 8080
       #   protocol: tcp
       #   mode: host
-      #- target: 8081
-      #  published: 8082
-      #  protocol: tcp
-      #  mode: host
     volumes:
-      - $DOCKERDIR/traefik2/rules:/rules # file provider directory
+      - $DOCKERDIR/appdata/traefik2/rules:/rules # file provider directory
       # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
-      - $DOCKERDIR/traefik2/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
-      - $DOCKERDIR/traefik2/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
-      - $DOCKERDIR/shared:/shared
+      - $DOCKERDIR/appdata/traefik2/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
+      - $DOCKERDIR/appdata/traefik2/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
     environment:
       - CF_API_EMAIL_FILE=/run/secrets/cloudflare_email
       - CF_API_KEY_FILE=/run/secrets/cloudflare_api_key
+      - HTPASSWD_FILE=/run/secrets/htpasswd # HTPASSWD_FILE can be whatever as it is not used/called anywhere.
     secrets:
       - cloudflare_email
       - cloudflare_api_key
+      - htpasswd
     labels:
       #- "autoheal=true"
       - "traefik.enable=true"
@@ -170,11 +173,11 @@ services:
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       # HTTP Routers
       - "traefik.http.routers.traefik-rtr.entrypoints=https"
-      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME`)"
+      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME0`)"
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## Healthcheck/ping
-      #- "traefik.http.routers.ping.rule=Host(`traefik.$DOMAINNAME`) && Path(`/ping`)"
+      #- "traefik.http.routers.ping.rule=Host(`traefik.$DOMAINNAME0`) && Path(`/ping`)"
       #- "traefik.http.routers.ping.tls=true"
       #- "traefik.http.routers.ping.service=ping@internal"
       ## Middlewares
@@ -183,15 +186,16 @@ services:
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
     container_name: socket-proxy
-    image: fluencelabs/docker-socket-proxy
+    image: tecnativa/docker-socket-proxy
     restart: always
     networks:
-      # t2_proxy:
       socket_proxy:
         ipv4_address: 192.168.91.254 # You can specify a static IP
     privileged: true
-    ports:
-      - "127.0.0.1:2375:2375" # Port 2375 should only ever get exposed to the internal network.
+    #ports:
+    # - "127.0.0.1:2375:2375" # Port 2375 should only ever get exposed to the internal network. When possible use this line.
+    # I use the next line instead, as I want portainer to manage multiple docker endpoints within my home network.
+    # - "2375:2375"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
     environment:
@@ -207,18 +211,17 @@ services:
       # Security critical
       - AUTH=0
       - SECRETS=0
-      - POST=1 # Watchtower
-      - DELETE=1 # Watchtower
-        # GET Optons
+      - POST=1 # Ouroboros
+      # Not always needed
       - BUILD=0
       - COMMIT=0
       - CONFIGS=0
       - CONTAINERS=1 # Traefik, portainer, etc.
       - DISTRIBUTION=0
       - EXEC=0
-      - IMAGES=1 # Portainer, Watchtower
+      - IMAGES=1 # Portainer
       - INFO=1 # Portainer
-      - NETWORKS=1 # Portainer, Watchtower
+      - NETWORKS=1 # Portainer
       - NODES=0
       - PLUGINS=0
       - SERVICES=1 # Portainer
@@ -227,22 +230,14 @@ services:
       - SYSTEM=0
       - TASKS=1 # Portaienr
       - VOLUMES=1 # Portainer
-      # POST Options
-      - CONTAINERS_CREATE=1 # WatchTower
-      - CONTAINERS_START=1 # WatchTower
-      - CONTAINERS_UPDATE=1 # WatchTower
-      # DELETE Options
-      - CONTAINERS_DELETE=1 # WatchTower
-      - IMAGES_DELETE=1 # WatchTower
 
   # Google OAuth - Single Sign On using OAuth 2.0
-  # https://hub.docker.com/r/thomseddon/traefik-forward-auth
   # https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/
   oauth:
     container_name: oauth
     image: thomseddon/traefik-forward-auth:latest
     # image: thomseddon/traefik-forward-auth:2.1-arm # Use this image with Raspberry Pi
-    restart: unless-stopped
+    restart: always
     networks:
       - t2_proxy
     security_opt:
@@ -252,12 +247,12 @@ services:
     # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
     # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
-      - CLIENT_ID=$GOOGLE_CLIENT_ID
-      - CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+      - PROVIDERS_GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+      - PROVIDERS_GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
       - SECRET=$OAUTH_SECRET
-      - COOKIE_DOMAIN=$DOMAINNAME
+      - COOKIE_DOMAIN=$DOMAINNAME0
       - INSECURE_COOKIE=false
-      - AUTH_HOST=oauth.$DOMAINNAME
+      - AUTH_HOST=oauth.$DOMAINNAME0
       - URL_PATH=/_oauth
       - WHITELIST=$MY_EMAIL
       - LOG_LEVEL=warn
@@ -275,7 +270,7 @@ services:
       ## HTTP Routers
       - "traefik.http.routers.oauth-rtr.tls=true"
       - "traefik.http.routers.oauth-rtr.entrypoints=https"
-      - "traefik.http.routers.oauth-rtr.rule=Host(`oauth.$DOMAINNAME`)"
+      - "traefik.http.routers.oauth-rtr.rule=Host(`oauth.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.oauth-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -290,10 +285,11 @@ services:
     restart: always
     networks:
       - t2_proxy
+      - default
     # ports:
     #   - "9091:9091"
     volumes:
-      - $DOCKERDIR/authelia:/config
+      - $DOCKERDIR/appdata/authelia:/config
     environment:
       - TZ=$TZ
       - AUTHELIA_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
@@ -311,7 +307,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.authelia-rtr.entrypoints=https"
-      - "traefik.http.routers.authelia-rtr.rule=Host(`authelia.$DOMAINNAME`)"
+      - "traefik.http.routers.authelia-rtr.rule=Host(`authelia.$DOMAINNAME0`)"
       - "traefik.http.routers.authelia-rtr.tls=true"
       ## Middlewares
       - "traefik.http.routers.authelia-rtr.middlewares=chain-authelia@file"
@@ -320,12 +316,37 @@ services:
       - "traefik.http.services.authelia-svc.loadbalancer.server.port=9091"
 
   # Portainer - WebUI for Containers
-  # Moved to NAS and added this stack as to Portainer as a separate endpoint.
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:latest
+    restart: unless-stopped
+    # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
+    command: -H tcp://socket-proxy:2375
+    networks:
+      - t2_proxy
+      - socket_proxy
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # # Use Docker Socket Proxy instead for improved security
+      - $DOCKERDIR/appdata/portainer/data:/data # Change to local directory if you want to save/transfer config locally
+    environment:
+      - TZ=$TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.portainer-rtr.entrypoints=https"
+      - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.portainer-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.portainer-rtr.service=portainer-svc"
+      - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
 
   # Organizr - Unified Frontend
   organizr:
     container_name: organizr
-    image: organizrtools/organizr-v2:latest
+    image: organizr/organizr:latest
     restart: unless-stopped
     networks:
       - t2_proxy
@@ -334,21 +355,22 @@ services:
     # ports:
     #   - "$ORGANIZR_PORT:80"
     volumes:
-      - $DOCKERDIR/organizr:/config
+      - $DOCKERDIR/appdata/organizr:/config
     environment:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
+      - fpm=true
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.organizr-rtr.entrypoints=https"
-      - "traefik.http.routers.organizr-rtr.rule=Host(`$DOMAINNAME`) || Host(`www.$DOMAINNAME`)"
+      - "traefik.http.routers.organizr-rtr.rule=Host(`$DOMAINNAME0`) || Host(`www.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.organizr-rtr.middlewares=organizr-redirect@docker,chain-oauth@file"
         # Redirect non-www to www middleware
-      - "traefik.http.middlewares.organizr-redirect.redirectregex.regex=^https?://$DOMAINNAME/(.*)"
-      - "traefik.http.middlewares.organizr-redirect.redirectregex.replacement=https://www.$DOMAINNAME/$${1}"
+      - "traefik.http.middlewares.organizr-redirect.redirectregex.regex=^https?://$DOMAINNAME0/(.*)"
+      - "traefik.http.middlewares.organizr-redirect.redirectregex.replacement=https://www.$DOMAINNAME0/$${1}"
       - "traefik.http.middlewares.organizr-redirect.redirectregex.permanent=true"
       ## HTTP Services
       - "traefik.http.routers.organizr-rtr.service=organizr-svc"
@@ -364,10 +386,10 @@ services:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
-    #    ports:
-    #      - "$HEIMDALL_PORT:80"
+    # ports:
+    #   - "$HEIMDALL_PORT:80"
     volumes:
-      - $DOCKERDIR/heimdall:/config
+      - $DOCKERDIR/appdata/heimdall:/config
     environment:
       - PUID=$PUID
       - PGID=$PGID
@@ -376,7 +398,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.heimdall-rtr.entrypoints=https"
-      - "traefik.http.routers.heimdall-rtr.rule=Host(`heimdall.$DOMAINNAME`)"
+      - "traefik.http.routers.heimdall-rtr.rule=Host(`heimdall.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.heimdall-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -395,121 +417,71 @@ services:
     # ports:
     #   - "$AUTOINDEX_PORT:80"
     volumes:
-      - /media:/var/lib/nginx/html:ro # Location you want to index
+      #- $USERDIR:/var/lib/nginx/html:ro # Location you want to index
+      - /media/hdd1:/var/lib/nginx/html:ro # Location you want to index
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.autoindex-rtr.entrypoints=https"
-      - "traefik.http.routers.autoindex-rtr.rule=Host(`index.$DOMAINNAME`)"
+      - "traefik.http.routers.autoindex-rtr.rule=Host(`index.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.autoindex-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.autoindex-rtr.service=autoindex-svc"
       - "traefik.http.services.autoindex-svc.loadbalancer.server.port=80"
 
-  ############################# SMART HOME
+  ############################# DATABASE
 
-  # Home Assistant Core - Home Automation
-  # Added temporarily since HASS.io (Home Assistant Supervised) on Docker has been deprecated.
-  homeassistant:
-    container_name: hass-core
-    restart: unless-stopped
-    image: homeassistant/home-assistant:0.113.3
-    network_mode: host
-    #    networks:
-    #      - t2_proxy
-    devices:
-      - /dev/ttyUSB0:/dev/ttyUSB0
-      - /dev/ttyUSB1:/dev/ttyUSB1
-      - /dev/ttyACM0:/dev/ttyACM0
-    privileged: true
-    volumes:
-      - $USERDIR/docker/homeassistant:/config
-      - /etc/localtime:/etc/localtime:ro
-      #- /media/ssd/motioneye:/media/motioneye
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-    labels:
-      ## Exclude From Watchtower
-      - "com.centurylinklabs.watchtower.enable=false"
-
-  # Home Assistant Core - Home Automation
-  # Added temporarily since HASS.io (Home Assistant Supervised) on Docker has been deprecated.
-  hassio:
-    container_name: hassio
-    restart: unless-stopped
-    image: homeassistant/home-assistant:0.111.0
-    networks:
-      - t2_proxy
-    devices:
-      - /dev/ttyUSB0:/dev/ttyUSB0
-      - /dev/ttyUSB1:/dev/ttyUSB1
-      - /dev/ttyACM0:/dev/ttyACM0
-    ports:
-      - target: 8123
-        published: $HOMEASSISTANT_PORT
-        protocol: tcp
-        mode: host
-    privileged: true
-    volumes:
-      - $USERDIR/docker/hassio/homeassistant:/config
-      - /etc/localtime:/etc/localtime:ro
-      - $USERDIR/docker/shared:/shared
-      - $USERDIR/docker/open-zwave:/open-zwave
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-    labels:
-      ## Exclude From Watchtower
-      - "com.centurylinklabs.watchtower.enable=false"
-
-  # MotionEye - Video Surveillance
-  motioneye:
-    image: ccrisan/motioneye:master-amd64
-    container_name: motioneye
-    restart: unless-stopped
-    networks:
-      - t2_proxy
+  # MariaDB - MySQL Database
+  # After starting container for first time dexec and mysqladmin -u root password <password>
+  mariadb:
+    container_name: mariadb
+    image: linuxserver/mariadb:latest
+    restart: always
     security_opt:
       - no-new-privileges:true
     ports:
-      - "$MOTIONEYE_CAM1:8081"
-      - "$MOTIONEYE_CAM2:8082"
-      - "$MOTIONEYE_CAM3:8083"
-      - "$MOTIONEYE_PORT:8765"
+      - "$MARIADB_PORT:3306"
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - $DOCKERDIR/shared:/shared
-      - $DOCKERDIR/motioneye/etc:/etc/motioneye
-      - /media/ssd/motioneye:/var/lib/motioneye
+      - $DOCKERDIR/appdata/mariadb/data:/config
     environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers Auth Bypass
-      # - "traefik.http.routers.motioneye-rtr-bypass.entrypoints=https"
-      # - "traefik.http.routers.motioneye-rtr-bypass.rule=Headers(`$MOTIONEYE_BYPASS_KEY`, `$MOTIONEYE_BYPASS_VALUE`)"
-      # - "traefik.http.routers.motioneye-rtr-bypass.priority=100"
-      ## HTTP Routers Auth
-      - "traefik.http.routers.motioneye-rtr.entrypoints=https"
-      - "traefik.http.routers.motioneye-rtr.rule=Host(`meye.$DOMAINNAME`)"
-      - "traefik.http.routers.motioneye-rtr.priority=99"
-      ## Middlewares
-      # - "traefik.http.routers.motioneye-rtr-bypass.middlewares=chain-no-auth@file"
-      - "traefik.http.routers.motioneye-rtr.middlewares=chain-no-auth@file"
-      ## HTTP Services
-      - "traefik.http.routers.motioneye-rtr.service=motioneye-svc"
-      # - "traefik.http.routers.motioneye-rtr-bypass.service=motioneye-svc"
-      - "traefik.http.services.motioneye-svc.loadbalancer.server.port=8765"
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password # Not taking this pw during initialization
+    secrets:
+      - mysql_root_password
 
-  ############################# DATABASE
-  # Mariadb moved to NAS
-  # Influxdb moved to NAS
+  # InfluxDB - Database for sensor data
+  # Create influxdb.conf
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "$INFLUXDB_PORT:8086"
+      - "$INFLUXDB_PORT_PROXMOX:8087/udp"
+    volumes:
+      - $DOCKERDIR/appdata/influxdb/etc/influxdb.conf:/etc/influxdb/influxdb.conf:ro
+      - $DOCKERDIR/appdata/influxdb/db:/var/lib/influxdb
+    # command: -config /etc/influxdb/influxdb.conf
+
+  # Redis - Key-value Store
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: always
+    entrypoint: redis-server --appendonly yes --requirepass $REDIS_PASSWORD --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "$REDIS_PORT:6379"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - $DOCKERDIR/appdata/redis/data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
 
   # phpMyAdmin - Database management
   # Create a new user with admin privileges. Cannot login as MySQL root for some reason.
@@ -519,15 +491,16 @@ services:
     restart: unless-stopped
     networks:
       - t2_proxy
+      - default
     security_opt:
       - no-new-privileges:true
     # ports:
     #   - "$PHPMYADMIN_PORT:80"
     # volumes:
-    #   - $DOCKERDIR/phpmyadmin:/etc/phpmyadmin
+    #   - $DOCKERDIR/appdata/phpmyadmin:/etc/phpmyadmin
     environment:
-      - PMA_HOST=$DB_HOST
-      - PMA_PORT=$DB_PORT
+      - PMA_HOST=$MARIADB_HOST
+      - PMA_PORT=$MARIADB_PORT
       #- PMA_ARBITRARY=1
       - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
     secrets:
@@ -536,15 +509,12 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.phpmyadmin-rtr.entrypoints=https"
-      - "traefik.http.routers.phpmyadmin-rtr.rule=Host(`pma.$DOMAINNAME`)"
+      - "traefik.http.routers.phpmyadmin-rtr.rule=Host(`pma.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.phpmyadmin-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.phpmyadmin-rtr.service=phpmyadmin-svc"
       - "traefik.http.services.phpmyadmin-svc.loadbalancer.server.port=80"
-
-  # Redis - Key-value Store
-  # Moved to NAS
 
   # Redis Commander - Redis Management Tool
   rediscommander:
@@ -553,18 +523,19 @@ services:
     restart: unless-stopped
     networks:
       - t2_proxy
+      - default
     # ports:
     #   - "$REDISCOMMANDER_PORT:8081"
     security_opt:
       - no-new-privileges:true
     environment:
-      - REDIS_HOST=$NAS_IP
+      - REDIS_HOST=$REDIS_HOST
       - REDIS_PASSWORD=$REDIS_PASSWORD
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.rediscommander-rtr.entrypoints=https"
-      - "traefik.http.routers.rediscommander-rtr.rule=Host(`rediscom.$DOMAINNAME`)"
+      - "traefik.http.routers.rediscommander-rtr.rule=Host(`rediscom.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.rediscommander-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -578,20 +549,21 @@ services:
     restart: unless-stopped
     networks:
       - t2_proxy
+      - default
     security_opt:
       - no-new-privileges:true
     # ports:
     #   - "$GRAFANA_PORT:3000"
     user: "0"
     volumes:
-      - $DOCKERDIR/grafana:/var/lib/grafana
+      - $DOCKERDIR/appdata/grafana:/var/lib/grafana
     environment:
       GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel"
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.grafana-rtr.entrypoints=https"
-      - "traefik.http.routers.grafana-rtr.rule=Host(`grafana.$DOMAINNAME`)"
+      - "traefik.http.routers.grafana-rtr.rule=Host(`grafana.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.grafana-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -604,7 +576,7 @@ services:
   jdownloader:
     image: jlesage/jdownloader-2:latest
     container_name: jdownloader
-    restart: unless-stopped
+    restart: always
     networks:
       - t2_proxy
     security_opt:
@@ -612,8 +584,8 @@ services:
     # ports:
     #   - "$JDOWNLOADER_PORT:5800"
     volumes:
-      - $USERDIR/Downloads/completed:/output
-      - $DOCKERDIR/jdownloader:/config
+      - $DATADIR/downloads:/data/downloads
+      - $DOCKERDIR/appdata/jdownloader:/config
     environment:
       USER_ID: $PUID
       GROUP_ID: $PGID
@@ -628,7 +600,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.jdownloader-rtr.entrypoints=https"
-      - "traefik.http.routers.jdownloader-rtr.rule=Host(`jdown.$DOMAINNAME`)"
+      - "traefik.http.routers.jdownloader-rtr.rule=Host(`jdown.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.jdownloader-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -644,11 +616,11 @@ services:
     networks:
       # - t2_proxy
       t2_proxy:
-        ipv4_address: 192.168.90.90
+        ipv4_address: 192.168.90.169
     # security_opt:
     #   - no-new-privileges:true
-    ports:
-      - "$TRANSMISSION_PORT:9091"
+    # ports:
+    #  - "$TRANSMISSION_PORT:9091"
     cap_add:
       - NET_ADMIN
     devices:
@@ -658,9 +630,9 @@ services:
       - 1.0.0.1
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - $DOCKERDIR/transmission-vpn/data:/data
-      - $DOCKERDIR/transmission-vpn/config:/config
-      - $USERDIR/Downloads:/downloads
+      - $DOCKERDIR/appdata/transmission-vpn/data:/data
+      - $DOCKERDIR/appdata/transmission-vpn/config:/config
+      - $DATADIR/downloads:/data/downloads
     environment:
       OPENVPN_PROVIDER: IPVANISH
       OPENVPN_USERNAME: $IPVANISH_USERNAME
@@ -679,23 +651,23 @@ services:
       TRANSMISSION_UMASK: 002
       TRANSMISSION_RATIO_LIMIT: 0.01
       TRANSMISSION_RATIO_LIMIT_ENABLED: "true"
-      TRANSMISSION_ALT_SPEED_DOWN: 2000
-      TRANSMISSION_ALT_SPEED_ENABLED: "true"
-      TRANSMISSION_ALT_SPEED_UP: 15
-      TRANSMISSION_SPEED_LIMIT_DOWN: 6000
+      TRANSMISSION_ALT_SPEED_DOWN: 40000
+      TRANSMISSION_ALT_SPEED_ENABLED: "false"
+      TRANSMISSION_ALT_SPEED_UP: 250
+      TRANSMISSION_SPEED_LIMIT_DOWN: 80000
       TRANSMISSION_SPEED_LIMIT_DOWN_ENABLED: "true"
-      TRANSMISSION_SPEED_LIMIT_UP: 30
+      TRANSMISSION_SPEED_LIMIT_UP: 500
       TRANSMISSION_SPEED_LIMIT_UP_ENABLED: "true"
-      TRANSMISSION_INCOMPLETE_DIR: /downloads/incomplete
+      TRANSMISSION_INCOMPLETE_DIR: /data/downloads/torrents/incomplete
       TRANSMISSION_INCOMPLETE_DIR_ENABLED: "true"
-      TRANSMISSION_WATCH_DIR: /downloads
+      TRANSMISSION_WATCH_DIR: /data/downloads/torrents
       TRANSMISSION_WATCH_DIR_ENABLED: "true"
-      TRANSMISSION_DOWNLOAD_DIR: /downloads/completed
+      TRANSMISSION_DOWNLOAD_DIR: /data/downloads/torrents
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.transmission-vpn-rtr.entrypoints=https"
-      - "traefik.http.routers.transmission-vpn-rtr.rule=Host(`trans.$DOMAINNAME`)"
+      - "traefik.http.routers.transmission-vpn-rtr.rule=Host(`trans.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.transmission-vpn-rtr.middlewares=middlewares-rate-limit@file"
       ## HTTP Services
@@ -708,17 +680,17 @@ services:
   sabnzbd:
     image: linuxserver/sabnzbd:latest
     container_name: sabnzbd
-    restart: unless-stopped
+    restart: always
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.116
     security_opt:
       - no-new-privileges:true
-    ports:
-      - "$SABNZBD_PORT:8080"
+    # ports:
+    #  - "$SABNZBD_PORT:8080"
     volumes:
-      - $DOCKERDIR/sabnzbd:/config
-      - $USERDIR/Downloads:/downloads
-    #   - $USERDIR/Downloads/incomplete:/incomplete-downloads
+      - $DOCKERDIR/appdata/sabnzbd:/config
+      - $DATADIR/downloads:/data/downloads
     environment:
       PUID: $PUID
       PGID: $PGID
@@ -728,11 +700,11 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.sabnzbd-rtr-bypass.entrypoints=https"
-      - "traefik.http.routers.sabnzbd-rtr-bypass.rule=Host(`sabnzbd.$DOMAINNAME`) && Query(`apikey`, `$SABNZBD_API_KEY`)"
+      - "traefik.http.routers.sabnzbd-rtr-bypass.rule=Host(`sabnzbd.$DOMAINNAME0`) && Query(`apikey`, `$SABNZBD_API_KEY`)"
       - "traefik.http.routers.sabnzbd-rtr-bypass.priority=100"
       ## HTTP Routers Auth
       - "traefik.http.routers.sabnzbd-rtr.entrypoints=https"
-      - "traefik.http.routers.sabnzbd-rtr.rule=Host(`sabnzbd.$DOMAINNAME`)"
+      - "traefik.http.routers.sabnzbd-rtr.rule=Host(`sabnzbd.$DOMAINNAME0`)"
       - "traefik.http.routers.sabnzbd-rtr.priority=99"
       ## Middlewares
       - "traefik.http.routers.sabnzbd-rtr-bypass.middlewares=chain-no-auth@file"
@@ -752,14 +724,15 @@ services:
     restart: always
     # network_mode: container:transmission-vpn
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.161
     security_opt:
       - no-new-privileges:true
-    ports:
-      - "$JACKETT_PORT:9117"
+    # ports:
+    #  - "$JACKETT_PORT:9117"
     volumes:
-      - $DOCKERDIR/jackett:/config
-      - $USERDIR/Downloads:/downloads
+      - $DOCKERDIR/appdata/jackett:/config
+      - $DATADIR/downloads:/data/downloads
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       PUID: $PUID
@@ -769,7 +742,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.jackett-rtr.entrypoints=https"
-      - "traefik.http.routers.jackett-rtr.rule=Host(`jackett.$DOMAINNAME`)"
+      - "traefik.http.routers.jackett-rtr.rule=Host(`jackett.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.jackett-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -788,8 +761,8 @@ services:
     # ports:
     #   - "$NZBHYDRA_PORT:5076"
     volumes:
-      - $DOCKERDIR/hydra2:/config
-      - $USERDIR/Downloads:/downloads
+      - $DOCKERDIR/appdata/hydra2:/config
+      - $DATADIR/downloads:/data/downloads
     environment:
       PUID: $PUID
       PGID: $PGID
@@ -798,7 +771,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.hydra-rtr.entrypoints=https"
-      - "traefik.http.routers.hydra-rtr.rule=Host(`hydra.$DOMAINNAME`)"
+      - "traefik.http.routers.hydra-rtr.rule=Host(`hydra.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.hydra-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -812,17 +785,18 @@ services:
   lidarr:
     image: linuxserver/lidarr:latest
     container_name: lidarr
-    restart: unless-stopped
+    restart: "no"
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.163
     security_opt:
       - no-new-privileges:true
-    ports:
-      - "$LIDARR_PORT:8686"
+    # ports:
+    #  - "$LIDARR_PORT:8686"
     volumes:
-      - $DOCKERDIR/lidarr:/config
-      - $USERDIR/Downloads:/downloads
-      - /media/ds918/media/music:/music
+      - $DOCKERDIR/appdata/lidarr:/config
+      - $DATADIR/downloads:/data/downloads
+      - $DATADIR/media/music:/data/media/music
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       PUID: $PUID
@@ -832,11 +806,11 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.lidarr-rtr-bypass.entrypoints=https"
-      - "traefik.http.routers.lidarr-rtr-bypass.rule=Host(`lidarr.$DOMAINNAME`) && (Headers(`X-Api-Key`, `$LIDARR_API_KEY`) || Query(`apikey`, `$LIDARR_API_KEY`))"
+      - "traefik.http.routers.lidarr-rtr-bypass.rule=Host(`lidarr.$DOMAINNAME0`) && (Headers(`X-Api-Key`, `$LIDARR_API_KEY`) || Query(`apikey`, `$LIDARR_API_KEY`))"
       - "traefik.http.routers.lidarr-rtr-bypass.priority=100"
       ## HTTP Routers Auth
       - "traefik.http.routers.lidarr-rtr.entrypoints=https"
-      - "traefik.http.routers.lidarr-rtr.rule=Host(`lidarr.$DOMAINNAME`)"
+      - "traefik.http.routers.lidarr-rtr.rule=Host(`lidarr.$DOMAINNAME0`)"
       - "traefik.http.routers.lidarr-rtr.priority=99"
       ## Middlewares
       - "traefik.http.routers.lidarr-rtr-bypass.middlewares=chain-no-auth@file"
@@ -849,21 +823,20 @@ services:
   # Radarr - Movie management
   # Set url_base in radarr settings if using PathPrefix
   radarr:
-    # image: aront/radarr #for mp4_automator support
     image: linuxserver/radarr:nightly
     container_name: radarr
-    restart: unless-stopped
+    restart: "no"
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.164
     security_opt:
       - no-new-privileges:true
-    ports:
-      - "$RADARR_PORT:7878"
+    # ports:
+    #  - "$RADARR_PORT:7878"
     volumes:
-      - $DOCKERDIR/radarr:/config
-      - $USERDIR/Downloads:/downloads
-      - /media:/nas
-      # - $DOCKERDIR/shared/mp4_automator:/config_mp4_automator
+      - $DOCKERDIR/appdata/radarr:/config
+      - $DATADIR/downloads:/data/downloads
+      - $DATADIR/media:/data/media
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       PUID: $PUID
@@ -873,11 +846,11 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.radarr-rtr-bypass.entrypoints=https"
-      - "traefik.http.routers.radarr-rtr-bypass.rule=Host(`radarr.$DOMAINNAME`) && (Headers(`X-Api-Key`, `$RADARR_API_KEY`) || Query(`apikey`, `$RADARR_API_KEY`))"
+      - "traefik.http.routers.radarr-rtr-bypass.rule=Host(`radarr.$DOMAINNAME0`) && (Headers(`X-Api-Key`, `$RADARR_API_KEY`) || Query(`apikey`, `$RADARR_API_KEY`))"
       - "traefik.http.routers.radarr-rtr-bypass.priority=100"
       ## HTTP Routers Auth
       - "traefik.http.routers.radarr-rtr.entrypoints=https"
-      - "traefik.http.routers.radarr-rtr.rule=Host(`radarr.$DOMAINNAME`)"
+      - "traefik.http.routers.radarr-rtr.rule=Host(`radarr.$DOMAINNAME0`)"
       - "traefik.http.routers.radarr-rtr.priority=99"
       ## Middlewares
       - "traefik.http.routers.radarr-rtr-bypass.middlewares=chain-no-auth@file"
@@ -890,22 +863,21 @@ services:
   # Sonarr - TV Shows management
   # Set url_base in sonarr settings if using PathPrefix
   sonarr:
-    # image: aront/sonarr  #for mp4_automator support
     image: linuxserver/sonarr:preview
     container_name: sonarr
-    restart: unless-stopped
+    restart: "no"
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.167
     security_opt:
       - no-new-privileges:true
-    ports:
-      - "$SONARR_PORT:8989"
+    # ports:
+    #  - "$SONARR_PORT:8989"
     volumes:
-      - $DOCKERDIR/sonarr:/config
-      - $USERDIR/Downloads:/downloads
-      - /media:/nas
+      - $DOCKERDIR/appdata/sonarr:/config
+      - $DATADIR/downloads:/data/downloads
+      - $DATADIR/media:/data/media
       - "/etc/localtime:/etc/localtime:ro"
-    #   - "$DOCKERDIR/shared/mp4_automator:/config_mp4_automator:rw"
     environment:
       PUID: $PUID
       PGID: $PGID
@@ -914,11 +886,11 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.sonarr-rtr-bypass.entrypoints=https"
-      - "traefik.http.routers.sonarr-rtr-bypass.rule=Host(`sonarr.$DOMAINNAME`) && (Headers(`X-Api-Key`, `$SONARR_API_KEY`) || Query(`apikey`, `$SONARR_API_KEY`))"
+      - "traefik.http.routers.sonarr-rtr-bypass.rule=Host(`sonarr.$DOMAINNAME0`) && (Headers(`X-Api-Key`, `$SONARR_API_KEY`) || Query(`apikey`, `$SONARR_API_KEY`))"
       - "traefik.http.routers.sonarr-rtr-bypass.priority=100"
       ## HTTP Routers Auth
       - "traefik.http.routers.sonarr-rtr.entrypoints=https"
-      - "traefik.http.routers.sonarr-rtr.rule=Host(`sonarr.$DOMAINNAME`)"
+      - "traefik.http.routers.sonarr-rtr.rule=Host(`sonarr.$DOMAINNAME0`)"
       - "traefik.http.routers.sonarr-rtr.priority=99"
       ## Middlewares
       - "traefik.http.routers.sonarr-rtr-bypass.middlewares=chain-no-auth@file"
@@ -927,6 +899,40 @@ services:
       - "traefik.http.routers.sonarr-rtr.service=sonarr-svc"
       - "traefik.http.routers.sonarr-rtr-bypass.service=sonarr-svc"
       - "traefik.http.services.sonarr-svc.loadbalancer.server.port=8989"
+
+  # Readarr - Books management
+  # Set url_base in readarr settings if using PathPrefix
+  readarr:
+    image: hotio/readarr:nightly
+    container_name: readarr
+    restart: "no"
+    networks:
+      t2_proxy:
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #  - "$READARR_PORT:8989"
+    volumes:
+      - $DOCKERDIR/appdata/readarr:/config
+      - $DATADIR/downloads:/data/downloads
+      - $DATADIR/media/books:/data/media/books
+      - "/etc/localtime:/etc/localtime:ro"
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      UMASK: 002
+      #ARGS: ""
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers Auth
+      - "traefik.http.routers.readarr-rtr.entrypoints=https"
+      - "traefik.http.routers.readarr-rtr.rule=Host(`readarr.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.readarr-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.readarr-rtr.service=readarr-svc"
+      - "traefik.http.services.readarr-svc.loadbalancer.server.port=8787"
 
   # Lazylibrarian  – Ebooks and Management
   lazylibrarian:
@@ -940,10 +946,9 @@ services:
     # ports:
     #  - "$LAZYLIBRARIAN_PORT:5299"
     volumes:
-      - $DOCKERDIR/lazylibrarian:/config
-      - $USERDIR/Downloads:/downloads
-      # - /media:/nas
-      - $DOCKERDIR/calibre/books:/books:rw
+      - $DOCKERDIR/appdata/lazylibrarian:/config
+      - $DATADIR/downloads:/data/downloads
+      - $DOCKERDIR/appdata/calibre/books:/books:rw
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       PUID: $PUID
@@ -954,7 +959,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers Auth
       - "traefik.http.routers.lazylibrarian-rtr.entrypoints=https"
-      - "traefik.http.routers.lazylibrarian-rtr.rule=Host(`lazy.$DOMAINNAME`)"
+      - "traefik.http.routers.lazylibrarian-rtr.rule=Host(`lazy.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.lazylibrarian-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -967,7 +972,7 @@ services:
   calibre-web:
     image: linuxserver/calibre-web
     container_name: calibre-web
-    restart: unless-stopped
+    restart: "no"
     networks:
       - t2_proxy
     security_opt:
@@ -975,10 +980,9 @@ services:
     # ports:
     #  - "$CALIBRE_WEB_PORT:8083"
     volumes:
-      - $DOCKERDIR/calibre-web:/config
-      # - /media/ds918/media/books:/books
+      - $DOCKERDIR/appdata/calibre-web:/config
       # - add path to calibre books folder
-      - $DOCKERDIR/calibre/books:/books:rw
+      - $DATADIR/media/books:/books:rw
     environment:
       PUID: $PUID
       PGID: $PGID
@@ -989,7 +993,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers Auth
       - "traefik.http.routers.calibre-web-rtr.entrypoints=https"
-      - "traefik.http.routers.calibre-web-rtr.rule=Host(`calweb.$DOMAINNAME`)"
+      - "traefik.http.routers.calibre-web-rtr.rule=Host(`calweb.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.calibre-web-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -1000,7 +1004,7 @@ services:
   calibre:
     image: linuxserver/calibre
     container_name: calibre
-    restart: unless-stopped
+    restart: "no"
     networks:
       - t2_proxy
     security_opt:
@@ -1009,9 +1013,9 @@ services:
     #  - "$CALIBRE_PORT:8080" # Desktop GUI
     #  - "$CALIBRE_PORT:8081" # Webserver GUI
     volumes:
-      - $DOCKERDIR/calibre:/config:rw
-      #      - /media/ds918/media/books:/config/Calibre Library:rw
-      - $USERDIR/Downloads:/downloads:rw
+      - $DOCKERDIR/appdata/calibre:/config:rw
+      - $DATADIR/downloads:/data/downloads:rw
+      - $DATADIR/media/books:/data/media/books:rw
     environment:
       - PUID=$PUID
       - PGID=$PGID
@@ -1024,7 +1028,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers Auth
       - "traefik.http.routers.calibre-rtr.entrypoints=https"
-      - "traefik.http.routers.calibre-rtr.rule=Host(`calibre.$DOMAINNAME`)"
+      - "traefik.http.routers.calibre-rtr.rule=Host(`calibre.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.calibre-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -1035,7 +1039,7 @@ services:
   airsonic:
     container_name: airsonic
     image: linuxserver/airsonic:latest
-    restart: unless-stopped
+    restart: "no"
     networks:
       - t2_proxy
     security_opt:
@@ -1043,11 +1047,10 @@ services:
     # ports:
     #   - "$AIRSONIC_PORT:4040"
     volumes:
-      - /media:/nas:ro
-      - $DOCKERDIR/airsonic/podcasts:/podcasts
-      - $DOCKERDIR/airsonic/playlists:/playlists
-      - $DOCKERDIR/airsonic/config:/config
-      # - $DOCKERDIR/airsonic/config:/app/airsonic/config #Used to change log level for debugging
+      - $DOCKERDIR/appdata/airsonic/podcasts:/podcasts
+      - $DOCKERDIR/appdata/airsonic/playlists:/playlists
+      - $DOCKERDIR/appdata/airsonic/config:/config
+      - $DATADIR/media/music:/data/media/music
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
@@ -1058,7 +1061,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.airsonic-rtr.entrypoints=https"
-      - "traefik.http.routers.airsonic-rtr.rule=Host(`nucair.$DOMAINNAME`)"
+      - "traefik.http.routers.airsonic-rtr.rule=Host(`proxair.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.airsonic-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
@@ -1067,11 +1070,12 @@ services:
 
   # Plex - Media Server
   plexms:
-    image: plexinc/pms-docker:public
+    image: plexinc/pms-docker:plexpass
     container_name: plexms
-    restart: unless-stopped
+    restart: "no"
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.150 # You can specify a static IP
     devices:
       - /dev/dri:/dev/dri # for harware transcoding
     security_opt:
@@ -1088,72 +1092,37 @@ services:
       - "32414:32414/udp"
       - "$PLEX_WEB_TOOLS_PORT:33400"
     volumes:
-      - $DOCKERDIR/plexms:/config
-      - $USERDIR/Downloads:/Downloads
-      - /media:/nas
-      - /dev/shm:/transcode # Offload transcoding to RAM if you have enough RAM
-    #   - $USERDIR/Downloads/plex_tmp:/transcode
+      - $DOCKERDIR/appdata/plexms:/config
+      - $DATADIR/downloads:/data/downloads
+      - $DATADIR/media:/data/media
+      - /dev/shm:/data/transcode # Offload transcoding to RAM if you have enough RAM
     environment:
       TZ: $TZ
-      HOSTNAME: "nucPlex"
+      HOSTNAME: "proxPlex"
       PLEX_CLAIM_FILE: /run/secrets/plex_claim
       PLEX_UID: $PUID
       PLEX_GID: $PGID
-      ADVERTISE_IP: http://$SERVER_IP:$PLEX_PORT/
+      #VIRTUAL_HOST: proxplex.$DOMAINNAME0
+      #VIRTUAL_PORT: 443
+      #VIRTUAL_NETWORK: t2_proxy
     secrets:
       - plex_claim
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.plexms-rtr.entrypoints=https"
-      - "traefik.http.routers.plexms-rtr.rule=Host(`nucplex.$DOMAINNAME`)"
+      - "traefik.http.routers.plexms-rtr.rule=Host(`proxplex.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.plexms-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.plexms-rtr.service=plexms-svc"
       - "traefik.http.services.plexms-svc.loadbalancer.server.port=32400"
 
-  # Emby - Media Server
-  embyms:
-    image: emby/embyserver:latest
-    container_name: embyms
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    devices:
-      - /dev/dri:/dev/dri # for harware transcoding
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - "$EMBY_PORT:8096/tcp"
-      - "8920:8920/tcp"
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - $DOCKERDIR/embyms:/config
-      - /dev/shm:/transcode
-      - /media:/nas
-      - $USERDIR/Downloads:/downloads
-    environment:
-      TZ: $TZ
-      HOSTNAME: "nucEmby"
-      UID: $PUID
-      GID: $PGID
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.embyms-rtr.entrypoints=https"
-      - "traefik.http.routers.embyms-rtr.rule=Host(`nucemby.$DOMAINNAME`)"
-      ## Middlewares
-      - "traefik.http.routers.embyms-rtr.middlewares=chain-no-auth@file"
-      ## HTTP Services
-      - "traefik.http.routers.embyms-rtr.service=embyms-svc"
-      - "traefik.http.services.embyms-svc.loadbalancer.server.port=8096"
-
   # Jellyfin - Media Server
   jellyfin:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
-    restart: unless-stopped
+    restart: "no"
     networks:
       - t2_proxy
     devices:
@@ -1162,56 +1131,27 @@ services:
       - no-new-privileges:true
     ports:
       - "$JELLYFIN_PORT:8096"
-      - "8921:8920" # Changed to 8921 - conflict with Emby
+      - "8920:8920" # Emby also uses same port if running both
     environment:
       PUID: $PUID
       PGID: $PGID
       TZ: $TZ
       UMASK_SET: 022
     volumes:
-      - $DOCKERDIR/jellyfin:/config
-      - /dev/shm:/ram_transcode
-      - /media:/nas
-    #   - /media:/nas:ro # Run in ro mode while upgrading JF
+      - $DOCKERDIR/appdata/jellyfin:/config
+      - $DATADIR/downloads:/data/downloads
+      - $DATADIR/media:/data/media
+      - /dev/shm:/data/transcode # Offload transcoding to RAM if you have enough RAM
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.jellyfin-rtr.entrypoints=https"
-      - "traefik.http.routers.jellyfin-rtr.rule=Host(`nucjf.$DOMAINNAME`)"
+      - "traefik.http.routers.jellyfin-rtr.rule=Host(`proxjf.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.jellyfin-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.jellyfin-rtr.service=jellyfin-svc"
       - "traefik.http.services.jellyfin-svc.loadbalancer.server.port=8096"
-
-  # Ombi - Media Requests
-  ombi:
-    image: linuxserver/ombi:latest
-    container_name: ombi
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    # ports:
-    #  - "$OMBI_PORT:3579"
-    security_opt:
-      - no-new-privileges:true
-    volumes:
-      - $DOCKERDIR/ombi:/config
-    environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
-      BASE_URL: /ombi #optional
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.ombi-rtr.entrypoints=https"
-      - "traefik.http.routers.ombi-rtr.rule=Host(`ombi.$DOMAINNAME`)"
-      ## Middlewares
-      - "traefik.http.routers.ombi-rtr.middlewares=chain-no-auth@file"
-      ## HTTP Services
-      - "traefik.http.routers.ombi-rtr.service=ombi-svc"
-      - "traefik.http.services.ombi-svc.loadbalancer.server.port=3579"
 
   # Tautulli - Previously PlexPy. Plex statistics and monitoring
   # Set HTTP Root in Tautulli settings if using PathPrefix
@@ -1226,8 +1166,8 @@ services:
     # ports:
     #  - "$TAUTULLI_PORT:8181"
     volumes:
-      - $DOCKERDIR/tautulli/config:/config
-      - $DOCKERDIR/tautulli/logs:/logs:ro
+      - $DOCKERDIR/appdata/tautulli/config:/config
+      - $DOCKERDIR/appdata/plexms/Library/Application Support/Plex Media Server/Logs:/logs:ro # For tautulli Plex log viewer
     environment:
       PUID: $PUID
       PGID: $PGID
@@ -1236,31 +1176,18 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.tautulli-rtr.entrypoints=https"
-      - "traefik.http.routers.tautulli-rtr.rule=Host(`tautulli.$DOMAINNAME`)"
+      - "traefik.http.routers.tautulli-rtr.rule=Host(`tautulli.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.tautulli-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.tautulli-rtr.service=tautulli-svc"
       - "traefik.http.services.tautulli-svc.loadbalancer.server.port=8181"
 
-  # Plex-Sync - For Syncing watched status between plex servers
-  plex-sync:
-    image: patsissons/plex-sync:develop
-    container_name: plex-sync
-    security_opt:
-      - no-new-privileges:true
-    environment:
-      INITIAL_RUN: "true"
-      # DRY_RUN: 0
-      CRON_SCHEDULE: "*/5 * * * *"
-      SECTION_MAPS: $SYN_PLEX/$SYN_PLEX_HOLLYWOOD $NUC_PLEX/$NUC_PLEX_HOLLYWOOD | $SYN_PLEX/$SYN_PLEX_TVSHOWS $NUC_PLEX/$NUC_PLEX_TVSHOWS | $SYN_PLEX/$SYN_PLEX_INDIAN $NUC_PLEX/$NUC_PLEX_INDIAN | $SYN_PLEX/$SYN_PLEX_KOLLYWOOD $NUC_PLEX/$NUC_PLEX_KOLLYWOOD | $SYN_PLEX/$SYN_PLEX_DOCMOVIES $NUC_PLEX/$NUC_PLEX_DOCMOVIES | $SYN_PLEX/$SYN_PLEX_DOCSHOWS $NUC_PLEX/$NUC_PLEX_DOCSHOWS | $SYN_PLEX/$SYN_PLEX_KIDSMOVIES $NUC_PLEX/$NUC_PLEX_KIDSMOVIES | $SYN_PLEX/$SYN_PLEX_INTERNATIONAL $NUC_PLEX/$NUC_PLEX_INTERNATIONAL
-    restart: unless-stopped
-
   # PhotoShow - Image Gallery
   photoshow:
     image: linuxserver/photoshow:latest
     container_name: photoshow
-    restart: unless-stopped
+    restart: "no"
     networks:
       - t2_proxy
     security_opt:
@@ -1268,9 +1195,9 @@ services:
     # ports:
     #  - "$PHOTOSHOW_PORT:80"
     volumes:
-      - $DOCKERDIR/photoshow/config:/config
-      - $DOCKERDIR/photoshow/thumbs:/Thumbs
-      - /media/ds918/media/photos:/Pictures:ro
+      - $DOCKERDIR/appdata/photoshow/config:/config
+      - $DOCKERDIR/appdata/photoshow/thumbs:/Thumbs
+      - $DATADIR/photos:/Pictures:ro
     environment:
       PUID: $PUID
       PGID: $PGID
@@ -1279,7 +1206,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.photoshow-rtr.entrypoints=https"
-      - "traefik.http.routers.photoshow-rtr.rule=Host(`photoshow.$DOMAINNAME`)"
+      - "traefik.http.routers.photoshow-rtr.rule=Host(`photoshow.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.photoshow-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -1292,16 +1219,17 @@ services:
   bazarr:
     image: linuxserver/bazarr:latest
     container_name: bazarr
-    restart: unless-stopped
+    restart: "no"
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.172
     security_opt:
       - no-new-privileges:true
     # ports:
     #  - "$BAZARR_PORT:6767"
     volumes:
-      - $DOCKERDIR/bazarr:/config
-      - /media:/nas
+      - $DOCKERDIR/appdata/bazarr:/config
+      - $DATADIR/media/:/data/media
     environment:
       PUID: $PUID
       PGID: $PGID
@@ -1310,7 +1238,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.bazarr-rtr.entrypoints=https"
-      - "traefik.http.routers.bazarr-rtr.rule=Host(`bazarr.$DOMAINNAME`)"
+      - "traefik.http.routers.bazarr-rtr.rule=Host(`bazarr.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.bazarr-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -1321,7 +1249,7 @@ services:
   picard:
     image: mikenye/picard:latest
     container_name: picard
-    restart: unless-stopped
+    restart: "no"
     networks:
       - t2_proxy
     security_opt:
@@ -1329,9 +1257,9 @@ services:
     # ports:
     #   - "$PICARD_PORT:5800"
     volumes:
-      - $USERDIR/Downloads/wip_media:/wip_media:rw
-      - $DOCKERDIR/picard:/config:rw
-      - /media/ds918/media/music:/music:rw
+      - $DATADIR/downloads:/data/downloads:rw
+      - $DOCKERDIR/appdata/picard:/config:rw
+      - $DATADIR/media/music:/data//media/music:rw
       - /dev/shm:/dev/shm
     environment:
       USER_ID: $PUID
@@ -1344,7 +1272,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.picard-rtr.entrypoints=https"
-      - "traefik.http.routers.picard-rtr.rule=Host(`picard.$DOMAINNAME`)"
+      - "traefik.http.routers.picard-rtr.rule=Host(`picard.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.picard-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -1363,10 +1291,9 @@ services:
     # ports:
     #   - "$HANDBRAKE_PORT:5800"
     volumes:
-      - $USERDIR/Downloads:/downloads:ro
-      - $DOCKERDIR/handbrake/config:/config:rw
-      - $DOCKERDIR/handbrake/watch:/watch:rw
-      - $USERDIR/Downloads/wip_media:/output:rw
+      - $DATADIR/downloads:/data/downloads
+      - $DOCKERDIR/appdata/handbrake/config:/config
+      - $DOCKERDIR/appdata/handbrake/watch:/watch
     environment:
       USER_ID: $PUID
       GROUP_ID: $PGID
@@ -1382,7 +1309,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.handbrake-rtr.entrypoints=https"
-      - "traefik.http.routers.handbrake-rtr.rule=Host(`handbrake.$DOMAINNAME`)"
+      - "traefik.http.routers.handbrake-rtr.rule=Host(`handbrake.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.handbrake-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -1401,8 +1328,8 @@ services:
     # ports:
     #   - "$MKVTOOLNIX_PORT:5800"
     volumes:
-      - $USERDIR/Downloads:/downloads:rw
-      - $DOCKERDIR/mkvtoolnix/config:/config:rw
+      - $DATADIR/downloads:/data/downloads
+      - $DOCKERDIR/appdata/mkvtoolnix/config:/config:rw
     environment:
       USER_ID: $PUID
       GROUP_ID: $PGID
@@ -1417,7 +1344,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.mkvtoolnix-rtr.entrypoints=https"
-      - "traefik.http.routers.mkvtoolnix-rtr.rule=Host(`mkvtoolnix.$DOMAINNAME`)"
+      - "traefik.http.routers.mkvtoolnix-rtr.rule=Host(`mkvtoolnix.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.mkvtoolnix-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -1436,9 +1363,8 @@ services:
     # ports:
     #   - "$MAKEMKV_PORT:5800"
     volumes:
-      - $USERDIR/Downloads:/Downloads:rw
-      - $DOCKERDIR/makemkv/config:/config:rw
-      - $USERDIR/Downloads/wip_media:/output:rw
+      - $DATADIR/downloads:/data/downloads
+      - $DOCKERDIR/appdata/makemkv/config:/config
       - /dev/shm:/dev/shm
     environment:
       USER_ID: $PUID
@@ -1454,7 +1380,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.makemkv-rtr.entrypoints=https"
-      - "traefik.http.routers.makemkv-rtr.rule=Host(`makemkv.$DOMAINNAME`)"
+      - "traefik.http.routers.makemkv-rtr.rule=Host(`makemkv.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.makemkv-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -1475,9 +1401,9 @@ services:
     volumes:
       # A *.psm license file is required in /config
       # https://github.com/jlesage/docker-filebot#installing-a-license
-      - $DOCKERDIR/filebot:/config
-      - /media:/nas
-      - $USERDIR/Downloads:/downloads
+      - $DOCKERDIR/appdata/filebot:/config
+      - $DATADIR/media:/data/media
+      - $DATADIR/downloads:/data/downloads
     environment:
       USER_ID: $PUID
       GROUP_ID: $PGID
@@ -1492,65 +1418,28 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.filebot-rtr.entrypoints=https"
-      - "traefik.http.routers.filebot-rtr.rule=Host(`filebot.$DOMAINNAME`)"
+      - "traefik.http.routers.filebot-rtr.rule=Host(`filebot.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.filebot-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.filebot-rtr.service=filebot-svc"
       - "traefik.http.services.filebot-svc.loadbalancer.server.port=5800"
 
-  ############################# UTILITIES
-
-  # Duplicati - Backup
-  duplicati:
-    image: linuxserver/duplicati:latest
-    container_name: duplicati
+  # Tiny Media Manager - Media and Metadata Management Tool
+  tinymm:
+    image: romancin/tinymediamanager:latest
+    container_name: tinymm
     restart: unless-stopped
     networks:
       - t2_proxy
     security_opt:
       - no-new-privileges:true
     # ports:
-    #  - "$DUPLICATI_PORT:8200"
+    #   - "$TINYMM_PORT:5800"
     volumes:
-      - $DOCKERDIR/duplicati:/config
-      - /media:/nas
-      - $USERDIR:/userdir
-    environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
-      # CLI_ARGS: #optional
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.duplicati-rtr.entrypoints=https"
-      - "traefik.http.routers.duplicati-rtr.rule=Host(`duplicati.$DOMAINNAME`)"
-      ## Middlewares
-      - "traefik.http.routers.duplicati-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
-      - "traefik.http.routers.duplicati-rtr.service=duplicati-svc"
-      - "traefik.http.services.duplicati-svc.loadbalancer.server.port=8200"
-
-  # Firefox - Web Broswer
-  # VNC password not working - check
-  firefox:
-    image: jlesage/firefox:latest
-    container_name: firefox
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
-      - seccomp:unconfined # October 15, 2020 https://github.com/jlesage/docker-firefox/blob/master/README.md#allowing-the-membarrier-system-call
-    # ports:
-    #   - "$FIREFOX_PORT:5800"
-    volumes:
-      - $DOCKERDIR/firefox:/config
-      - $USERDIR/Downloads/completed:/config/downloads
-      - /media/ds918/downloads:/nas/downloads
-      - /dev/shm:/dev/shm
-      - $DOCKERDIR/shared:/shared
+      - $DOCKERDIR/appdata/tinymm:/config
+      - $DATADIR/media:/data/media
+      - $DATADIR/downloads:/data/downloads
     environment:
       USER_ID: $PUID
       GROUP_ID: $PGID
@@ -1560,12 +1449,54 @@ services:
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1600
       DISPLAY_HEIGHT: 960
+      VNC_PASSWD: $TINYMM_VNC_PASSWD
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.tinymm-rtr.entrypoints=https"
+      - "traefik.http.routers.tinymm-rtr.rule=Host(`tmm.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.tinymm-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.tinymm-rtr.service=tinymm-svc"
+      - "traefik.http.services.tinymm-svc.loadbalancer.server.port=5800"
+
+  ############################# UTILITIES
+
+  # Firefox - Web Broswer
+  # VNC password not working - check
+  firefox:
+    image: jlesage/firefox:latest
+    container_name: firefox
+    restart: unless-stopped
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.250 # You can specify a static IP
+    # network_mode: host
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:unconfined # October 15, 2020 https://github.com/jlesage/docker-firefox/blob/master/README.md#allowing-the-membarrier-system-call
+    # ports:
+    #   - "$FIREFOX_PORT:5800"
+    volumes:
+      - $DOCKERDIR/appdata/firefox:/config
+      - $DATADIR/downloads:/data/downloads
+      - /dev/shm:/dev/shm
+    environment:
+      USER_ID: $PUID
+      GROUP_ID: $PGID
+      TZ: $TZ
+      UMASK: 002
+      KEEP_APP_RUNNING: 1
+      CLEAN_TMP_DIR: 1
+      DISPLAY_WIDTH: 1920
+      DISPLAY_HEIGHT: 1080
       VNC_PASSWD: $FIREFOX_VNC_PASSWD
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.firefox-rtr.entrypoints=https"
-      - "traefik.http.routers.firefox-rtr.rule=Host(`firefox.$DOMAINNAME`)"
+      - "traefik.http.routers.firefox-rtr.rule=Host(`firefox.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.firefox-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -1582,50 +1513,34 @@ services:
     networks:
       - t2_proxy
       - socket_proxy
-    depends_on:
-      - socket-proxy
+      - default
+    #depends_on:
+    #  - socket-proxy
     security_opt:
       - no-new-privileges:true
     # ports:
     #   - "$GLANCES_PORT:61208"
     pid: host
     volumes:
-      - $DOCKERDIR/glances/glances.conf:/glances/conf/glances.conf # Use this if you want to add a glances.conf file
+      - $DOCKERDIR/appdata/glances/glances.conf:/glances/conf/glances.conf # Use this if you want to add a glances.conf file
+      - $USERDIR:/data/home:ro
+      - /media/hdd1:/data/hdd1:ro
       # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
     environment:
       # GLANCES_OPT: "-C /glances/conf/glances.conf --quiet --export influxdb"
+      # GLANCES_OPT: "--export influxdb"
       GLANCES_OPT: "-w"
       DOCKER_HOST: tcp://socket-proxy:2375
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.glances-rtr.entrypoints=https"
-      - "traefik.http.routers.glances-rtr.rule=Host(`nglances.$DOMAINNAME`)"
+      - "traefik.http.routers.glances-rtr.rule=Host(`glances.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.glances-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.glances-rtr.service=glances-svc"
       - "traefik.http.services.glances-svc.loadbalancer.server.port=61208"
-
-  # APCUPSD - APC UPS Management
-  # create the apcupsd.conf file
-  apcupsd:
-    image: gersilex/apcupsd:latest
-    container_name: apcupsd
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - "$APCUPSD_PORT:3551"
-    privileged: true
-    tty: true
-    volumes:
-      - /tmp/apcupsd-docker:/tmp/apcupsd-docker
-      - $DOCKERDIR/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
-      - $DOCKERDIR/apcupsd/doshutdown:/etc/apcupsd/doshutdown
-      - $DOCKERDIR/apcupsd/apcupsd.events:/var/log/apcupsd.events
 
   # qDirStat - Directory Statistics
   qdirstat:
@@ -1639,9 +1554,9 @@ services:
     # ports:
     #   - "$QDIRSTAT_PORT:5800"
     volumes:
-      - $USERDIR:/storage:ro
-      - $DOCKERDIR/qdirstat/config:/config:rw
-      - /media:/nas
+      - $USERDIR:/data/home:ro
+      - $DOCKERDIR/appdata/qdirstat/config:/config:rw
+      - /media/hdd1:/data/hdd1:ro
     environment:
       USER_ID: $PUID
       GROUP_ID: $PGID
@@ -1656,7 +1571,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.qdirstat-rtr.entrypoints=https"
-      - "traefik.http.routers.qdirstat-rtr.rule=Host(`qdirstat.$DOMAINNAME`)"
+      - "traefik.http.routers.qdirstat-rtr.rule=Host(`qdirstat.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.qdirstat-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -1671,14 +1586,15 @@ services:
     restart: unless-stopped
     networks:
       - t2_proxy
+      - default
     security_opt:
       - no-new-privileges:true
     # ports:
     #   - "$GUACAMOLE_PORT:8080"
     environment:
       GUACD_HOSTNAME: guacd
-      MYSQL_HOSTNAME: $DB_HOST
-      MYSQL_PORT: $DB_PORT
+      MYSQL_HOSTNAME: $MARIADB_HOST
+      MYSQL_PORT: $MARIADB_PORT
       MYSQL_DATABASE_FILE: /run/secrets/guac_db_name
       MYSQL_USER_FILE: /run/secrets/guac_mysql_user
       MYSQL_PASSWORD_FILE: /run/secrets/guac_mysql_password
@@ -1690,7 +1606,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.guacamole-rtr.entrypoints=https"
-      - "traefik.http.routers.guacamole-rtr.rule=Host(`guac.$DOMAINNAME`)"
+      - "traefik.http.routers.guacamole-rtr.rule=Host(`guac.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.guacamole-rtr.middlewares=chain-oauth@file,add-guacamole"
       - "traefik.http.middlewares.add-guacamole.addPrefix.prefix=/guacamole"
@@ -1734,31 +1650,63 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.dozzle-rtr.entrypoints=https"
-      - "traefik.http.routers.dozzle-rtr.rule=Host(`dozzle.$DOMAINNAME`)"
+      - "traefik.http.routers.dozzle-rtr.rule=Host(`dozzle.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.dozzle-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.dozzle-rtr.service=dozzle-svc"
       - "traefik.http.services.dozzle-svc.loadbalancer.server.port=8080"
 
+  # VSCode - VSCode Editing
+  vscode:
+    image: codercom/code-server:latest
+    container_name: vscode
+    restart: always
+    networks:
+      - t2_proxy
+    # ports:
+    #  - "$VSCODE_PORT:8080"
+    volumes:
+      - $USERDIR/server:/home/coder/server
+      - $DOCKERDIR:/home/coder/docker
+      - $DOCKERDIR/appdata/vscode:/home/coder
+      - /media/hdd1:/home/coder/hdd1
+    environment:
+      PASSWORD: $VSCODE_PASSWORD
+      # Run as root first, create the directories, then change permissions to user:docker and 775. Disable run as root below.
+      user: $PUID:$PGID
+      # user: "0"
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.vscode-rtr.entrypoints=https"
+      - "traefik.http.routers.vscode-rtr.rule=Host(`code.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.vscode-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.vscode-rtr.service=vscode-svc"
+      - "traefik.http.services.vscode-svc.loadbalancer.server.port=8080"
+
   # StatPing - Status Page & Monitoring Server
+  # Not adding $TZ to linuxserver/mariadb resulted in a blank page
+  # Had to change default username admin in MariaDB
   statping:
-    image: hunterlong/statping:latest
+    image: statping/statping:latest
     container_name: statping
     restart: unless-stopped
     networks:
       - t2_proxy
+      - default
     security_opt:
       - no-new-privileges:true
     # ports:
     #   - "$STATPING_PORT:8080"
     volumes:
-      - $DOCKERDIR/statping:/app
+      - $DOCKERDIR/appdata/statping:/app:rw
     environment:
-      VIRTUAL_HOST: localhost
-      VIRTUAL_PORT: 8080
-      DB_CONN: postgres
-      DB_HOST: postgres
+      DB_CONN: mysql
+      DB_HOST: $MARIADB_HOST
+      DB_PORT: $MARIADB_PORT
       DB_USER: $STATPING_DB_USER
       DB_PASS: $STATPING_DB_PASS
       DB_DATABASE: $STATPING_DB
@@ -1770,84 +1718,14 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.statping-rtr.entrypoints=https"
-      - "traefik.http.routers.statping-rtr.rule=Host(`statping.$DOMAINNAME`)"
+      - "traefik.http.routers.statping-rtr.rule=Host(`statping.$DOMAINNAME0`)"
       ## Middlewares
-      - "traefik.http.routers.statping-rtr.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.statping-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.statping-rtr.service=statping-svc"
       - "traefik.http.services.statping-svc.loadbalancer.server.port=8080"
 
-  # VSCode - VSCode Editing
-  vscode:
-    image: codercom/code-server:latest
-    container_name: vscode
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    ports:
-      - "$VSCODE_PORT:8080"
-    volumes:
-      - $USERDIR/server:/home/coder/server
-      - $DOCKERDIR:/home/coder/docker
-      - $DOCKERDIR/hassio/homeassistant:/home/coder/hassio
-      - $DOCKERDIR/homeassistant:/home/coder/homeassistant
-      - $USERDIR/Downloads:/home/coder/Downloads
-      - $DOCKERDIR/vscode:/home/coder
-      - /media/sdocker:/home/coder/sdocker
-    environment:
-      PASSWORD: $VSCODE_PASSWORD
-      # Run as root first, create the directories, then change permissions to user:docker and 775. Disable run as root below.
-      user: $PUID:$PGID
-      # user: "0"
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.vscode-rtr.entrypoints=https"
-      - "traefik.http.routers.vscode-rtr.rule=Host(`code.$DOMAINNAME`)"
-      ## Middlewares
-      - "traefik.http.routers.vscode-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
-      - "traefik.http.routers.vscode-rtr.service=vscode-svc"
-      - "traefik.http.services.vscode-svc.loadbalancer.server.port=8080"
-
-  # SMTP to Telegram - Send SMTP Notifications as Telegram Message
-  # Use case: https://github.com/htpcBeginner/docker-traefik/issues/78
-  smtp_to_telegram:
-    image: kostyaesmukov/smtp_to_telegram
-    container_name: smtp_to_telegram
-    restart: always
-    networks:
-      - default
-    environment:
-      TZ: $TZ
-      ST_TELEGRAM_CHAT_IDS: $TGRAM_CHAT_ID
-      ST_TELEGRAM_BOT_TOKEN: $TGRAM_BOT_TOKEN
-      ST_TELEGRAM_MESSAGE_TEMPLATE: "{subject}\\n{body}"
-
   ############################# MAINTENANCE
-
-  # WatchTower - Automatic Docker Container Updates
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    restart: unless-stopped
-    networks:
-      - default
-      - socket_proxy
-    depends_on:
-      - socket-proxy
-    environment:
-      TZ: $TZ
-      WATCHTOWER_CLEANUP: "true"
-      WATCHTOWER_REMOVE_VOLUMES: "true"
-      WATCHTOWER_INCLUDE_STOPPED: "true"
-      WATCHTOWER_NO_STARTUP_MESSAGE: "false"
-      WATCHTOWER_SCHEDULE: "0 30 12 * * *" # Everyday at 12:30
-      WATCHTOWER_NOTIFICATIONS: shoutrrr
-      WATCHTOWER_NOTIFICATION_URL: "telegram://$TGRAM_BOT_TOKEN@telegram?channels=$TGRAM_CHAT_ID"
-      WATCHTOWER_NOTIFICATIONS_LEVEL: info
-      DOCKER_HOST: tcp://socket-proxy:2375
-      DOCKER_API_VERSION: "1.40"
 
   # Docker-GC - Automatic Docker Garbage Collection
   # Create docker-gc-exclude file
@@ -1861,7 +1739,7 @@ services:
       - socket-proxy
     volumes:
       # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
-      - $DOCKERDIR/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude
+      - $DOCKERDIR/appdata/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude
     environment:
       CRON: 0 0 0 * * ? # Everyday at midnight. Previously 0 0 * * *
       FORCE_IMAGE_REMOVAL: 1
@@ -1881,14 +1759,11 @@ services:
       - no-new-privileges:true
     # command: --restart-containers container1,container2,container3
     volumes:
-      - $DOCKERDIR/traefik2/acme:/traefik:ro
+      - $DOCKERDIR/appdata/traefik2/acme:/traefik:ro
       - $DOCKERDIR/shared/certs:/output:rw
       # - /var/run/docker.sock:/var/run/docker.sock:ro # Only needed if restarting containers (use Docker Socket Proxy instead)
     environment:
-      DOMAIN: $DOMAINNAME
-
-  # Cloudflare DDNS - Dynamic DNS Updater
-  # Moved to NAS
+      DOMAIN: $DOMAINNAME0
 
   # Cloudflare-Companion - Automatic CNAME DNS Creation
   cf-companion:
@@ -1906,8 +1781,8 @@ services:
       - TRAEFIK_VERSION=2
       #- CF_EMAIL=$CLOUDFLARE_EMAIL
       - CF_TOKEN=$CLOUDFLARE_API_TOKEN
-      - TARGET_DOMAIN=$DOMAINNAME
-      - DOMAIN1=$DOMAINNAME
+      - TARGET_DOMAIN=$DOMAINNAME0
+      - DOMAIN1=$DOMAINNAME0
       - DOMAIN1_ZONE_ID=$CLOUDFLARE_ZONEID # Copy from Cloudflare Overview page
       - DOMAIN1_PROXIED=TRUE
       - DOCKER_HOST=tcp://socket-proxy:2375
@@ -1916,4 +1791,4 @@ services:
     labels:
       # Add hosts specified in rules here to force cf-companion to create the CNAMEs
       # Since cf-companion creates CNAMEs based on host rules, this a workaround for non-docker/external apps
-      - "traefik.http.routers.cf-companion-rtr.rule=Host(`portainer.$DOMAINNAME`) || `synglances.$DOMAINNAME`) || `pihole.$DOMAINNAME`) || Host(`shell.$DOMAINNAME`) || Host(`syno.$DOMAINNAME`) || Host(`webmin.$DOMAINNAME`) || Host(`synplex.$DOMAINNAME`) || Host(`pwt.$DOMAINNAME`)"
+      - "traefik.http.routers.cf-companion-rtr.rule=Host(`prox.$DOMAINNAME0`) || Host(`pshell.$DOMAINNAME0`) || Host(`pweb.$DOMAINNAME0`) || Host(`webmin.$DOMAINNAME0`) || Host(`shell.$DOMAINNAME0`)"

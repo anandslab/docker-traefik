@@ -1,4 +1,7 @@
 version: "3.7"
+# DOCKER-COMPOSE FOR SYNOLOGY NAS
+# DS918+
+# 8 GB RAM
 
 ######### IMPORTANT #############
 # You will find only a few apps (only those that I run on Synology NAS) in this Docker Compose file.

@@ -1,0 +1,12 @@
+version: "3.7"
+# DOCKER-COMPOSE FOR INTEL NUC HOME SERVER
+# NUC8 i7
+# 32 GB RAM
+# 480 GB SSD Ubuntu Server (future Proxmox)
+# Data and Media CIFS mounted from Synology NAS
+
+########################### SERVICES
+#services:
+
+############################# FRONTENDS
+

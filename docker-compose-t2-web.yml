@@ -1,4 +1,9 @@
 version: "3.7"
+# DOCKER-COMPOSE FOR WORDPRESS SERVER
+# DIGITAL OCEAN VPS DROPLET
+# 2 CORES
+# 4 GB RAM
+# 80 GB SSD Ubuntu Server
 
 ########################### NETWORKS
 # docker network create t2_proxy

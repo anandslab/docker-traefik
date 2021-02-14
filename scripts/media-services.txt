@@ -1,0 +1,12 @@
+jellyfin
+plexms
+radarr
+sonarr
+bazarr
+lidarr
+calibre-web
+calibre
+airsonic
+picard
+filebot
+tinymm

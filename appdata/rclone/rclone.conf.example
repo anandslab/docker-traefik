@@ -1,0 +1,14 @@
+[shb-drive]
+type = drive
+scope = drive
+token = {"access_token":"blah_blah_blah","expiry":"2021-02-12T22:37:02.490073796-05:00"}
+root_folder_id = blah_blah_blah
+client_id = blah_blah_blah
+client_secret = blah_blah_blah
+
+[shb-crypt]
+type = crypt
+remote = shb-drive:crypt
+password = blah_blah_blah
+password2 = blah_blah_blah
+
