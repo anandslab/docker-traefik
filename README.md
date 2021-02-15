@@ -171,7 +171,7 @@ The apps I use are scattered around in five different docker-compose files (on f
 
 # Usage
 
---------- ANYTHING THAT HAS "example" IN THE NAME WILL HAVE TO RENAMED APPROPRIATELY ---------
+--------- ANYTHING THAT HAS "example" IN THE NAME WILL HAVE TO BE RENAMED APPROPRIATELY ---------
 
 ## Installation
 

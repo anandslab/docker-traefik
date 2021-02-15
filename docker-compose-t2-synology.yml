@@ -1,4 +1,9 @@
 version: "3.7"
+
+# IMPORTANT
+############# WORK IN PROGRESS ON THIS FILE. #############
+# PATHS ETC. HAVE NOT BEEN UPDATED TO THE NEW WAY SHOWN IN docker-compose-t2.yml
+
 # DOCKER-COMPOSE FOR SYNOLOGY NAS
 # DS918+
 # 8 GB RAM

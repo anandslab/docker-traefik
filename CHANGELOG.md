@@ -11,6 +11,8 @@
 - Merge smarthomebeginner.com docker-compose (docker-compose-t2-web.yml) to cloud/seedbox.
 - Web GUI for rclone
 - Switch to Hotio.dev's cloudflareddns,
+- Add Scrutiny, Wireshark, Wireguard, digikam (remove photoshow?), remmina
+- Remove lazylibrarian (added Readarr)
 
 ## January 6, 2020
 

@@ -41,4 +41,4 @@ if /bin/findmnt $LOCAL -o FSTYPE -n | grep fuse; then
 fi
 
 # Rclone Move Command
-/usr/bin/rclone move $LOCAL $REMOTE:/media --log-file $LOGFILE -v --exclude-from $EXCLUDES --delete-empty-src-dirs --fast-list --min-age $MOVEAGE
+/usr/bin/rclone move $LOCAL $REMOTE:/media --log-file $LOGFILE -v --transfers 1 --exclude-from $EXCLUDES --delete-empty-src-dirs --fast-list --min-age $MOVEAGE
