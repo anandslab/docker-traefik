@@ -4,14 +4,12 @@
 
 ## Planned:
 
-- Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, fail2ban, ofelia
-- improvements from https://github.com/jamescurtin/traefik-proxy
+- Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, fail2ban, ofelia, scrutiny to NUC, Wireguard
 - implement secrets and remove variables from .env
 - add prometheus, glances to influxdb, speedtest to influxdb
 - Merge smarthomebeginner.com docker-compose (docker-compose-t2-web.yml) to cloud/seedbox.
 - Web GUI for rclone
 - Switch to Hotio.dev's cloudflareddns,
-- Add Scrutiny, Wireshark, Wireguard, digikam (remove photoshow?), remmina
 - Remove lazylibrarian (added Readarr)
 
 ## January 6, 2020

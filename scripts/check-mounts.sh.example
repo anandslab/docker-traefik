@@ -7,6 +7,10 @@ merge_media="/media/hdd1/data/media"
 mounted=0
 notmounted=""
 
+TOKEN_ERROR="expired or revoked"
+RCLONE_LOGS="/home/USER/docker/appdata/rclone/logs/*.log"
+logfiles="$(egrep -l "$TOKEN_ERROR" $RCLONE_LOGS)"
+
 if mount | grep ${rclone_drive} > /dev/null; then
 	mounted=$((mounted+1))
 #	echo -e ${rclone_drive}' mounted.'
@@ -48,4 +52,11 @@ if [[ "$mounted" -ne 4 ]]; then
 	sudo docker stop $(cat /home/USER/docker/scripts/media-services.txt)
 #else
 	#echo "All drives mounted." | mail -s "All drives mounted." info@example.com -aFrom:DockerVM@example.com
+fi
+
+if [[ ! -z "$logfiles" ]]; then
+	echo -e "These rclone log files have token expired/revoked error:\n\n${logfiles}\n\nShutting down media containers." | mail -s "[DVM ERROR] Token expired or revoked" info@example.com -aFrom:DockerVM@example.com
+	sudo docker stop $(cat /home/USER/docker/scripts/media-services.txt)
+#else
+	#echo "Rclone token still appears to be valid." | mail -s "No error in Rclone logs." info@example.com -aFrom:DockerVM@example.com
 fi
