@@ -14,7 +14,7 @@ RCLONE_USER_AGENT=$RCLONE_USER
 export RCLONE_USER_AGENT
 
 # Local Mount - Ensure this is set to your local disk only.
-LOCAL=/media/hdd1/data/local/media
+LOCAL=/media/hdd1/local/media
 EXCLUDES=$DOCKERFOLDER/scripts/upload-excludes.log
 LOGFILE=$DOCKERFOLDER/appdata/rclone/logs/upload-media.log
 
@@ -41,4 +41,7 @@ if /bin/findmnt $LOCAL -o FSTYPE -n | grep fuse; then
 fi
 
 # Rclone Move Command
-/usr/bin/rclone move $LOCAL $REMOTE:/media --log-file $LOGFILE -v --transfers 1 --exclude-from $EXCLUDES --delete-empty-src-dirs --fast-list --min-age $MOVEAGE
+# Maximum transfer 300 GB. Google allows up to 750 GB per user per day.
+/usr/bin/rclone move $LOCAL $REMOTE:/media --max-transfer=300G --cutoff-mode=soft --delete-empty-src-dirs --log-file $LOGFILE -v --exclude-from $EXCLUDES --fast-list --min-age $MOVEAGE
+
+exit 0

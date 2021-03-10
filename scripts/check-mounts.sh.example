@@ -1,4 +1,9 @@
 #!/bin/bash
+# This script checks for all required drive mounts, GDrive token validity, and rclone/mergerfs service status. If any issues are found, it shuts down any containers (media-service.txt) dependent on these mounted drives to avoid any data issues and sends an email notification. 
+# A mail transfer agent such as nullmailer, ssmtp, or postfix must be configured correctly for emails to work
+
+# CHECKING FOR DRIVE MOUNTS
+
 rclone_drive="/media/shb-drive"
 rclone_crypt="/media/shb-crypt"
 hdd1="/media/hdd1"
@@ -6,10 +11,6 @@ merge_media="/media/hdd1/data/media"
 
 mounted=0
 notmounted=""
-
-TOKEN_ERROR="expired or revoked"
-RCLONE_LOGS="/home/USER/docker/appdata/rclone/logs/*.log"
-logfiles="$(egrep -l "$TOKEN_ERROR" $RCLONE_LOGS)"
 
 if mount | grep ${rclone_drive} > /dev/null; then
 	mounted=$((mounted+1))
@@ -44,7 +45,6 @@ else
 fi
 
 #echo $mounted
-
 #echo -e ${notmounted}
 
 if [[ "$mounted" -ne 4 ]]; then
@@ -54,9 +54,44 @@ if [[ "$mounted" -ne 4 ]]; then
 	#echo "All drives mounted." | mail -s "All drives mounted." info@example.com -aFrom:DockerVM@example.com
 fi
 
+######## CHECKING FOR EXPIRED TOKENS
+
+TOKEN_ERROR="expired or revoked"
+RCLONE_LOGS="/home/USER/docker/appdata/rclone/logs/*.log"
+logfiles="$(egrep -l "$TOKEN_ERROR" $RCLONE_LOGS)"
+
 if [[ ! -z "$logfiles" ]]; then
 	echo -e "These rclone log files have token expired/revoked error:\n\n${logfiles}\n\nShutting down media containers." | mail -s "[DVM ERROR] Token expired or revoked" info@example.com -aFrom:DockerVM@example.com
 	sudo docker stop $(cat /home/USER/docker/scripts/media-services.txt)
 #else
 	#echo "Rclone token still appears to be valid." | mail -s "No error in Rclone logs." info@example.com -aFrom:DockerVM@example.com
+fi
+
+######## CHECKING RCLONE and MERGERFS SERVICE ERRORS
+
+# MergerFS
+merge_media_status="$(systemctl is-active merge-media.service)"
+if [[ ! "$merge_media_status" == "active" ]]; then
+	echo -e "merge-media.service is reporting an issue:\n\n${merge_media_status}\n\nShutting down media containers." | mail -s "[DVM ERROR] merge-media.service not running" info@example.com -aFrom:DockerVM@example.com
+	sudo docker stop $(cat /home/USER/docker/scripts/media-services.txt)
+#else
+#    echo "Active"
+fi
+
+# Rclone Google Drive
+rclone_drive_status="$(systemctl is-active rclone-drive.service)"
+if [[ ! "$rclone_drive_status" == "active" ]]; then
+	echo -e "rclone-drive.service is reporting an issue:\n\n${rclone_drive_status}\n\nShutting down media containers." | mail -s "[DVM ERROR] rclone-drive.service not running" info@example.com -aFrom:DockerVM@example.com
+	sudo docker stop $(cat /home/USER/docker/scripts/media-services.txt)
+#else
+#    echo "Active"
+fi
+
+# Rclone Google Drive Encrypted
+rclone_crypt_status="$(systemctl is-active rclone-crypt.service)"
+if [[ ! "$rclone_crypt_status" == "active" ]]; then
+	echo -e "rclone-crypt.service is reporting an issue:\n\n${rclone_crypt_status}\n\nShutting down media containers." | mail -s "[DVM ERROR] rclone-crypt.service not running" info@example.com -aFrom:DockerVM@example.com
+	sudo docker stop $(cat /home/USER/docker/scripts/media-services.txt)
+#else
+#    echo "Active"
 fi

@@ -11,6 +11,8 @@ ExecStart=/usr/bin/rclone mount shb-crypt: /media/shb-crypt \
 --log-file=/home/USER/docker/appdata/rclone/logs/shb-crypt.log \
 --log-level INFO \
 --allow-other \
+--allow-non-empty \
+--no-modtime \
 --umask 002 \
 --dir-cache-time 1000h \
 --drive-chunk-size 256M \

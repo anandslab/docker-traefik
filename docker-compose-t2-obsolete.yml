@@ -722,3 +722,98 @@ services:
       ## HTTP Services
       - "traefik.http.routers.digikam-rtr.service=digikam-svc"
       - "traefik.http.services.digikam-svc.loadbalancer.server.port=3000"
+
+  # PlexTraktSync
+  # Create Trakt Application https://github.com/Taxel/PlexTraktSync
+  # Had to run this first before starting compose
+  # git clone -b plexmovieagent-fixed https://github.com/Taxel/PlexTraktSync.git /home/USER/docker/apps/
+  # sudo docker run -it --name ptsync -v /home/USER/docker/apps/PlexTraktSync:/usr/src/app -e TZ="America/New_York" --restart on-failure:2 twolaw/plextraktsync:latest
+  # change permissions of .env and .pytrakt.json to 600 and root:root
+  ptsync:
+    image: twolaw/plextraktsync:latest
+    container_name: ptsync
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      TZ: $TZ
+    volumes:
+      - $DOCKERDIR/apps/pts-mafixed:/usr/src/app # plexmovieagent-fixed branch
+
+  # Tiny Media Manager - Media and Metadata Management Tool
+  tinymm:
+    image: romancin/tinymediamanager:latest
+    container_name: tinymm
+    restart: "no"
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$TINYMM_PORT:5800"
+    volumes:
+      - $DOCKERDIR/appdata/tinymm:/config
+      - $DATADIR/media:/data/media
+      - $DATADIR/downloads:/data/downloads
+    environment:
+      USER_ID: $PUID
+      GROUP_ID: $PGID
+      TZ: $TZ
+      UMASK: 002
+      KEEP_APP_RUNNING: 1
+      CLEAN_TMP_DIR: 1
+      DISPLAY_WIDTH: 1600
+      DISPLAY_HEIGHT: 960
+      VNC_PASSWD: $TINYMM_VNC_PASSWD
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.tinymm-rtr.entrypoints=https"
+      - "traefik.http.routers.tinymm-rtr.rule=Host(`tmm.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.tinymm-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.tinymm-rtr.service=tinymm-svc"
+      - "traefik.http.services.tinymm-svc.loadbalancer.server.port=5800"
+
+  # SABnzbd - Binary newsgrabber (NZB downloader)
+  # Disable SABNnzbd's built-in HTTPS support for traefik proxy to work
+  # Needs trailing / if using PathPrefix
+  sabnzbd:
+    image: linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    restart: always
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.116
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #  - "$SABNZBD_PORT:8080"
+    volumes:
+      - $DOCKERDIR/appdata/sabnzbd:/config
+      - $DATADIR/downloads:/data/downloads
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      UMASK_SET: 002
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers Auth Bypass
+      - "traefik.http.routers.sabnzbd-rtr-bypass.entrypoints=https"
+      - "traefik.http.routers.sabnzbd-rtr-bypass.rule=Host(`sabnzbd.$DOMAINNAME0`) && Query(`apikey`, `$SABNZBD_API_KEY`)"
+      - "traefik.http.routers.sabnzbd-rtr-bypass.priority=100"
+      ## HTTP Routers Auth
+      - "traefik.http.routers.sabnzbd-rtr.entrypoints=https"
+      - "traefik.http.routers.sabnzbd-rtr.rule=Host(`sabnzbd.$DOMAINNAME0`)"
+      - "traefik.http.routers.sabnzbd-rtr.priority=99"
+      ## Middlewares
+      - "traefik.http.routers.sabnzbd-rtr-bypass.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.sabnzbd-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.sabnzbd-rtr.service=sabnzbd-svc"
+      - "traefik.http.routers.sabnzbd-rtr-bypass.service=sabnzbd-svc"
+      - "traefik.http.services.sabnzbd-svc.loadbalancer.server.port=8080"

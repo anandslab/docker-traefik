@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script is to convert my unexcrypted media on GDrive to Encrypted
+# This script is to convert my unexcrypted media on GDrive to Encrypted. It would run every day (cron job), encrypting the files in 300 to 500 GB batches.
 
 #status=`ps -efww | grep -w "[d]rive-to-crypt.sh" | awk -vpid=$$ '$2 != pid { print $2 }'`
 #if [ ! -z "$status" ]; then
@@ -48,9 +48,9 @@ fi
 #fi
 
 # Rclone Move Command. 
-# The bwlimit will will average around 2.75 MB/s, which equates to about 237 GB per day one-way. 
-# Total bandwidth for downloading, encrypting, and re-uploading will be 237x2=474 GB. 
-# Google Drive has a maximum of 750 GB per day for Business Account
-/usr/bin/rclone move $REMOTE_DRIVE:/media $REMOTE_CRYPT:/media --log-file $LOGFILE -v --transfers 1 --bwlimit "08:00,2M 23:00,4M" --exclude-from $EXCLUDES --fast-list --min-age $MOVEAGE
+# The bwlimit will will average around 6 MB/s, which equates to about 506.25 GB upload per day. 
+# Or use max-transfer of 500 GB, so there is some bandwidth left for other purposes.
+# Google Drive has a maximum of 750 GB upload per day per user account
+/usr/bin/rclone move $REMOTE_DRIVE:/media $REMOTE_CRYPT:/media --log-file $LOGFILE -v --max-transfer=300G --delete-empty-src-dirs --cutoff-mode=soft --exclude-from $EXCLUDES --fast-list --min-age $MOVEAGE
 
-fi
+exit 0

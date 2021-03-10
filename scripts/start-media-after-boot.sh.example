@@ -1,0 +1,50 @@
+#!/bin/bash
+# All containers (see media-services.txt) that access rclone/MergerFS mounts set to NOT restart automatically at boot time. 
+# This is because, rclone can take a few seconds/minutes to mount remote drives.
+# This script checks the required mounts every 5 seconds and as soon as required drives are mounted, it starts the "media" containers.
+
+# CHECKING FOR DRIVE MOUNTS
+rclone_drive="/media/shb-drive"
+rclone_crypt="/media/shb-crypt"
+hdd1="/media/hdd1"
+merge_media="/media/data/media"
+
+mounted=0
+rounds=0
+
+while [ $mounted -eq 0 ]
+do
+	if mount | grep ${rclone_drive} > /dev/null; then
+		mounted=$((mounted+1))
+	fi
+	if mount | grep ${rclone_crypt} > /dev/null; then
+		mounted=$((mounted+1))
+	fi
+	if mount | grep ${hdd1} > /dev/null; then
+		mounted=$((mounted+1))
+	fi
+	if mount | grep ${merge_media} > /dev/null; then
+		mounted=$((mounted+1))
+	fi
+	if [[ "$mounted" -ne 4 ]]; then
+		mounted=0
+	fi
+	sleep 5
+	rounds=$((rounds + 1))
+	#echo -e "$rounds\n"
+
+	# Timeout if mounting is not successful after 5 min
+    if [[ $rounds -eq 60 ]]; then
+      break
+    fi
+done
+
+seconds=$((rounds * 5))
+
+if [[ "$mounted" -eq 4 ]]; then
+	echo -e "All drives mounted properly after $seconds seconds.\n\nStarting media containers." | mail -s "[DVM MSG] Starting media containers" info@example.com -aFrom:DockerVM@example.com
+	sudo docker start $(cat /home/USER/docker/scripts/media-services.txt)
+else
+	echo "Not all drives mounted after reboot. Timed out after $seconds seconds." | mail -s "[DVM ERROR] Mounted not equal to 4." info@example.com -aFrom:DockerVM@example.com
+	sudo docker stop $(cat /home/USER/docker/scripts/media-services.txt)
+fi

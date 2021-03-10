@@ -4,9 +4,14 @@ radarr
 sonarr
 bazarr
 lidarr
+readarr
 calibre-web
 calibre
 airsonic
 picard
 filebot
 tinymm
+nzbget
+transmission-vpn
+cloudplow
+autoscan
