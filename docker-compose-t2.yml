@@ -660,6 +660,7 @@ services:
       TRANSMISSION_WATCH_DIR: /data/downloads/torrents
       TRANSMISSION_WATCH_DIR_ENABLED: "true"
       TRANSMISSION_DOWNLOAD_DIR: /data/downloads/torrents
+      LOG_TO_STDOUT: "true"
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -685,9 +686,7 @@ services:
     #  - "$NZBGET_PORT:6789"
     volumes:
       - $DOCKERDIR/appdata/nzbget:/config
-      - $DATADIR/docker/appdata/nzbget/nzbget.log:/config/nzbget.log
       - $DATADIR/downloads:/data/downloads
-      - $DATADIR/local:/data/local
     environment:
       PUID: $PUID
       PGID: $PGID
@@ -792,6 +791,7 @@ services:
     #  - "$LIDARR_PORT:8686"
     volumes:
       - $DOCKERDIR/appdata/lidarr:/config
+      # Optional. See why MediaCover is mounted as volume https://github.com/htpcBeginner/docker-traefik/discussions/147
       - $DATADIR/docker/appdata/lidarr/MediaCover:/config/MediaCover
       - $DATADIR/downloads:/data/downloads
       - $DATADIR/media/music:/data/media/music
@@ -833,6 +833,7 @@ services:
     #  - "$RADARR_PORT:7878"
     volumes:
       - $DOCKERDIR/appdata/radarr:/config
+      # Optional. See why MediaCover is mounted as volume https://github.com/htpcBeginner/docker-traefik/discussions/147
       - $DATADIR/docker/appdata/radarr/MediaCover:/config/MediaCover
       - $DATADIR/downloads:/data/downloads
       - $DATADIR/media:/data/media
@@ -874,6 +875,7 @@ services:
     #  - "$SONARR_PORT:8989"
     volumes:
       - $DOCKERDIR/appdata/sonarr:/config
+      # Optional. See why MediaCover is mounted as volume https://github.com/htpcBeginner/docker-traefik/discussions/147
       - $DATADIR/docker/appdata/sonarr/MediaCover:/config/MediaCover
       - $DATADIR/downloads:/data/downloads
       - $DATADIR/media:/data/media
@@ -1093,11 +1095,13 @@ services:
       #- "$PLEX_WEB_TOOLS_PORT:33400"
     volumes:
       - $DOCKERDIR/appdata/plexms:/config
-      - $DATADIR/docker/appdata/plexms/Library/Application Support/Plex Media Server/Cache:/config/Library/Application Support/Plex Media Server/Cache
-      - $DATADIR/docker/appdata/plexms/Library/Application Support/Plex Media Server/Metadata:/config/Library/Application Support/Plex Media Server/Metadata
       - $DATADIR/downloads:/data/downloads
       - $DATADIR/media:/data/media
       - /dev/shm:/data/transcode # Offload transcoding to RAM if you have enough RAM
+      # Optional. See why the folders below are mounted as volumes https://github.com/htpcBeginner/docker-traefik/discussions/147
+      - $DATADIR/docker/appdata/plexms/Library/Application Support/Plex Media Server/Cache:/config/Library/Application Support/Plex Media Server/Cache
+      - $DATADIR/docker/appdata/plexms/Library/Application Support/Plex Media Server/Metadata:/config/Library/Application Support/Plex Media Server/Metadata
+      - $DATADIR/docker/appdata/plexms/Library/Application Support/Plex Media Server/Media:/config/Library/Application Support/Plex Media Server/Media
     environment:
       TZ: $TZ
       HOSTNAME: "proxPlex"
@@ -1707,7 +1711,7 @@ services:
       DB_PASS: $STATPING_DB_PASS
       DB_DATABASE: $STATPING_DB
       IS_DOCKER: "true"
-      DISABLE_LOGS: "false"
+      DISABLE_LOGS: "true"
       NAME: StatPing
       DESCRIPTION: Monitor web services
     labels:

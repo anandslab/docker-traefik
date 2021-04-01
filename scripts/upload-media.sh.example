@@ -42,6 +42,6 @@ fi
 
 # Rclone Move Command
 # Maximum transfer 300 GB. Google allows up to 750 GB per user per day.
-/usr/bin/rclone move $LOCAL $REMOTE:/media --max-transfer=300G --cutoff-mode=soft --delete-empty-src-dirs --log-file $LOGFILE -v --exclude-from $EXCLUDES --fast-list --min-age $MOVEAGE
+/usr/bin/rclone move $LOCAL $REMOTE:/media --max-transfer=650G --cutoff-mode=soft --delete-empty-src-dirs --log-file $LOGFILE -v --exclude-from $EXCLUDES --fast-list --min-age $MOVEAGE
 
 exit 0

@@ -1,4 +1,4 @@
-/home/USER/docker/appdata/rclone/logs/* {
+/home/USER/docker/appdata/rclone/logs/*.log {
     daily
     rotate 7
     notifempty
