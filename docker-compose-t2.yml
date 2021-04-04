@@ -365,13 +365,9 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.organizr-rtr.entrypoints=https"
-      - "traefik.http.routers.organizr-rtr.rule=Host(`$DOMAINNAME0`) || Host(`www.$DOMAINNAME0`)"
+      - "traefik.http.routers.organizr-rtr.rule=Host(`organizr.$DOMAINNAME`)"
       ## Middlewares
-      - "traefik.http.routers.organizr-rtr.middlewares=organizr-redirect@docker,chain-oauth@file"
-        # Redirect non-www to www middleware
-      - "traefik.http.middlewares.organizr-redirect.redirectregex.regex=^https?://$DOMAINNAME0/(.*)"
-      - "traefik.http.middlewares.organizr-redirect.redirectregex.replacement=https://www.$DOMAINNAME0/$${1}"
-      - "traefik.http.middlewares.organizr-redirect.redirectregex.permanent=true"
+      - "traefik.http.routers.organizr-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.organizr-rtr.service=organizr-svc"
       - "traefik.http.services.organizr-svc.loadbalancer.server.port=80"
