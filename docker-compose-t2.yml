@@ -821,7 +821,7 @@ services:
   # Radarr - Movie management
   # Set url_base in radarr settings if using PathPrefix
   radarr:
-    image: linuxserver/radarr:nightly
+    image: linuxserver/radarr:latest
     container_name: radarr
     restart: "no"
     networks:
@@ -863,7 +863,7 @@ services:
   # Sonarr - TV Shows management
   # Set url_base in sonarr settings if using PathPrefix
   sonarr:
-    image: linuxserver/sonarr:preview
+    image: linuxserver/sonarr:latest
     container_name: sonarr
     restart: "no"
     networks:
