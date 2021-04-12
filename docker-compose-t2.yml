@@ -79,7 +79,7 @@ services:
   # touch $DOCKERDIR/traefik2/traefik.log
   traefik:
     container_name: traefik
-    image: traefik:picodon # chevrotin # the chevrotin tag refers to v2.2.x
+    image: traefik:livarot # picodon v2.3.x # chevrotin v2.2.x
     restart: always
     command: # CLI arguments
       - --global.checkNewVersion=true
@@ -697,7 +697,8 @@ services:
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.nzbget-rtr-bypass.entrypoints=https"
       # BYPASS IS NOT WORKING YET. NEED TO FIGURE THIS OUT.
-      - "traefik.http.routers.nzbget-rtr-bypass.rule=Host(`nzbget.$DOMAINNAME0`) && Query(`apikey`, `$NZBGET_API_KEY`)"
+      - "traefik.http.routers.nzbget-rtr-bypass.rule=Host(`nzbget.$DOMAINNAME0`)"
+      #- "traefik.http.routers.nzbget-rtr-bypass.rule=Host(`nzbget.$DOMAINNAME0`) && Query(`apikey`, `$NZBGET_API_KEY`)"
       - "traefik.http.routers.nzbget-rtr-bypass.priority=100"
       ## HTTP Routers Auth
       - "traefik.http.routers.nzbget-rtr.entrypoints=https"
@@ -1814,4 +1815,4 @@ services:
     labels:
       # Add hosts specified in rules here to force cf-companion to create the CNAMEs
       # Since cf-companion creates CNAMEs based on host rules, this a workaround for non-docker/external apps
-      - "traefik.http.routers.cf-companion-rtr.rule=Host(`prox.$DOMAINNAME0`) || Host(`pwt.$DOMAINNAME0`) || Host(`webmin.$DOMAINNAME0`) || Host(`shell.$DOMAINNAME0`)"
+      - "traefik.http.routers.cf-companion-rtr.rule=Host(`mox.$DOMAINNAME0`) || Host(`pwt.$DOMAINNAME0`) || Host(`webmin.$DOMAINNAME0`) || Host(`shell.$DOMAINNAME0`)"
