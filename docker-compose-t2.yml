@@ -366,6 +366,7 @@ services:
       ## HTTP Routers
       - "traefik.http.routers.organizr-rtr.entrypoints=https"
       - "traefik.http.routers.organizr-rtr.rule=Host(`$DOMAINNAME0`) || Host(`www.$DOMAINNAME0`)"
+      #- "traefik.http.routers.organizr-rtr.rule=Host(`organizr.$DOMAINNAME0`)"
       ## Middlewares
       - "traefik.http.routers.organizr-rtr.middlewares=organizr-redirect@docker,chain-oauth@file"
         # Redirect non-www to www middleware
@@ -1676,6 +1677,7 @@ services:
       # Run as root first, create the directories, then change permissions to user:docker and 775. Disable run as root below.
       user: $PUID:$PGID
       # user: "0"
+      DOCKER_HOST: tcp://socket-proxy:2375
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
