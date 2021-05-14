@@ -1,0 +1,40 @@
+[code]
+[http.middlewares]
+  ### Let's give them a new name so it won't conflict with others
+  [http.middlewares.nextcloud-middlewares-secure-headers]
+    ### Change the name here as well
+    [http.middlewares.nextcloud-middlewares-secure-headers.headers]
+  ### Comment out this line as Nextcloud uses quite a few methods for different apps
+#      accessControlAllowMethods= ["GET", "OPTIONS", "PUT"]
+      accessControlMaxAge = 100
+      hostsProxyHeaders = ["X-Forwarded-Host"]
+      sslRedirect = true
+      stsSeconds = 63072000
+      stsIncludeSubdomains = true
+      stsPreload = true
+      forceSTSHeader = true
+#      frameDeny = true #overwritten by customFrameOptionsValue
+  ### We will modify this value for Nextcloud to remove the X-Frame-Options error:
+      customFrameOptionsValue = "SAMEORIGIN" #CSP takes care of this but may be needed for organizr.
+      contentTypeNosniff = true 
+      browserXssFilter = true
+#      sslForceHost = true # add sslHost to all of the services
+#      sslHost = "example.com"
+      referrerPolicy = "same-origin"
+#      Setting contentSecurityPolicy is more secure but it can break things. Proper auth will reduce the risk.
+#      the below line also breaks some apps due to 'none' - sonarr, radarr, etc.
+#      contentSecurityPolicy = "frame-ancestors '*.example.com:*';object-src 'none';script-src 'none';"
+      featurePolicy = "camera 'none'; geolocation 'none'; microphone 'none'; payment 'none'; usb 'none'; vr 'none';"
+  ### Change the middleware name here as well  
+      [http.middlewares.nextcloud-middlewares-secure-headers.headers.customResponseHeaders]
+    ### We just need to set this to none
+        X-Robots-Tag = "none"
+        server = ""
+
+### This section redirects requests for Nextcloud calendar and contacts service discovery
+### source: https://docs.nextcloud.com/server/21/admin_manual/issues/general_troubleshooting.html#service-discovery
+  [http.middlewares.nextcloud-redirect]
+    [http.middlewares.nextcloud-redirect.redirectRegex]
+      permanent = true
+      regex = "https://(.*)/.well-known/(card|cal)dav"
+      replacement = "https://${1}/remote.php/dav/"

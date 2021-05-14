@@ -823,7 +823,7 @@ services:
   # Radarr - Movie management
   # Set url_base in radarr settings if using PathPrefix
   radarr:
-    image: linuxserver/radarr:latest
+    image: linuxserver/radarr:nightly # latest was causing "Error parsing column 45"
     container_name: radarr
     restart: "no"
     networks:
@@ -1226,7 +1226,7 @@ services:
   autoscan:
     image: hotio/autoscan
     container_name: autoscan
-    restart: unless-stopped
+    restart: "no"
     networks:
       - t2_proxy
     security_opt:
@@ -1727,27 +1727,6 @@ services:
       ## HTTP Services
       - "traefik.http.routers.statping-rtr.service=statping-svc"
       - "traefik.http.services.statping-svc.loadbalancer.server.port=8080"
-
-  # CloudPlow - Rclone remote uploader/syncer
-  cloudplow:
-    image: sabrsorensen/alpine-cloudplow
-    container_name: cloudplow
-    restart: "no"
-    security_opt:
-      - no-new-privileges:true
-    volumes:
-      - $DOCKERDIR/appdata/cloudplow:/config/:rw
-      - $DOCKERDIR/appdata/rclone:/rclone_config/:rw
-      #- /home/<user>/google_drive_service_accounts:/service_accounts/:rw
-      - $DATADIR/media:/data/media:rw
-      - /etc/localtime:/etc/localtime:ro
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - CLOUDPLOW_CONFIG=/config/config.json
-      - CLOUDPLOW_LOGFILE=/config/cloudplow.log
-      - CLOUDPLOW_LOGLEVEL=DEBUG
-      - CLOUDPLOW_CACHEFILE=/config/cache.db
 
   ############################# MAINTENANCE
 
