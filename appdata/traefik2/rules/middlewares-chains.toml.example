@@ -17,4 +17,4 @@
 
   [http.middlewares.chain-nextcloud]
     [http.middlewares.chain-nextcloud.chain]
-      middlewares = [ "middlewares-rate-limit", "nextcloud-middleware-secure-headers", "nextcloud-redirect"]
+      middlewares = [ "middlewares-rate-limit", "nextcloud-middlewares-secure-headers", "nextcloud-redirect"]
