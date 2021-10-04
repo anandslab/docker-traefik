@@ -1,4 +1,4 @@
-version: "3.7"
+version: "3.9"
 # MAIN DOCKER-COMPOSE
 # DEDICATED SERVER IN A DATACENTER
 # AMD Ryzen 7 3800X
@@ -79,8 +79,10 @@ services:
   # touch $DOCKERDIR/traefik2/traefik.log
   traefik:
     container_name: traefik
-    image: traefik:livarot # picodon v2.3.x # chevrotin v2.2.x
+    image: traefik:2.5 # brie v2.5.x livarot v2.4.x # picodon v2.3.x
     restart: always
+    # profiles:
+    # - core
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=true
@@ -188,6 +190,8 @@ services:
     container_name: socket-proxy
     image: tecnativa/docker-socket-proxy
     restart: always
+    # profiles:
+    # - core
     networks:
       socket_proxy:
         ipv4_address: 192.168.91.254 # You can specify a static IP
@@ -238,6 +242,8 @@ services:
     image: thomseddon/traefik-forward-auth:latest
     # image: thomseddon/traefik-forward-auth:2.1-arm # Use this image with Raspberry Pi
     restart: always
+    # profiles:
+    # - core
     networks:
       - t2_proxy
     security_opt:
@@ -283,6 +289,8 @@ services:
     # Check this before upgrading: https://github.com/authelia/authelia/blob/master/BREAKING.md
     image: authelia/authelia:latest
     restart: always
+    # profiles:
+    # - core
     networks:
       - t2_proxy
       - default
@@ -320,6 +328,8 @@ services:
     container_name: portainer
     image: portainer/portainer-ce:latest
     restart: unless-stopped
+    # profiles:
+    # - apps
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
     command: -H tcp://socket-proxy:2375
     networks:
@@ -348,6 +358,8 @@ services:
     container_name: organizr
     image: organizr/organizr:latest
     restart: unless-stopped
+    # profiles:
+    # - apps
     networks:
       - t2_proxy
     security_opt:
@@ -383,6 +395,8 @@ services:
     container_name: heimdall
     image: linuxserver/heimdall:latest
     restart: unless-stopped
+    # profiles:
+    # - apps
     networks:
       - t2_proxy
     security_opt:
@@ -411,6 +425,8 @@ services:
     container_name: autoindex
     image: dceoy/nginx-autoindex:latest
     restart: always
+    # profiles:
+    # - apps
     networks:
       - t2_proxy
     security_opt:
@@ -439,6 +455,8 @@ services:
     container_name: mariadb
     image: linuxserver/mariadb:latest
     restart: always
+    # profiles:
+    # - core
     security_opt:
       - no-new-privileges:true
     ports:
@@ -459,6 +477,8 @@ services:
     image: influxdb:latest
     container_name: influxdb
     restart: always
+    # profiles:
+    # - core
     security_opt:
       - no-new-privileges:true
     ports:
@@ -474,6 +494,8 @@ services:
     container_name: redis
     image: redis:latest
     restart: always
+    # profiles:
+    # - core
     entrypoint: redis-server --appendonly yes --requirepass $REDIS_PASSWORD --maxmemory 512mb --maxmemory-policy allkeys-lru
     ports:
       - "$REDIS_PORT:6379"
@@ -490,6 +512,8 @@ services:
     image: phpmyadmin/phpmyadmin:latest
     container_name: phpmyadmin
     restart: unless-stopped
+    # profiles:
+    # - apps
     networks:
       - t2_proxy
       - default
@@ -522,6 +546,8 @@ services:
     container_name: rediscommander
     image: rediscommander/redis-commander:latest
     restart: unless-stopped
+    # profiles:
+    # - apps
     networks:
       - t2_proxy
       - default
@@ -548,6 +574,8 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     restart: unless-stopped
+    # profiles:
+    # - monitoring
     networks:
       - t2_proxy
       - default
@@ -578,6 +606,8 @@ services:
     image: jlesage/jdownloader-2:latest
     container_name: jdownloader
     restart: always
+    # profiles:
+    # - media
     networks:
       - t2_proxy
     security_opt:
@@ -614,6 +644,8 @@ services:
     image: haugene/transmission-openvpn:latest
     container_name: transmission-vpn
     restart: always
+    # profiles:
+    # - media
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.169
@@ -678,6 +710,8 @@ services:
     image: ghcr.io/linuxserver/nzbget
     container_name: nzbget
     restart: always
+    # profiles:
+    # - media
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.216
@@ -720,6 +754,8 @@ services:
     image: linuxserver/jackett:latest
     container_name: jackett
     restart: always
+    # profiles:
+    # - media
     # network_mode: container:transmission-vpn
     networks:
       t2_proxy:
@@ -752,6 +788,8 @@ services:
     image: linuxserver/nzbhydra2:latest
     container_name: hydra
     restart: unless-stopped
+    # profiles:
+    # - media
     networks:
       - t2_proxy
     security_opt:
@@ -784,6 +822,8 @@ services:
     image: linuxserver/lidarr:latest
     container_name: lidarr
     restart: "no"
+    # profiles:
+    # - media
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.163
@@ -826,6 +866,8 @@ services:
     image: linuxserver/radarr:nightly # latest was causing "Error parsing column 45"
     container_name: radarr
     restart: "no"
+    # profiles:
+    # - media
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.164
@@ -868,6 +910,8 @@ services:
     image: linuxserver/sonarr:latest
     container_name: sonarr
     restart: "no"
+    # profiles:
+    # - media
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.167
@@ -910,6 +954,8 @@ services:
     image: hotio/readarr:nightly
     container_name: readarr
     restart: "no"
+    # profiles:
+    # - media
     networks:
       t2_proxy:
     security_opt:
@@ -943,6 +989,8 @@ services:
     image: linuxserver/lazylibrarian
     container_name: lazylibrarian
     restart: unless-stopped
+    # profiles:
+    # - media
     networks:
       - t2_proxy
     security_opt:
@@ -977,6 +1025,8 @@ services:
     image: linuxserver/calibre-web
     container_name: calibre-web
     restart: "no"
+    # profiles:
+    # - media
     networks:
       - t2_proxy
     security_opt:
@@ -1009,6 +1059,8 @@ services:
     image: linuxserver/calibre
     container_name: calibre
     restart: "no"
+    # profiles:
+    # - media
     networks:
       - t2_proxy
     security_opt:
@@ -1044,6 +1096,8 @@ services:
     container_name: airsonic
     image: linuxserver/airsonic:latest
     restart: "no"
+    # profiles:
+    # - media
     networks:
       - t2_proxy
     security_opt:
@@ -1077,6 +1131,8 @@ services:
     image: plexinc/pms-docker:plexpass
     container_name: plexms
     restart: "no"
+    # profiles:
+    # - media
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.150 # You can specify a static IP
@@ -1131,6 +1187,8 @@ services:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
     restart: "no"
+    # profiles:
+    # - media
     networks:
       - t2_proxy
     devices:
@@ -1168,6 +1226,8 @@ services:
     image: linuxserver/tautulli:latest
     container_name: tautulli
     restart: unless-stopped
+    # profiles:
+    # - monitoring
     networks:
       - t2_proxy
     security_opt:
@@ -1197,6 +1257,8 @@ services:
     image: linuxserver/photoshow:latest
     container_name: photoshow
     restart: "no"
+    # profiles:
+    # - media
     networks:
       - t2_proxy
     security_opt:
@@ -1227,6 +1289,9 @@ services:
     image: hotio/autoscan
     container_name: autoscan
     restart: "no"
+    # profiles:
+    # - media
+    # - testing
     networks:
       - t2_proxy
     security_opt:
@@ -1250,6 +1315,8 @@ services:
     image: linuxserver/bazarr:latest
     container_name: bazarr
     restart: "no"
+    # profiles:
+    # - media
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.172
@@ -1287,6 +1354,8 @@ services:
     image: mikenye/picard:latest
     container_name: picard
     restart: "no"
+    # profiles:
+    # - media
     networks:
       - t2_proxy
     security_opt:
@@ -1321,6 +1390,8 @@ services:
     image: jlesage/handbrake:latest
     container_name: handbrake
     restart: unless-stopped
+    # profiles:
+    # - apps
     networks:
       - t2_proxy
     security_opt:
@@ -1358,6 +1429,8 @@ services:
     image: jlesage/mkvtoolnix:latest
     container_name: mkvtoolnix
     restart: unless-stopped
+    # profiles:
+    # - apps
     networks:
       - t2_proxy
     security_opt:
@@ -1393,6 +1466,8 @@ services:
     image: jlesage/makemkv:latest
     container_name: makemkv
     restart: unless-stopped
+    # profiles:
+    # - apps
     networks:
       - t2_proxy
     security_opt:
@@ -1428,6 +1503,8 @@ services:
   filebot:
     image: jlesage/filebot:latest
     container_name: filebot
+    # profiles:
+    # - media
     restart: "no"
     networks:
       - t2_proxy
@@ -1470,6 +1547,8 @@ services:
     image: jlesage/firefox:latest
     container_name: firefox
     restart: unless-stopped
+    # profiles:
+    # - apps
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.250 # You can specify a static IP
@@ -1510,6 +1589,8 @@ services:
     image: nicolargo/glances:latest
     container_name: glances
     restart: unless-stopped
+    # profiles:
+    # - monitoring
     privileged: true
     # network_mode: host
     networks:
@@ -1549,6 +1630,8 @@ services:
     image: jlesage/qdirstat:latest
     container_name: qdirstat
     restart: unless-stopped
+    # profiles:
+    # - apps
     networks:
       - t2_proxy
     security_opt:
@@ -1586,6 +1669,8 @@ services:
     image: guacamole/guacamole:latest
     container_name: guacamole
     restart: unless-stopped
+    # profiles:
+    # - core
     networks:
       - t2_proxy
       - default
@@ -1621,6 +1706,8 @@ services:
     image: guacamole/guacd
     container_name: guacd
     restart: unless-stopped
+    # profiles:
+    # - core
     networks:
       - t2_proxy
     security_opt:
@@ -1631,11 +1718,13 @@ services:
     image: amir20/dozzle:latest
     container_name: dozzle
     restart: unless-stopped
+    # profiles:
+    # - monitoring
     networks:
       - t2_proxy
       - socket_proxy
-    depends_on:
-      - socket-proxy
+    #depends_on:
+    #  - socket-proxy
     security_opt:
       - no-new-privileges:true
     # ports:
@@ -1664,6 +1753,8 @@ services:
     image: codercom/code-server:latest
     container_name: vscode
     restart: always
+    # profiles:
+    # - core
     networks:
       - t2_proxy
     # ports:
@@ -1697,6 +1788,8 @@ services:
     image: statping/statping:latest
     container_name: statping
     restart: unless-stopped
+    # profiles:
+    # - monitoring
     networks:
       - t2_proxy
       - default
@@ -1736,6 +1829,8 @@ services:
     image: clockworksoul/docker-gc-cron:latest
     container_name: docker-gc
     restart: unless-stopped
+    # profiles:
+    # - core
     networks:
       - socket_proxy
     depends_on:
@@ -1758,6 +1853,8 @@ services:
     container_name: traefik_certdumper
     image: humenius/traefik-certs-dumper:latest
     network_mode: none
+    # profiles:
+    # - core
     security_opt:
       - no-new-privileges:true
     # command: --restart-containers container1,container2,container3
@@ -1775,6 +1872,8 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
+    # profiles:
+    # - core
     networks:
       - socket_proxy
     #depends_on:

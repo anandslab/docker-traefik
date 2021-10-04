@@ -4,12 +4,14 @@ http:
       chain:
         middlewares:
           - middlewares-rate-limit
+          - middlewares-https-redirectscheme
           - middlewares-secure-headers
 
     chain-basic-auth:
       chain:
         middlewares:
           - middlewares-rate-limit
+          - middlewares-https-redirectscheme
           - middlewares-secure-headers
           - middlewares-basic-auth
 
@@ -17,6 +19,7 @@ http:
       chain:
         middlewares:
           - middlewares-rate-limit
+          - middlewares-https-redirectscheme
           - middlewares-secure-headers
           - middlewares-oauth
         
@@ -24,6 +27,7 @@ http:
       chain:
         middlewares:
           - middlewares-rate-limit
+          - middlewares-https-redirectscheme
           - middlewares-secure-headers
           - middlewares-authelia
 

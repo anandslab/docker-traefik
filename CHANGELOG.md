@@ -13,8 +13,14 @@
 - Switch to Hotio.dev's cloudflareddns,
 - Remove lazylibrarian (added Readarr)
 - Check traefik buffering - to avoid http error 431 - header request size too large
+- Implement thelounge, privatebin
 
-## January 6, 2020
+## October 10, 2021
+
+- Discontinuing this overall changelog due to commits now having a detailed log.
+- Updated to Traefik 2.5.x
+
+## January 6, 2021
 
 - Moved server to Proxmox on a dedicated cloud/seedbox.
 - Extensive tidying up of the setup.

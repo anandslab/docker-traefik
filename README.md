@@ -23,6 +23,8 @@ The following posts have been combined and updated for Traefik v2 (linked above)
 
 ## A Note on Traefik 1 vs Traefik 2?
 
+<strong>Update (September 13, 2021):</strong> I moved from TOML to YAML for Traefik 2 dynamic configurations. I have included example configuration files for both. However, since I do not use TOML anymore, there may be minor syntax errors or typos.
+
 <strong>Update (April 19, 2020):</strong> I have switched from Traefik v1 to Traefik v2, which is now my default. Therefore, the setup for Traefik v1 will only receive minor updates (if any). If you are new, follow instructions for Traefik v2.
 
 ### Traefik 2 (CURRENT - GENERIC LINUX)

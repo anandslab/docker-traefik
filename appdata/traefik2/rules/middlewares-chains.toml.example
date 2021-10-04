@@ -1,20 +1,20 @@
 [http.middlewares]
   [http.middlewares.chain-no-auth]
     [http.middlewares.chain-no-auth.chain]
-      middlewares = [ "middlewares-rate-limit", "middlewares-secure-headers"]
+      middlewares = [ "middlewares-rate-limit", "middlewares-https-redirectscheme", "middlewares-secure-headers"]
 
   [http.middlewares.chain-basic-auth]
     [http.middlewares.chain-basic-auth.chain]
-      middlewares = [ "middlewares-rate-limit", "middlewares-secure-headers", "middlewares-basic-auth"]
+      middlewares = [ "middlewares-rate-limit", "middlewares-https-redirectscheme", "middlewares-secure-headers", "middlewares-basic-auth"]
 
   [http.middlewares.chain-oauth]
     [http.middlewares.chain-oauth.chain]
-      middlewares = [ "middlewares-rate-limit", "middlewares-secure-headers", "middlewares-oauth"]
+      middlewares = [ "middlewares-rate-limit", "middlewares-https-redirectscheme", "middlewares-secure-headers", "middlewares-oauth"]
 
   [http.middlewares.chain-authelia]
     [http.middlewares.chain-authelia.chain]
-      middlewares = [ "middlewares-rate-limit", "middlewares-secure-headers", "middlewares-authelia"]
+      middlewares = [ "middlewares-rate-limit", "middlewares-https-redirectscheme", "middlewares-secure-headers", "middlewares-authelia"]
 
   [http.middlewares.chain-nextcloud]
     [http.middlewares.chain-nextcloud.chain]
-      middlewares = [ "middlewares-rate-limit", "nextcloud-middlewares-secure-headers", "nextcloud-redirect"]
+      middlewares = [ "middlewares-rate-limit", "middlewares-https-redirectscheme", "nextcloud-middlewares-secure-headers", "nextcloud-redirect"]

@@ -12,5 +12,3 @@ picard
 filebot
 nzbget
 transmission-vpn
-cloudplow
-autoscan
