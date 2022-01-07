@@ -67,6 +67,8 @@ secrets:
     file: $DOCKERDIR/secrets/traefik_pilot_token
   mysql_root_password:
     file: $DOCKERDIR/secrets/mysql_root_password
+  redis_password:
+    file: $DOCKERDIR/secrets/redis_password
 
 ########################### SERVICES
 services:
@@ -496,7 +498,6 @@ services:
     restart: always
     # profiles:
     # - core
-    entrypoint: redis-server --appendonly yes --requirepass $REDIS_PASSWORD --maxmemory 512mb --maxmemory-policy allkeys-lru
     ports:
       - "$REDIS_PORT:6379"
     security_opt:
@@ -505,6 +506,18 @@ services:
       - $DOCKERDIR/appdata/redis/data:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+    environment:
+      - REDIS_PASS_FILE=/run/secrets/redis_password
+    secrets:
+      - redis_password
+    command: [ "sh", "-c",'[ "$$REDIS_PASS_FILE" ] 
+      && (docker-entrypoint.sh --appendonly yes 
+                               --maxmemory 256mb  
+                               --maxmemory-policy allkeys-lru  
+                               --requirepass "$$(cat $$REDIS_PASS_FILE)")  
+      || echo "++++ Redis Password is empty, using default instance ++++"
+      && redis-server' 
+    ]
 
   # phpMyAdmin - Database management
   # Create a new user with admin privileges. Cannot login as MySQL root for some reason.
