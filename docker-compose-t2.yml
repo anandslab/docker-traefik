@@ -55,8 +55,6 @@ secrets:
     file: $DOCKERDIR/secrets/google_client_id
   my_email:
     file: $DOCKERDIR/secrets/my_email
-  plex_claim:
-    file: $DOCKERDIR/secrets/plex_claim
   guac_db_name:
     file: $DOCKERDIR/secrets/guac_db_name
   guac_mysql_user:
