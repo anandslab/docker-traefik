@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Change permissions of GPU so Plex on Docker can do Hardware transcoding.
+
+chmod 777 /dev/dri*

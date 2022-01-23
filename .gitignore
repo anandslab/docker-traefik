@@ -28,6 +28,9 @@ scripts/*
 !scripts/systemd
 scripts/systemd/*
 !scripts/systemd/*.example
+!scripts/synology
+scripts/synology/*
+!scripts/synology/*.example
 
 !archives
 archives/*

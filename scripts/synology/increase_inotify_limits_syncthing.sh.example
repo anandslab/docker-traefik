@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Synology default is 8192. This is very low and Synthing warns to "increase inotify limits". 
+# Synology keeps overwriting custom values with default values. 
+# Run this script as root at boot and periodically through Task Scheduler on DSM 
+
+# echo "fs.inotify.max_user_watches=204800" | tee -a /etc/sysctl.conf
+
+echo 204800 | tee /proc/sys/fs/inotify/max_user_watches
