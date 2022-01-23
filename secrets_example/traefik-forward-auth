@@ -1,0 +1,8 @@
+### EXAMPLE OF REQUIRED FILE TO ALLOW DOCKER SECRETS TO FUNCTION WITH GOOGLE OAUTH
+### FOR FURTHER DETAILS SEE https://github.com/thomseddon/traefik-forward-auth
+
+providers.google.client-id=yourGOOGLEclientID
+providers.google.client-secret=yourCLIENTsecret
+secret=RANDOMcharacters
+whitelist=yourEMAILaddress
+whitelist=yourEMAILaddress2

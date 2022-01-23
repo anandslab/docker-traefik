@@ -187,7 +187,7 @@ First, install Docker and Docker Compose, as described in our <a href="https://w
 - DNS Challenge (for LetsEncrypt verification) is enabled by default for cloudflare. Use the [Traefik Reverse Proxy guide](https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/) for help with this.
 - For other providers other than cloudflare, [check here](https://docs.traefik.io/v2.0/https/acme/#providers).
 
-3. (Optional) Enable or use HTTP Basic Authentication by renaming `shared\.htpasswd.example` to `shared\.htpasswd` in the folder and adding username and hashed password to it.
+3. (Optional) Enable or use HTTP Basic Authentication by renaming the `secrets_example` folder to `secrets` adding username and hashed password to the `htpasswd` file.
 4. Configure environmental variables (`.env` file)
 
 - Rename the included `.env.example` to `.env`.

@@ -221,7 +221,7 @@ services:
       - SESSION=0
       - SWARM=0
       - SYSTEM=0
-      - TASKS=1 # Portaienr
+      - TASKS=1 # Portainer
       - VOLUMES=1 # Portainer
 
   # Google OAuth - Single Sign On using OAuth 2.0
