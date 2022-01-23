@@ -1,0 +1,65 @@
+http:
+  middlewares:
+    chain-no-auth:
+      chain:
+        middlewares:
+          - middlewares-rate-limit
+          - middlewares-https-redirectscheme
+          - middlewares-secure-headers
+          - middlewares-compress
+
+    chain-no-auth-wp:
+      chain:
+        middlewares:
+          - middlewares-rate-limit
+          - middlewares-https-redirectscheme
+          - middlewares-secure-headers-wp
+          - middlewares-compress
+
+    chain-basic-auth:
+      chain:
+        middlewares:
+          - middlewares-rate-limit
+          - middlewares-https-redirectscheme
+          - middlewares-secure-headers
+          - middlewares-basic-auth
+          - middlewares-compress
+
+    chain-oauth:
+      chain:
+        middlewares:
+          - middlewares-rate-limit
+          - middlewares-https-redirectscheme
+          - middlewares-secure-headers
+          - middlewares-oauth
+          - middlewares-compress
+
+    chain-oauth-wp:
+      chain:
+        middlewares:
+          - middlewares-rate-limit
+          - middlewares-https-redirectscheme
+          - middlewares-secure-headers-wp
+          - middlewares-oauth
+          - middlewares-compress
+
+    chain-authelia:
+      chain:
+        middlewares:
+          - middlewares-rate-limit
+          - middlewares-https-redirectscheme
+          - middlewares-secure-headers
+          - middlewares-authelia
+          - middlewares-compress
+
+    chain-authelia-wp:
+      chain:
+        middlewares:
+          - middlewares-rate-limit
+          - middlewares-https-redirectscheme
+          - middlewares-secure-headers-wp
+          - middlewares-authelia
+          - middlewares-compress
+
+
+
