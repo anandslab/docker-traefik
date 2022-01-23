@@ -57,6 +57,7 @@ appdata/traefik2/*
 !appdata/traefik2/rules
 appdata/traefik2/rules/*
 !appdata/traefik2/rules/*.example
+!appdata/traefik2/rules/middlewares-chains.yml
 !appdata/traefik2/rules/tls-opts.yml
 
 !appdata/authelia

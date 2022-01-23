@@ -1,14 +1,9 @@
 jellyfin
-plexms
 radarr
 sonarr
 bazarr
 lidarr
 readarr
-calibre-web
-calibre
-airsonic
 picard
-filebot
 nzbget
 transmission-vpn

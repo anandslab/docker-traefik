@@ -6,6 +6,7 @@ http:
           - middlewares-rate-limit
           - middlewares-https-redirectscheme
           - middlewares-secure-headers
+          - middlewares-compress
 
     chain-basic-auth:
       chain:
@@ -14,6 +15,7 @@ http:
           - middlewares-https-redirectscheme
           - middlewares-secure-headers
           - middlewares-basic-auth
+          - middlewares-compress
 
     chain-oauth:
       chain:
@@ -22,7 +24,17 @@ http:
           - middlewares-https-redirectscheme
           - middlewares-secure-headers
           - middlewares-oauth
-        
+          - middlewares-compress
+
+    chain-oauth-external:
+      chain:
+        middlewares:
+          - middlewares-rate-limit
+          - middlewares-https-redirectscheme
+          - middlewares-secure-headers
+          - middlewares-oauth-external
+          - middlewares-compress
+
     chain-authelia:
       chain:
         middlewares:
@@ -30,5 +42,4 @@ http:
           - middlewares-https-redirectscheme
           - middlewares-secure-headers
           - middlewares-authelia
-
-
+          - middlewares-compress

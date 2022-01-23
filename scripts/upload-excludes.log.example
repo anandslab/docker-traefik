@@ -1,0 +1,4 @@
+*partial~
+torrents/**
+*.part
+incomplete/**

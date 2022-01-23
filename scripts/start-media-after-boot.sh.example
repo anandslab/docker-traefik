@@ -4,47 +4,58 @@
 # This script checks the required mounts every 5 seconds and as soon as required drives are mounted, it starts the "media" containers.
 
 # CHECKING FOR DRIVE MOUNTS
-rclone_drive="/media/shb-drive"
-rclone_crypt="/media/shb-crypt"
-hdd1="/media/hdd1"
-merge_media="/media/data/media"
+num_drives=3
+drive1="/media/drive"
+drive1_seconds=0
+drive1_status=0
+drive2="/media/crypt"
+drive2_seconds=0
+drive2_status=0
+drive3="/media/data/media"
+drive3_seconds=0
+drive3_status=0
 
 mounted=0
 rounds=0
 
-while [ $mounted -eq 0 ]
+while [ "$mounted" -ne "$num_drives" ]
 do
-	if mount | grep ${rclone_drive} > /dev/null; then
-		mounted=$((mounted+1))
+	if mount | grep ${drive1} > /dev/null; then
+		if [[ "$drive1_status" -eq 0 ]]; then
+			mounted=$((mounted+1))
+			drive1_seconds=$((rounds * 5))
+			drive1_status=1
+		fi
 	fi
-	if mount | grep ${rclone_crypt} > /dev/null; then
-		mounted=$((mounted+1))
+	if mount | grep ${drive2} > /dev/null; then
+		if [[ "$drive2_status" -eq 0 ]]; then
+			mounted=$((mounted+1))
+			drive2_seconds=$((rounds * 5))
+			drive2_status=1
+		fi
 	fi
-	if mount | grep ${hdd1} > /dev/null; then
-		mounted=$((mounted+1))
+	if mount | grep ${drive3} > /dev/null; then
+		if [[ "$drive3_status" -eq 0 ]]; then
+			mounted=$((mounted+1))
+			drive3_seconds=$((rounds * 5))
+			drive3_status=1
+		fi
 	fi
-	if mount | grep ${merge_media} > /dev/null; then
-		mounted=$((mounted+1))
-	fi
-	if [[ "$mounted" -ne 4 ]]; then
-		mounted=0
-	fi
+	# Timeout if mounting is not successful after 15 min: 60 = 5 min
+    if [[ $rounds -eq 180 ]]; then
+      break
+    fi
 	sleep 5
 	rounds=$((rounds + 1))
 	#echo -e "$rounds\n"
-
-	# Timeout if mounting is not successful after 5 min
-    if [[ $rounds -eq 60 ]]; then
-      break
-    fi
 done
 
 seconds=$((rounds * 5))
 
-if [[ "$mounted" -eq 4 ]]; then
-	echo -e "All drives mounted properly after $seconds seconds.\n\nStarting media containers." | mail -s "[DVM MSG] Starting media containers" info@example.com -aFrom:DockerVM@example.com
+if [[ "$mounted" -eq "$num_drives" ]]; then
+	echo -e "All drives mounted: \n\n - $drive1 in $drive1_seconds \n - $drive2 in $drive2_seconds \n - $drive3 in $drive3_seconds\n\nStarting media containers." | mail -s "[cDoc MSG] Starting media containers" info@example.com -aFrom:cDoc@example.com
 	sudo docker start $(cat /home/USER/docker/scripts/media-services.txt)
 else
-	echo "Not all drives mounted after reboot. Timed out after $seconds seconds." | mail -s "[DVM ERROR] Mounted not equal to 4." info@example.com -aFrom:DockerVM@example.com
+	echo -e "Not all drives mounted after reboot: \n\n - $drive1 is $drive1_status \n - $drive2 is $drive2_status \n - $drive3 is $drive3_status\n\nTimed out after $seconds seconds." | mail -s "[cDoc ERROR] Mounted not equal to $num_drives." info@example.com -aFrom:cDoc@example.com
 	sudo docker stop $(cat /home/USER/docker/scripts/media-services.txt)
 fi

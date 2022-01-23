@@ -1,49 +1,184 @@
-version: "3.7"
-
-# IMPORTANT
-############# WORK IN PROGRESS ON THIS FILE. #############
-# PATHS ETC. HAVE NOT BEEN UPDATED TO THE NEW WAY SHOWN IN docker-compose-t2.yml
-
-# DOCKER-COMPOSE FOR SYNOLOGY NAS
-# DS918+
-# 8 GB RAM
+version: "3.9"
 
 ######### IMPORTANT #############
-# You will find only a few apps (only those that I run on Synology NAS) in this Docker Compose file.
-# But you can copy-paste almost any app from the other Docker Compose files in this repo to add the app to your Synology Docker stack.
+# docker-compose-t2.yml is my main docker compose that runs on a dedicated cloud server with Proxmox.
+# You will find only a few apps (only those that I run on Synology NAS for my homelab use) in this docker-compose file.
+# You can copy-paste services from one docker-compose file in this repo to another to add other apps.
+
+########################### SYSTEM DESCRIPTION
+# DOCKER-COMPOSE FOR SYNOLOGY DS918+
+# 8 GB RAM, DSM 7.X
+# 1x4TB + 3x8TB
+# 2x256GB NVMe SSD Read-Write Cache
+# Google Drive mounted using Rclone Docker Container for media
 
 ########################### NETWORKS
-# Create socket_proxy network
-# docker network create socket_proxy
-# Alternatively, you can specify the gateway and subnet to use
-# docker network create --gateway 192.168.253.1 --subnet 192.168.253.0/24 socket_proxy
-# Subnet range 192.168.0.0/16 covers 192.168.0.0 to 192.168.255.255
+# There is no need to create any networks outside this docker-compose file.
+# You may customize the network subnets (192.168.90.0/24 and 91.0/24) below as you please.
+# Docker Compose version 3.5 or higher required to define networks this way.
 
 networks:
+  t2_proxy:
+    name: t2_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.90.0/24
   default:
     driver: bridge
   socket_proxy:
-    external:
-      name: socket_proxy
+    name: socket_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.91.0/24
 
 ########################### SECRETS
 secrets:
-  mysql_root_password:
-    file: $SECRETSDIR/mysql_root_password
+  htpasswd:
+    file: $DOCKERDIR/secrets/htpasswd
+  cloudflare_email:
+    file: $DOCKERDIR/secrets/cloudflare_email
+  cloudflare_api_key:
+    file: $DOCKERDIR/secrets/cloudflare_api_key
+  cloudflare_api_token:
+    file: $DOCKERDIR/secrets/cloudflare_api_token
+  oauth_secret:
+    file: $DOCKERDIR/secrets/oauth_secret
+  google_client_secret:
+    file: $DOCKERDIR/secrets/google_client_secret
+  google_client_id:
+    file: $DOCKERDIR/secrets/google_client_id
+  my_email:
+    file: $DOCKERDIR/secrets/my_email
   plex_claim:
-    file: $SECRETSDIR/plex_claim
+    file: $DOCKERDIR/secrets/plex_claim
+  mysql_root_password:
+    file: $DOCKERDIR/secrets/mysql_root_password
 
 ########################### SERVICES
 services:
+  ############################# FRONTENDS
+
+  # Traefik 2 - Reverse Proxy
+  # touch (create empty files) traefik.log and acme/acme.json. Set acme.json permissions to 600.
+  # touch $DOCKERDIR/traefik2/acme/acme.json
+  # chmod 600 $DOCKERDIR/traefik2/acme/acme.json
+  # touch $DOCKERDIR/traefik2/traefik.log
+  traefik:
+    container_name: traefik
+    image: traefik:2.5
+    restart: always
+    # profiles:
+    # - core
+    command: # CLI arguments
+      - --global.checkNewVersion=true
+      - --global.sendAnonymousUsage=true
+      - --entryPoints.http.address=:80
+      - --entryPoints.https.address=:443
+      # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
+      - --entrypoints.https.forwardedHeaders.trustedIPs=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/13,104.24.0.0/14,172.64.0.0/13,131.0.72.0/22
+      - --entryPoints.traefik.address=:8080
+      # - --entryPoints.ping.address=:8081
+      - --api=true
+      # - --api.insecure=true
+      - --api.dashboard=true
+      #- --ping=true
+      #- --pilot.token=$TRAEFIK_PILOT_TOKEN
+      # - --serversTransport.insecureSkipVerify=true
+      - --log=true
+      - --log.level=WARN # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --accessLog=true
+      - --accessLog.filePath=/traefik.log
+      - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
+      - --accessLog.filters.statusCodes=400-499
+      - --providers.docker=true
+      # - --providers.docker.endpoint=unix:///var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+      - --providers.docker.endpoint=tcp://socket-proxy:2375
+      # Automatically set Host rule for services
+      # - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME0`)
+      - --providers.docker.exposedByDefault=false
+      # - --entrypoints.https.http.middlewares=chain-oauth-external@file
+      - --entrypoints.https.http.tls.options=tls-opts@file
+      # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services
+      - --entrypoints.https.http.tls.certresolver=dns-cloudflare
+      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME0
+      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME0
+      # - --entrypoints.https.http.tls.domains[1].main=$DOMAINNAME01 # Pulls main cert for second domain
+      # - --entrypoints.https.http.tls.domains[1].sans=*.$DOMAINNAME01 # Pulls wildcard cert for second domain
+      - --providers.docker.network=t2_proxy
+      - --providers.docker.swarmMode=false
+      - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory
+      # - --providers.file.filename=/path/to/file # Load dynamic configuration from a file
+      - --providers.file.watch=true # Only works on top level files in the rules folder
+      # - --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # LetsEncrypt Staging Server - uncomment when testing
+      - --certificatesResolvers.dns-cloudflare.acme.email=$CLOUDFLARE_EMAIL
+      - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.delayBeforeCheck=90 # To delay DNS check and reduce LE hitrate
+    networks:
+      - t2_proxy
+      - socket_proxy
+    security_opt:
+      - no-new-privileges:true
+    #healthcheck:
+    #  test: ["CMD", "traefik", "healthcheck", "--ping"]
+    #  interval: 5s
+    #  retries: 3
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+      # - target: 8080
+      #   published: 8080
+      #   protocol: tcp
+      #   mode: host
+    volumes:
+      - $DOCKERDIR/appdata/traefik2/rules:/rules # file provider directory
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
+      - $DOCKERDIR/appdata/traefik2/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
+      - $DOCKERDIR/appdata/traefik2/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
+    environment:
+      - CF_API_EMAIL_FILE=/run/secrets/cloudflare_email
+      - CF_API_KEY_FILE=/run/secrets/cloudflare_api_key
+      - HTPASSWD_FILE=/run/secrets/htpasswd # HTPASSWD_FILE can be whatever as it is not used/called anywhere.
+    secrets:
+      - cloudflare_email
+      - cloudflare_api_key
+      - htpasswd
+    labels:
+      #- "autoheal=true"
+      - "traefik.enable=true"
+      # HTTP-to-HTTPS Redirect
+      - "traefik.http.routers.http-catchall.entrypoints=http"
+      - "traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)"
+      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      # HTTP Routers
+      - "traefik.http.routers.traefik-rtr.entrypoints=https"
+      - "traefik.http.routers.traefik-rtr.rule=Host(`traefikh.$DOMAINNAME0`)"
+      ## Services - API
+      - "traefik.http.routers.traefik-rtr.service=api@internal"
+      ## Healthcheck/ping
+      #- "traefik.http.routers.ping.rule=Host(`traefik.$DOMAINNAME0`) && Path(`/ping`)"
+      #- "traefik.http.routers.ping.tls=true"
+      #- "traefik.http.routers.ping.service=ping@internal"
+      ## Middlewares
+      - "traefik.http.routers.traefik-rtr.middlewares=chain-oauth-external@file"
+
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
     container_name: socket-proxy
-    hostname: synology-soc
     image: fluencelabs/docker-socket-proxy
     restart: always
     networks:
-      socket_proxy:
-        ipv4_address: 192.168.253.254 # You can specify a static IP
+      - socket_proxy
     privileged: true
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
@@ -88,6 +223,9 @@ services:
       - CONTAINERS_DELETE=1 # WatchTower
       - IMAGES_DELETE=1 # WatchTower
 
+  # Google OAuth - Single Sign On using OAuth 2.0
+  # Removed redundant Google OAuth forwarder. Forwarding all authentication requests to oauth:4181 on docker-compose-t2.yml (cloud server). See middlewares-oauth-external in middlewares.yml.example and chain-oauth-external in middlewares-chains.yml.example.
+
   # Portainer - WebUI for Containers
   portainer:
     container_name: portainer
@@ -96,16 +234,51 @@ services:
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
     command: -H tcp://socket-proxy:2375
     networks:
+      - t2_proxy
       - socket_proxy
-    ports:
-      - "$PORTAINER_PORT:9000"
+    #ports:
+    #  - "$PORTAINER_PORT:9000"
     security_opt:
       - no-new-privileges:true
     volumes:
       # - /var/run/docker.sock:/var/run/docker.sock:ro # # Use Docker Socket Proxy instead for improved security
-      - $DOCKERDIR/portainer/data:/data # Change to local directory if you want to save/transfer config locally
+      - $DOCKERDIR/appdata/portainer/data:/data # Change to local directory if you want to save/transfer config locally
     environment:
       - TZ=$TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.portainer-rtr.entrypoints=https"
+      - "traefik.http.routers.portainer-rtr.rule=Host(`portainerh.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.portainer-rtr.middlewares=chain-oauth-external@file"
+      ## HTTP Services
+      - "traefik.http.routers.portainer-rtr.service=portainer-svc"
+      - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
+
+  # Autoindex - Simple Directory Index
+  autoindex:
+    container_name: autoindex
+    image: dceoy/nginx-autoindex:latest
+    restart: always
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$AUTOINDEX_PORT:80"
+    volumes:
+      - /volume1:/var/lib/nginx/html:ro # Location you want to index
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.autoindex-rtr.entrypoints=https"
+      - "traefik.http.routers.autoindex-rtr.rule=Host(`indexh.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.autoindex-rtr.middlewares=chain-oauth-external@file"
+      ## HTTP Services
+      - "traefik.http.routers.autoindex-rtr.service=autoindex-svc"
+      - "traefik.http.services.autoindex-svc.loadbalancer.server.port=80"
 
   ############################# SMART HOME
 
@@ -123,8 +296,8 @@ services:
       - "9001:9001" #websockets
       # - "$MOSQUITTO_HTTPS_PORT:8883" #https
     volumes:
-      - $DOCKERDIR/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - $DOCKERDIR/mosquitto/config/passwd:/mosquitto/config/passwd
+      - $DOCKERDIR/appdata/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - $DOCKERDIR/appdata/mosquitto/config/passwd:/mosquitto/config/passwd
       - $DOCKERDIR/shared:/shared
     environment:
       PUID: $PUID
@@ -144,7 +317,7 @@ services:
     ports:
       - "$MARIADB_PORT:3306"
     volumes:
-      - $DOCKERDIR/mariadb/data:/config
+      - $DOCKERDIR/appdata/mariadb/data:/config
       - /etc/TZ:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
@@ -165,8 +338,8 @@ services:
     ports:
       - "$INFLUXDB_PORT:8086"
     volumes:
-      # - $DOCKERDIR/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
-      - $DOCKERDIR/influxdb/db:/var/lib/influxdb
+      # - $DOCKERDIR/appdata/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
+      - $DOCKERDIR/appdata/influxdb/db:/var/lib/influxdb
   #    command: -config /etc/influxdb/influxdb.conf
 
   # Redis - Key-value Store
@@ -180,9 +353,79 @@ services:
     security_opt:
       - no-new-privileges:true
     volumes:
-      - $DOCKERDIR/redis/data:/data
+      - $DOCKERDIR/appdata/redis/data:/data
       - /etc/TZ:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+
+  # phpMyAdmin - Database management
+  # Create a new user with admin privileges. Cannot login as MySQL root for some reason.
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+      - default
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$PHPMYADMIN_PORT:80"
+    # volumes:
+    #   - $DOCKERDIR/appdata/phpmyadmin:/etc/phpmyadmin
+    environment:
+      - PMA_HOST=mariadb
+      #- PMA_PORT=$DB_PORT
+      #- PMA_ARBITRARY=1
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
+    secrets:
+      - mysql_root_password
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.phpmyadmin-rtr.entrypoints=https"
+      - "traefik.http.routers.phpmyadmin-rtr.rule=Host(`pmah.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.phpmyadmin-rtr.middlewares=chain-oauth-external@file"
+      ## HTTP Services
+      - "traefik.http.routers.phpmyadmin-rtr.service=phpmyadmin-svc"
+      - "traefik.http.services.phpmyadmin-svc.loadbalancer.server.port=80"
+
+  ############################# DOWNLOADERS
+
+  # qBittorrent - Torrent downloader
+  # Needs trailing / if using PathPrefixStrip
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent
+    container_name: qbittorrent
+    restart: always
+    networks:
+      - t2_proxy
+    # ports:
+    #- "$QBITTORRENT_PORT:8168"
+    #- 6881:6881
+    #- 6881:6881/udp
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - $DOCKERDIR/appdata/qbittorrent:/config
+      - $DOWNLOADSDIR:/downloads
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      UMASK: 002
+      WEBUI_PORT: 8168
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.qbittorrent-rtr.entrypoints=https"
+      - "traefik.http.routers.qbittorrent-rtr.rule=Host(`qbith.$DOMAINNAME0`)"
+      - "traefik.http.routers.qbittorrent-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.qbittorrent-rtr.middlewares=chain-oauth-external@file"
+      ## HTTP Services
+      - "traefik.http.routers.qbittorrent-rtr.service=qbittorrent-svc"
+      - "traefik.http.services.qbittorrent-svc.loadbalancer.server.port=8168"
 
   ############################# MEDIA
 
@@ -191,27 +434,278 @@ services:
     image: plexinc/pms-docker:public
     container_name: plexms
     restart: unless-stopped
-    network_mode: "host"
-    # privileged: true
+    networks:
+      - t2_proxy
+    ports:
+      - "$PLEX_PORT:32400/tcp"
+      - "3005:3005/tcp"
+      - "8324:8324/tcp"
+      - "32469:32469/tcp"
+      # - "1900:1900/udp" # conflicts with xTeVe and Synology default ports
+      - "32410:32410/udp"
+      - "32412:32412/udp"
+      - "32413:32413/udp"
+      - "32414:32414/udp"
+      - "$PLEX_WEB_TOOLS_PORT:33400"
     devices:
       - /dev/dri:/dev/dri # for hardware transcoding
     security_opt:
       - no-new-privileges:true
     volumes:
-      - $DOCKERDIR/plexms:/config
-      - $MEDIADIR:/media
+      - $DOCKERDIR/appdata/plexms:/config
+      - $DOWNLOADSDIR:/downloads
+      - $DS918/media:/media
       - /dev/shm:/transcode
     environment:
       TZ: $TZ
-      HOSTNAME: "synPlex"
+      HOSTNAME: "sPlex"
       PLEX_CLAIM_FILE: /run/secrets/plex_claim
       PLEX_UID: $PUID
       PLEX_GID: $PGID
-      ADVERTISE_IP: http://$SERVER_IP:32400/
+      ADVERTISE_IP: http://$SERVER_IP1:32400/
     secrets:
       - plex_claim
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.plexms-rtr.entrypoints=https"
+      - "traefik.http.routers.plexms-rtr.rule=Host(`synplex.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.plexms-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.plexms-rtr.service=plexms-svc"
+      - "traefik.http.services.plexms-svc.loadbalancer.server.port=32400"
+
+  ############################# MEDIA FILE MANAGEMENT
+
+  # Tdarr Server - Library Optimizer
+  tdarr:
+    image: haveagitgat/tdarr:latest
+    container_name: tdarr
+    restart: unless-stopped
+    # profiles:
+    # - media
+    networks:
+      - t2_proxy
+      - default
+    security_opt:
+      - no-new-privileges:true
+    #ports:
+    #  - "$TDARR_SERVER_PORT:8266"
+    #  - "$TDARR_WEB_PORT:8265"
+    #  - 8267:8267 # node port. It should be mapped on this container because  the node container use the network from the main container
+    volumes:
+      - $DOCKERDIR/appdata/tdarr/server:/app/server
+      - $DOCKERDIR/appdata/tdarr/configs:/app/configs
+      - $DOCKERDIR/appdata/tdarr/logs:/app/logs
+      - $DOWNLOADSDIR/transcode/tdarr:/data/temp
+      - $DATADIR/Photos/zVideos:/data/media:ro
+      - $DS918/media/zvideos:/data/output
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      serverIP: tdarr # or hostname
+      serverPort: 8266
+      webUIPort: 8265
+      UMASK_SET: 002
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.tdarr-rtr.entrypoints=https"
+      - "traefik.http.routers.tdarr-rtr.rule=Host(`tdarr.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.tdarr-rtr.middlewares=chain-oauth-external@file"
+      ## HTTP Services
+      - "traefik.http.routers.tdarr-rtr.service=tdarr-svc"
+      - "traefik.http.services.tdarr-svc.loadbalancer.server.port=8265"
+
+  # Tdarr Node - Transcoder Node
+  tdarr-node1:
+    image: haveagitgat/tdarr_node:latest
+    container_name: tdarr-node1
+    restart: unless-stopped
+    # profiles:
+    # - media
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - default
+    devices:
+      - /dev/dri:/dev/dri # for hardware transcoding
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      UMASK_SET: 002
+      nodeID: Node1
+      nodeIP: tdarr-node1 # or hostname
+      nodePort: 8267
+      serverIP: tdarr # or hostname
+      serverPort: 8266
+    volumes:
+      - $DOCKERDIR/appdata/tdarr/configs:/app/configs
+      - $DOCKERDIR/appdata/tdarr/logs:/app/logs
+      - $DOWNLOADSDIR/transcode/tdarr:/data/temp
+      - $DATADIR/Photos/zVideos:/data/media:ro
+      - $DS918/media/zvideos:/data/output
+
+  ############################# FILES
+
+  # Rclone - Google Drive Mount
+  # https://github.com/openbridge/ob_bulkstash/issues/19
+  # https://github.com/romancin/rclonebrowser-docker
+  # https://hub.docker.com/r/d2dyno/rclone-gui
+  rclone-drive:
+    container_name: rclone-drive
+    image: rclone/rclone:latest
+    networks:
+      - t2_proxy
+    restart: always
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    command:
+      "mount drive: /data/drive \
+      --use-mmap \
+      --allow-other \
+      --no-modtime \
+      --allow-non-empty \
+      --dir-cache-time=1000h \
+      --poll-interval=15s \
+      --buffer-size=256M \
+      --umask=002 \
+      --uid=1026 \
+      --gid=100 \
+      --drive-chunk-size=256M \
+      --user-agent=DS918 \
+      --cache-dir=/data/cache/drive \
+      --vfs-cache-mode=full \
+      --vfs-cache-max-age=336h \
+      --vfs-cache-max-size=512G \
+      --vfs-read-chunk-size=32M \
+      --vfs-read-chunk-size-limit=2G \
+      --log-file /config/rclone/logs/drive.log \
+      --rc \
+      --rc-web-gui \
+      --rc-addr :5572 \
+      --rc-user=$RCLONE_WEBUI_USER \
+      --rc-pass=$RCLONE_WEBUI_PASS \
+      --log-level=INFO"
+      #--bwlimit 150M \
+      #--bwlimit-file 40M \
+    devices:
+      - /dev/fuse
+    volumes:
+      - $DOCKERDIR/appdata/rclone:/config/rclone
+      - $DS918/rclone/drive:/data/drive:shared
+      - $DS918/rclone/cache/drive:/data/cache/drive
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - /etc/fuse.conf:/etc/fuse.conf:ro
+    environment:
+      - TZ=$TZ
+      - PUID=$PUID
+      - PGID=$PGID
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.rclone-drive-rtr.entrypoints=https"
+      - "traefik.http.routers.rclone-drive-rtr.rule=Host(`rcloneh.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.rclone-drive-rtr.middlewares=chain-oauth-external@file"
+      ## HTTP Services
+      - "traefik.http.routers.rclone-drive-rtr.service=rclone-drive-svc"
+      - "traefik.http.services.rclone-drive-svc.loadbalancer.server.port=5572"
+
+  # Rclone - Google Drive Mount
+  rclone-crypt:
+    container_name: rclone-crypt
+    image: rclone/rclone:latest
+    restart: always
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    command:
+      "mount crypt: /data/crypt \
+      --use-mmap \
+      --allow-other \
+      --no-modtime \
+      --allow-non-empty \
+      --dir-cache-time=1000h \
+      --poll-interval=15s \
+      --buffer-size=256M \
+      --uid=1026 \
+      --gid=100 \
+      --umask=002 \
+      --drive-chunk-size=256M \
+      --user-agent=DS918 \
+      --cache-dir=/data/cache/crypt \
+      --vfs-cache-mode=full \
+      --vfs-cache-max-age=336h \
+      --vfs-cache-max-size=512G \
+      --vfs-read-chunk-size=32M \
+      --vfs-read-chunk-size-limit=2G \
+      --log-file /config/rclone/logs/crypt.log \
+      --log-level=NOTICE"
+      #--bwlimit 3M \
+      # 3M approxmimately equals 253 GB limit per day
+      # previously buffer 256 buffer 256 chunk size 128 read and limit off
+    devices:
+      - /dev/fuse
+    volumes:
+      - $DOCKERDIR/appdata/rclone:/config/rclone
+      - $DS918/rclone/crypt:/data/crypt:shared
+      - $DS918/rclone/cache/crypt:/data/cache/crypt
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - /etc/fuse.conf:/etc/fuse.conf:ro
+    environment:
+      - TZ=$TZ
+      - PUID=$PUID
+      - PGID=$PGID
 
   ############################# UTILITIES
+
+  # Firefox - Web Broswer
+  # VNC password not working - check
+  firefox:
+    image: jlesage/firefox:latest
+    container_name: firefox
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:unconfined # October 15, 2020 https://github.com/jlesage/docker-firefox/blob/master/README.md#allowing-the-membarrier-system-call
+    # ports:
+    #   - "$FIREFOX_PORT:5800"
+    volumes:
+      - $DOCKERDIR/appdata/firefox:/config
+      - $DOWNLOADSDIR:/config/Downloads
+      - /dev/shm:/dev/shm
+    environment:
+      USER_ID: $PUID
+      GROUP_ID: $PGID
+      TZ: $TZ
+      UMASK: 002
+      KEEP_APP_RUNNING: 1
+      CLEAN_TMP_DIR: 1
+      DISPLAY_WIDTH: 1600
+      DISPLAY_HEIGHT: 960
+      # VNC_PASSWD: $FIREFOX_VNC_PASSWD # Since OAuth is enabled
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.firefox-rtr.entrypoints=https"
+      - "traefik.http.routers.firefox-rtr.rule=Host(`firefoxh.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.firefox-rtr.middlewares=chain-oauth-external@file"
+      ## HTTP Services
+      - "traefik.http.routers.firefox-rtr.service=firefox-svc"
+      - "traefik.http.services.firefox-svc.loadbalancer.server.port=5800"
 
   # Glances - System Information
   glances:
@@ -221,6 +715,7 @@ services:
     privileged: true
     # network_mode: host
     networks:
+      - t2_proxy
       - socket_proxy
     security_opt:
       - no-new-privileges:true
@@ -228,12 +723,89 @@ services:
       - "$GLANCES_PORT:61208"
     pid: host
     volumes:
-      - $DOCKERDIR/glances/glances.conf:/glances/conf/glances.conf # Use this if you want to add a glances.conf file
+      - $DOCKERDIR/appdata/glances/glances.conf:/glances/conf/glances.conf # Use this if you want to add a glances.conf file
       # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
     environment:
       # GLANCES_OPT: "-C /glances/conf/glances.conf --quiet --export influxdb"
       GLANCES_OPT: "-w"
       DOCKER_HOST: tcp://socket-proxy:2375
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.glances-rtr.entrypoints=https"
+      - "traefik.http.routers.glances-rtr.rule=Host(`glancesh.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.glances-rtr.middlewares=chain-oauth-external@file"
+      ## HTTP Services
+      - "traefik.http.routers.glances-rtr.service=glances-svc"
+      - "traefik.http.services.glances-svc.loadbalancer.server.port=61208"
+
+  # qDirStat - Directory Statistics
+  qdirstat:
+    image: jlesage/qdirstat:latest
+    container_name: qdirstat
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$QDIRSTAT_PORT:5800"
+    volumes:
+      - /volume1:/storage:ro
+      - $DOCKERDIR/appdata/qdirstat/config:/config:rw
+    environment:
+      USER_ID: $PUID
+      GROUP_ID: $PGID
+      UMASK: 002
+      TZ: $TZ
+      KEEP_APP_RUNNING: 1
+      CLEAN_TMP_DIR: 1
+      DISPLAY_WIDTH: 1600
+      DISPLAY_HEIGHT: 960
+      VNC_PASSWORD: $QDIRSTAT_VNC_PASSWD
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.qdirstat-rtr.entrypoints=https"
+      - "traefik.http.routers.qdirstat-rtr.rule=Host(`qdirh.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.qdirstat-rtr.middlewares=chain-oauth-external@file"
+      ## HTTP Services
+      - "traefik.http.routers.qdirstat-rtr.service=qdirstat-svc"
+      - "traefik.http.services.qdirstat-svc.loadbalancer.server.port=5800"
+
+  # SyncThing - Keep folders in Sync
+  syncthing:
+    image: lscr.io/linuxserver/syncthing
+    container_name: syncthing
+    restart: always
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "8384:8384"
+      - "22000:22000/tcp"
+      - "22000:22000/udp"
+      - "21027:21027/udp"
+    volumes:
+      - /volume1:/data
+      - $DOCKERDIR/appdata/syncthing:/config
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.syncthing-rtr.entrypoints=https"
+      - "traefik.http.routers.syncthing-rtr.rule=Host(`stnas.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.syncthing-rtr.middlewares=chain-oauth-external@file"
+      ## HTTP Services
+      - "traefik.http.routers.syncthing-rtr.service=syncthing-svc"
+      - "traefik.http.services.syncthing-svc.loadbalancer.server.port=8384"
 
   ############################# MAINTENANCE
 
@@ -253,12 +825,12 @@ services:
       WATCHTOWER_REMOVE_VOLUMES: "true"
       WATCHTOWER_INCLUDE_STOPPED: "true"
       WATCHTOWER_NO_STARTUP_MESSAGE: "false"
-      WATCHTOWER_SCHEDULE: "0 30 1 * * *" # Everyday at 1:30
+      WATCHTOWER_SCHEDULE: "0 30 12 * * *" # Everyday at 12:30
       WATCHTOWER_NOTIFICATIONS: shoutrrr
       WATCHTOWER_NOTIFICATION_URL: "telegram://$TGRAM_BOT_TOKEN@telegram?channels=$TGRAM_CHAT_ID"
       WATCHTOWER_NOTIFICATIONS_LEVEL: info
       DOCKER_HOST: tcp://socket-proxy:2375
-      DOCKER_API_VERSION: "1.39"
+      DOCKER_API_VERSION: "1.40"
 
   # Docker-GC - Automatic Docker Garbage Collection
   # Create docker-gc-exclude file
@@ -266,11 +838,15 @@ services:
     image: clockworksoul/docker-gc-cron:latest
     container_name: docker-gc
     restart: unless-stopped
+    # profiles:
+    # - core
     networks:
       - socket_proxy
+    depends_on:
+      - socket-proxy
     volumes:
       # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
-      - $DOCKERDIR/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude
+      - $DOCKERDIR/appdata/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude
     environment:
       CRON: 0 0 0 * * ? # Everyday at midnight. Previously 0 0 * * *
       FORCE_IMAGE_REMOVAL: 1
@@ -290,10 +866,41 @@ services:
       - no-new-privileges:true
     environment:
       API_KEY: $CLOUDFLARE_API_TOKEN
-      ZONE: $DOMAINNAME
+      ZONE: $DOMAINNAME0
+      SUBDOMAIN: home
       PROXIED: "true"
       RRTYPE: A
       DELETE_ON_STOP: "false"
       DNS_SERVER: 1.1.1.1
     #secrets: # not working
     #  - cloudflare_api_token
+
+  # Cloudflare-Companion - Automatic CNAME DNS Creation
+  cf-companion:
+    container_name: cf-companion
+    image: tiredofit/traefik-cloudflare-companion:latest
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    # profiles:
+    # - core
+    networks:
+      - socket_proxy
+    #depends_on:
+    #  - socket-proxy
+    environment:
+      - TIMEZONE=$TZ
+      - TRAEFIK_VERSION=2
+      #- CF_EMAIL=$CLOUDFLARE_EMAIL
+      - CF_TOKEN=$CLOUDFLARE_API_TOKEN
+      - TARGET_DOMAIN=home.$DOMAINNAME0
+      - DOMAIN1=$DOMAINNAME0
+      - DOMAIN1_ZONE_ID=$CLOUDFLARE_ZONEID # Copy from Cloudflare Overview page
+      - DOMAIN1_PROXIED=TRUE
+      - DOCKER_HOST=tcp://socket-proxy:2375
+    secrets: # not working
+      - cloudflare_api_token
+    labels:
+      # Add hosts specified in rules here to force cf-companion to create the CNAMEs
+      # Since cf-companion creates CNAMEs based on host rules, this a workaround for non-docker/external apps
+      - "traefik.http.routers.cf-companion-rtr.rule=Host(`webminh.$DOMAINNAME0`) || Host(`shellh.$DOMAINNAME0`) || Host(`syno.$DOMAINNAME0`) || Host(`ibox.$DOMAINNAME0`) || Host(`synplex.$DOMAINNAME0`) || Host(`pirpi.$DOMAINNAME0`) || Host(`pidoc.$DOMAINNAME0` || Host(`stpc.$DOMAINNAME0`)"

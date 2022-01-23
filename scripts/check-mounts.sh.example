@@ -4,10 +4,11 @@
 
 # CHECKING FOR DRIVE MOUNTS
 
-rclone_drive="/media/shb-drive"
-rclone_crypt="/media/shb-crypt"
+rclone_drive="/media/drive"
+rclone_crypt="/media/crypt"
 hdd1="/media/hdd1"
 merge_media="/media/hdd1/data/media"
+num_drives=4
 
 mounted=0
 notmounted=""
@@ -47,7 +48,7 @@ fi
 #echo $mounted
 #echo -e ${notmounted}
 
-if [[ "$mounted" -ne 4 ]]; then
+if [[ "$mounted" -ne "$num_drives" ]]; then
 	echo -e "These drives are not mounted properly:\n\n${notmounted}\n\nShutting down media containers." | mail -s "[DVM ERROR] Some drives not mounted" info@example.com -aFrom:DockerVM@example.com
 	sudo docker stop $(cat /home/USER/docker/scripts/media-services.txt)
 #else

@@ -2,18 +2,21 @@
 
 - Only showing high-level changes. Smaller changes are too many to list. See commits.
 
-## Planned:
+## Planned (notes for future):
 
-- Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, fail2ban, ofelia, scrutiny to NUC, Wireguard, traktarr, listrr
+- Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, fail2ban, ofelia, scrutiny to NUC, Wireguard, traktarr, listrr, uptimerobot, subliminal, netdata
 - Check Cloudbox/cloudbox - plex autoscan, cloudplow, plexdupefinder, plextraktsync
 - implement secrets and remove variables from .env
 - add prometheus, glances to influxdb, speedtest to influxdb
-- Merge smarthomebeginner.com docker-compose (docker-compose-t2-web.yml) to cloud/seedbox.
 - Web GUI for rclone
 - Switch to Hotio.dev's cloudflareddns,
 - Remove lazylibrarian (added Readarr)
 - Check traefik buffering - to avoid http error 431 - header request size too large
 - Implement thelounge, privatebin
+
+## January 23, 2022
+
+- To many changes to list. See detailed commit log.
 
 ## October 10, 2021
 

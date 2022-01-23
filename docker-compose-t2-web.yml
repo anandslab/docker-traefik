@@ -1,31 +1,41 @@
-version: "3.7"
+version: "3.9"
 
-# IMPORTANT
-############# WORK IN PROGRESS ON THIS FILE. #############
-# PATHS ETC. HAVE NOT BEEN UPDATED TO THE NEW WAY SHOWN IN docker-compose-t2.yml
+######### IMPORTANT #############
+# docker-compose-t2.yml is my main docker compose that runs on the same Proxmox host.
+# You will find only a few apps in this web stack that hosts a few wordpress and non-wordpress sites.
+# You can copy-paste services from one docker-compose file in this repo to another to add other apps.
 
-# DOCKER-COMPOSE FOR WORDPRESS SERVER
-# DIGITAL OCEAN VPS DROPLET
-# 2 CORES
-# 4 GB RAM
-# 80 GB SSD Ubuntu Server
+########################### SYSTEM DESCRIPTION
+# DOCKER-COMPOSE FOR WORDPRESS / WEB SERVER
+# PROXMOX HOST: Dual Intel Xeon 5420, 16 GB RAM, 240 GB SSD, and 2 TB HDD
+# LXC CONTAINER: 4 CORES, 4 GB RAM, Ubuntu 20.04, and Docker
+# 32 GB SSD for /
 
 ########################### NETWORKS
-# docker network create t2_proxy
-# docker network create socket_proxy
+# There is no need to create any networks outside this docker-compose file.
+# You may customize the network subnets (192.168.90.0/24 and 91.0/24) below as you please.
+# Docker Compose version 3.5 or higher required to define networks this way.
 
 networks:
   t2_proxy:
-    external:
-      name: t2_proxy
+    name: t2_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.90.0/24
   default:
     driver: bridge
   socket_proxy:
-    external:
-      name: socket_proxy
+    name: socket_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.91.0/24
 
 ########################### SECRETS
 secrets:
+  htpasswd:
+    file: $DOCKERDIR/secrets/htpasswd
   cloudflare_email:
     file: $SECRETSDIR/cloudflare_email
   cloudflare_api_key:
@@ -42,16 +52,30 @@ secrets:
     file: $SECRETSDIR/authelia_notifier_smtp_password
   authelia_duo_api_secret_key:
     file: $SECRETSDIR/authelia_duo_api_secret_key
+  oauth_secret:
+    file: $SECRETSDIR/oauth_secret
+  google_client_secret:
+    file: $SECRETSDIR/google_client_secret
+  google_client_id:
+    file: $SECRETSDIR/google_client_id
+  my_email:
+    file: $SECRETSDIR/my_email
 
 ########################### SERVICES
 services:
   ############################# FRONTENDS
 
   # Traefik 2 - Reverse Proxy
+  # Touch (create empty files) traefik.log and acme/acme.json. Set acme.json permissions to 600.
+  # touch $DOCKERDIR/traefik2/acme/acme.json
+  # chmod 600 $DOCKERDIR/traefik2/acme/acme.json
+  # touch $DOCKERDIR/traefik2/traefik.log
   traefik:
     container_name: traefik
-    image: traefik:2.2.7 # the chevrotin tag refers to v2.2.x
-    restart: unless-stopped
+    image: traefik:2.5
+    restart: always
+    # profiles:
+    # - core
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=true
@@ -60,8 +84,12 @@ services:
       # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
       - --entrypoints.https.forwardedHeaders.trustedIPs=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/13,104.24.0.0/14,172.64.0.0/13,131.0.72.0/22
       - --entryPoints.traefik.address=:8080
+      # - --entryPoints.ping.address=:8081
       - --api=true
       # - --api.insecure=true
+      - --api.dashboard=true
+      #- --ping=true
+      #- --pilot.token=$TRAEFIK_PILOT_TOKEN
       # - --serversTransport.insecureSkipVerify=true
       - --log=true
       - --log.level=WARN # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
@@ -72,22 +100,24 @@ services:
       - --providers.docker=true
       # - --providers.docker.endpoint=unix:///var/run/docker.sock # Use Docker Socket Proxy instead for improved security
       - --providers.docker.endpoint=tcp://socket-proxy:2375
-      # - --providers.docker.defaultrule=HostHeader(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME`)
+      # Automatically set Host rule for services
+      # - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME0`)
       - --providers.docker.exposedByDefault=false
-      # - --entrypoints.https.http.middlewares=chain-authelia@file
+      # - --entrypoints.https.http.middlewares=chain-oauth@file
+      - --entrypoints.https.http.tls.options=tls-opts@file
       # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services
       - --entrypoints.https.http.tls.certresolver=dns-cloudflare
-      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME
-      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME
-      - --entrypoints.https.http.tls.domains[1].main=$DOMAINNAME1 # Pulls main cert for second domain
-      - --entrypoints.https.http.tls.domains[1].sans=*.$DOMAINNAME1 # Pulls wildcard cert for second domain
+      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME0
+      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME0
+      # - --entrypoints.https.http.tls.domains[1].main=$DOMAINNAME1 # Pulls main cert for second domain
+      # - --entrypoints.https.http.tls.domains[1].sans=*.$DOMAINNAME1 # Pulls wildcard cert for second domain
       - --providers.docker.network=t2_proxy
       - --providers.docker.swarmMode=false
       - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory
       # - --providers.file.filename=/path/to/file # Load dynamic configuration from a file
       - --providers.file.watch=true # Only works on top level files in the rules folder
       # - --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # LetsEncrypt Staging Server - uncomment when testing
-      - --certificatesResolvers.dns-cloudflare.acme.email=/run/secrets/cloudflare_email
+      - --certificatesResolvers.dns-cloudflare.acme.email=$CLOUDFLARE_EMAIL
       - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53
@@ -96,10 +126,12 @@ services:
       t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
       socket_proxy:
-    depends_on:
-      - socket-proxy
     security_opt:
       - no-new-privileges:true
+    #healthcheck:
+    #  test: ["CMD", "traefik", "healthcheck", "--ping"]
+    #  interval: 5s
+    #  retries: 3
     ports:
       - target: 80
         published: 80
@@ -109,19 +141,25 @@ services:
         published: 443
         protocol: tcp
         mode: host
+      # - target: 8080
+      #   published: 8080
+      #   protocol: tcp
+      #   mode: host
     volumes:
-      - $DOCKERDIR/traefik2/rules:/rules # file provider directory
-      - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
-      - $DOCKERDIR/traefik2/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
-      - $DOCKERDIR/traefik2/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
-      - $DOCKERDIR/shared:/shared
+      - $DOCKERDIR/appdata/traefik2/rules:/rules # file provider directory
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
+      - $DOCKERDIR/appdata/traefik2/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
+      - $DOCKERDIR/appdata/traefik2/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
     environment:
       - CF_API_EMAIL_FILE=/run/secrets/cloudflare_email
       - CF_API_KEY_FILE=/run/secrets/cloudflare_api_key
+      - HTPASSWD_FILE=/run/secrets/htpasswd # HTPASSWD_FILE can be whatever as it is not used/called anywhere.
     secrets:
       - cloudflare_email
       - cloudflare_api_key
+      - htpasswd
     labels:
+      #- "autoheal=true"
       - "traefik.enable=true"
       # HTTP-to-HTTPS Redirect
       - "traefik.http.routers.http-catchall.entrypoints=http"
@@ -130,44 +168,31 @@ services:
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       # HTTP Routers
       - "traefik.http.routers.traefik-rtr.entrypoints=https"
-      - "traefik.http.routers.traefik-rtr.rule=HostHeader(`traefik.$DOMAINNAME`)"
+      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME0`)"
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
+      ## Healthcheck/ping
+      #- "traefik.http.routers.ping.rule=Host(`traefik.$DOMAINNAME0`) && Path(`/ping`)"
+      #- "traefik.http.routers.ping.tls=true"
+      #- "traefik.http.routers.ping.service=ping@internal"
       ## Middlewares
-      - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file"
-
-  # Traefik - Custom Error Pages
-  traefik-error-pages:
-    container_name: traefik-error-pages
-    image: guillaumebriday/traefik-custom-error-pages
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    labels:
-      - "traefik.enable=true"
-      # HTTP Routers
-      - "traefik.http.routers.traefik-error-pages-rtr.entrypoints=https"
-      - "traefik.http.routers.traefik-error-pages-rtr.rule=HostRegexp(`{host:.+}`)"
-      - "traefik.http.routers.traefik-error-pages-rtr.priority=1"
-      # Middlewares
-      - "traefik.http.routers.traefik-error-pages-rtr.middlewares=traefik-error-pages"
-      - "traefik.http.middlewares.traefik-error-pages.errors.service=traefik-error-pages-svc"
-      - "traefik.http.middlewares.traefik-error-pages.errors.status=401,403,404,429,500,502,503"
-      - "traefik.http.middlewares.traefik-error-pages.errors.query=/{status}.html"
-      # HTTP Services
-      - "traefik.http.routers.traefik-error-pages-rtr.service=traefik-error-pages-svc"
-      - "traefik.http.services.traefik-error-pages-svc.loadbalancer.server.port=80"
+      - "traefik.http.routers.traefik-rtr.middlewares=chain-oauth@file"
 
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
     container_name: socket-proxy
     image: tecnativa/docker-socket-proxy
     restart: always
+    # profiles:
+    # - core
     networks:
-      # t2_proxy:
       socket_proxy:
         ipv4_address: 192.168.91.254 # You can specify a static IP
-    privileged: true
+    #privileged: true
+    #ports:
+    # - "127.0.0.1:2375:2375" # Port 2375 should only ever get exposed to the internal network. When possible use this line.
+    # I use the next line instead, as I want portainer to manage multiple docker endpoints within my home network.
+    # - "2375:2375"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
     environment:
@@ -183,7 +208,7 @@ services:
       # Security critical
       - AUTH=0
       - SECRETS=0
-      - POST=1 # Ouroboros
+      - POST=1 # Watchtower
       # Not always needed
       - BUILD=0
       - COMMIT=0
@@ -203,73 +228,110 @@ services:
       - TASKS=1 # Portaienr
       - VOLUMES=1 # Portainer
 
-  # Authelia (Lite) - Self-Hosted Single Sign-On and Two-Factor Authentication
-  authelia:
-    container_name: authelia
-    # Check this before upgrading: https://github.com/authelia/authelia/blob/master/BREAKING.md
-    # image: authelia/authelia:latest
-    image: authelia/authelia:4.21.0
+  # Google OAuth - Single Sign On using OAuth 2.0
+  # https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/
+  oauth:
+    container_name: oauth
+    image: thomseddon/traefik-forward-auth:latest
+    # image: thomseddon/traefik-forward-auth:2.1-arm # Use this image with Raspberry Pi
     restart: always
+    # profiles:
+    # - core
     networks:
       - t2_proxy
-    #depends_on:
-    #  - mariadb
-    #  - redis
-    volumes:
-      - $DOCKERDIR/authelia:/config
+    security_opt:
+      - no-new-privileges:true
+    # Allow apps to bypass OAuth. Radarr example below will bypass OAuth if API key is present in the request (eg. from NZB360 mobile app).
+    # While this is one way, the recommended way is to bypass authentication using Traefik labels shown in some of the apps later.
+    # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
+    # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
-      - TZ=$TZ
-      - AUTHELIA_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
-      - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
-      - AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE=/run/secrets/authelia_storage_mysql_password
-      - AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE=/run/secrets/authelia_notifier_smtp_password
-      - AUTHELIA_DUO_API_SECRET_KEY_FILE=/run/secrets/authelia_duo_api_secret_key
-    secrets:
-      - authelia_jwt_secret
-      - authelia_session_secret
-      - authelia_storage_mysql_password
-      - authelia_notifier_smtp_password
-      - authelia_duo_api_secret_key
+      - PROVIDERS_GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+      - PROVIDERS_GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+      - SECRET=$OAUTH_SECRET
+      - COOKIE_DOMAIN=$DOMAINNAME0
+      - INSECURE_COOKIE=false
+      - AUTH_HOST=oauth.$DOMAINNAME0
+      - URL_PATH=/_oauth
+      - WHITELIST=$MY_EMAIL
+      - LOG_LEVEL=warn
+      - LOG_FORMAT=text
+      - LIFETIME=86400 # 1 day
+      - DEFAULT_ACTION=auth
+      - DEFAULT_PROVIDER=google
+    secrets: # had trouble getting secrets to work: https://github.com/thomseddon/traefik-forward-auth/issues/155#issuecomment-664630985
+      - google_client_id
+      - google_client_secret
+      - oauth_secret
+      - my_email
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
-      - "traefik.http.routers.authelia-rtr.entrypoints=https"
-      - "traefik.http.routers.authelia-rtr.rule=HostHeader(`authelia.$DOMAINNAME`)"
+      - "traefik.http.routers.oauth-rtr.tls=true"
+      - "traefik.http.routers.oauth-rtr.entrypoints=https"
+      - "traefik.http.routers.oauth-rtr.rule=Host(`oauth.$DOMAINNAME0`)"
       ## Middlewares
-      - "traefik.http.routers.authelia-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.oauth-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
-      - "traefik.http.routers.authelia-rtr.service=authelia-svc"
-      - "traefik.http.services.authelia-svc.loadbalancer.server.port=9091"
+      - "traefik.http.routers.oauth-rtr.service=oauth-svc"
+      - "traefik.http.services.oauth-svc.loadbalancer.server.port=4181"
 
   # Portainer - WebUI for Containers
   portainer:
     container_name: portainer
     image: portainer/portainer-ce:latest
     restart: unless-stopped
+    # profiles:
+    # - apps
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
-    # command: -H tcp://socket-proxy:2375 # appears to not work. Workaround was to create a new socket-proxy:2375 endpoint on portainer settings
+    command: -H tcp://socket-proxy:2375
     networks:
       - t2_proxy
       - socket_proxy
-    depends_on:
-      - socket-proxy
     security_opt:
       - no-new-privileges:true
     volumes:
       # - /var/run/docker.sock:/var/run/docker.sock:ro # # Use Docker Socket Proxy instead for improved security
-      - $DOCKERDIR/portainer/data:/data # Change to local directory if you want to save/transfer config locally
+      - $DOCKERDIR/appdata/portainer/data:/data # Change to local directory if you want to save/transfer config locally
     environment:
       - TZ=$TZ
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.portainer-rtr.entrypoints=https"
-      - "traefik.http.routers.portainer-rtr.rule=HostHeader(`portainer.$DOMAINNAME`)"
+      - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME0`)"
       ## Middlewares
-      - "traefik.http.routers.portainer-rtr.middlewares=chain-authelia@file" # Authelia
+      - "traefik.http.routers.portainer-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.portainer-rtr.service=portainer-svc"
       - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
+
+  # Autoindex - Simple Directory Index
+  autoindex:
+    container_name: autoindex
+    image: dceoy/nginx-autoindex:latest
+    restart: always
+    # profiles:
+    # - apps
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$AUTOINDEX_PORT:80"
+    volumes:
+      #- $USERDIR:/var/lib/nginx/html:ro # Location you want to index
+      - $USERDIR:/var/lib/nginx/html:ro # Location you want to index
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.autoindex-rtr.entrypoints=https"
+      - "traefik.http.routers.autoindex-rtr.rule=Host(`index.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.autoindex-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.autoindex-rtr.service=autoindex-svc"
+      - "traefik.http.services.autoindex-svc.loadbalancer.server.port=80"
 
   ############################# DATABASE
 
@@ -277,36 +339,56 @@ services:
   # After starting container for first time dexec and mysqladmin -u root password <password>
   mariadb:
     container_name: mariadb
-    image: linuxserver/mariadb:110.4.14mariabionic-ls77
+    image: lscr.io/linuxserver/mariadb
     restart: always
-    networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.250
+    # profiles:
+    # - core
     security_opt:
       - no-new-privileges:true
+    ports:
+      - "$MARIADB_PORT:3306"
     volumes:
-      - $DOCKERDIR/mariadb/data:/config
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
+      - $DOCKERDIR/appdata/mariadb/data:/config
     environment:
       - PUID=$PUID
       - PGID=$PGID
-      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password # Not taking this pw during initialization
+      - TZ=$TZ
+      - FILE__MYSQL_ROOT_PASSWORD=/run/secrets/mysql_root_password # Note FILE__ (double underscore) - Issue #127
     secrets:
       - mysql_root_password
+
+  # InfluxDB - Database for sensor data
+  # Create influxdb.conf
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    restart: always
+    # profiles:
+    # - core
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "$INFLUXDB_PORT:8086"
+      - "$INFLUXDB_PORT_PROXMOX:8087/udp"
+    volumes:
+      - $DOCKERDIR/appdata/influxdb/etc/influxdb.conf:/etc/influxdb/influxdb.conf:ro
+      - $DOCKERDIR/appdata/influxdb/db:/var/lib/influxdb
+    # command: -config /etc/influxdb/influxdb.conf
 
   # Redis - Key-value Store
   redis:
     container_name: redis
-    image: redis:6.0.6
-    restart: unless-stopped
+    image: redis:latest
+    restart: always
+    # profiles:
+    # - core
     entrypoint: redis-server --appendonly yes --requirepass $REDIS_PASSWORD --maxmemory 512mb --maxmemory-policy allkeys-lru
-    networks:
-      - t2_proxy
+    ports:
+      - "$REDIS_PORT:6379"
     security_opt:
       - no-new-privileges:true
     volumes:
-      - $DOCKERDIR/redis/data:/data
+      - $DOCKERDIR/appdata/redis/data:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
 
@@ -315,20 +397,25 @@ services:
     container_name: rediscommander
     image: rediscommander/redis-commander:latest
     restart: unless-stopped
+    # profiles:
+    # - apps
     networks:
       - t2_proxy
+      - default
+    # ports:
+    #   - "$REDISCOMMANDER_PORT:8081"
     security_opt:
       - no-new-privileges:true
     environment:
-      - REDIS_HOST=redis
+      - REDIS_HOST=$REDIS_HOST
       - REDIS_PASSWORD=$REDIS_PASSWORD
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.rediscommander-rtr.entrypoints=https"
-      - "traefik.http.routers.rediscommander-rtr.rule=HostHeader(`rediscom.$DOMAINNAME`)"
+      - "traefik.http.routers.rediscommander-rtr.rule=Host(`rediscom.$DOMAINNAME0`)"
       ## Middlewares
-      - "traefik.http.routers.rediscommander-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.rediscommander-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.rediscommander-rtr.service=rediscommander-svc"
       - "traefik.http.services.rediscommander-svc.loadbalancer.server.port=8081"
@@ -339,18 +426,21 @@ services:
     image: phpmyadmin/phpmyadmin:latest
     container_name: phpmyadmin
     restart: unless-stopped
+    # profiles:
+    # - apps
     networks:
       - t2_proxy
-    #depends_on:
-    #  - mariadb
+      - default
     security_opt:
       - no-new-privileges:true
+    # ports:
+    #   - "$PHPMYADMIN_PORT:80"
     # volumes:
-    #  - $DOCKERDIR/phpmyadmin:/etc/phpmyadmin
+    #   - $DOCKERDIR/appdata/phpmyadmin:/etc/phpmyadmin
     environment:
-      - PMA_HOST=mariadb
-      - PMA_PORT=3306
-      # - PMA_ARBITRARY=1
+      - PMA_HOST=$MARIADB_HOST
+      - PMA_PORT=$MARIADB_PORT
+      #- PMA_ARBITRARY=1
       - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
     secrets:
       - mysql_root_password
@@ -358,9 +448,9 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.phpmyadmin-rtr.entrypoints=https"
-      - "traefik.http.routers.phpmyadmin-rtr.rule=HostHeader(`pma.$DOMAINNAME`)"
+      - "traefik.http.routers.phpmyadmin-rtr.rule=Host(`pma.$DOMAINNAME0`)"
       ## Middlewares
-      - "traefik.http.routers.phpmyadmin-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.phpmyadmin-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.phpmyadmin-rtr.service=phpmyadmin-svc"
       - "traefik.http.services.phpmyadmin-svc.loadbalancer.server.port=80"
@@ -370,48 +460,63 @@ services:
   # Nginx - Web Server
   nginx:
     container_name: nginx
-    image: nginx:1.18
+    image: nginx:1.20 # 1.18 # Updated 8/9/2021
     restart: unless-stopped
     depends_on:
       - php7
     networks:
       - t2_proxy
+      - default
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - /var/log/nginx:/var/log/nginx
-      - $DOCKERDIR/nginx:/etc/nginx
+      - $DOCKERDIR/appdata/nginx:/etc/nginx
       - $DOCKERDIR/shared/.htpassd:/shared/.htpasswd
       - $DOCKERDIR/sites/shb/html:/var/www/html/shb
+      - $DOCKERDIR/sites/shb/beta:/var/www/html/beta
       - $DOCKERDIR/sites/khub/html:/var/www/html/khub
       - $DOCKERDIR/sites/dash/html:/var/www/html/dash
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers SHB
+      ## HTTP Routers SHB (WordPress) Auth
+      - "traefik.http.routers.nginx-shb-auth-rtr.entrypoints=https"
+      - "traefik.http.routers.nginx-shb-auth-rtr.rule=Host(`www.$DOMAINNAME0`) && Path(`/wp-login.php`)"
+      - "traefik.http.routers.nginx-shb-auth-rtr.priority=100"
+      ## HTTP Routers SHB (WordPress) Bypass
       - "traefik.http.routers.nginx-shb-rtr.entrypoints=https"
-      - "traefik.http.routers.nginx-shb-rtr.rule=HostHeader(`$DOMAINNAME`) || HostHeader(`www.$DOMAINNAME`)"
-      ## HTTP Routers DASH
+      - "traefik.http.routers.nginx-shb-rtr.rule=Host(`$DOMAINNAME0`) || Host(`www.$DOMAINNAME0`)"
+      - "traefik.http.routers.nginx-shb-rtr.priority=99"
+      ## HTTP Routers SHB Beta (WordPress)
+      - "traefik.http.routers.nginx-shb-beta-rtr.entrypoints=https"
+      - "traefik.http.routers.nginx-shb-beta-rtr.rule=Host(`beta.$DOMAINNAME0`)"
+      ## HTTP Routers DASH (non-WordPress)
       - "traefik.http.routers.nginx-dash-rtr.entrypoints=https"
-      - "traefik.http.routers.nginx-dash-rtr.rule=HostHeader(`dash.$DOMAINNAME`)"
-      ## HTTP Routers KHUB
+      - "traefik.http.routers.nginx-dash-rtr.rule=Host(`dash.$DOMAINNAME0`)"
+      ## HTTP Routers KHUB (non-WordPress)
       - "traefik.http.routers.nginx-khub-rtr.entrypoints=https"
-      - "traefik.http.routers.nginx-khub-rtr.rule=HostHeader(`$DOMAINNAME1`) || HostHeader(`www.$DOMAINNAME1`)"
-      ## Middlewares
-      - "traefik.http.routers.nginx-khub-rtr.middlewares=khub-redirect,chain-no-auth@file"
-      - "traefik.http.routers.nginx-shb-rtr.middlewares=shb-redirect,chain-authelia-wp@file"
-      - "traefik.http.routers.nginx-dash-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.nginx-khub-rtr.rule=Host(`$DOMAINNAME1`) || Host(`www.$DOMAINNAME1`)"
       # Redirect shb non-www to www middleware
-      - "traefik.http.middlewares.shb-redirect.redirectregex.regex=^https?://$DOMAINNAME/(.*)"
-      - "traefik.http.middlewares.shb-redirect.redirectregex.replacement=https://www.$DOMAINNAME/$${1}"
+      - "traefik.http.middlewares.shb-redirect.redirectregex.regex=^https?://$DOMAINNAME0/(.*)"
+      - "traefik.http.middlewares.shb-redirect.redirectregex.replacement=https://www.$DOMAINNAME0/$${1}"
       - "traefik.http.middlewares.shb-redirect.redirectregex.permanent=true"
       # Redirect khub non-www to www middleware
       - "traefik.http.middlewares.khub-redirect.redirectregex.regex=^https?://$DOMAINNAME1/(.*)"
       - "traefik.http.middlewares.khub-redirect.redirectregex.replacement=https://www.$DOMAINNAME1/$${1}"
       - "traefik.http.middlewares.khub-redirect.redirectregex.permanent=true"
+      ## Middlewares
+      - "traefik.http.routers.nginx-khub-rtr.middlewares=khub-redirect,chain-no-auth@file"
+      - "traefik.http.routers.nginx-shb-rtr.middlewares=shb-redirect,chain-no-auth-wp@file"
+      #- "traefik.http.routers.nginx-shb-auth-rtr.middlewares=shb-redirect,chain-oauth-wp@file"
+      - "traefik.http.routers.nginx-shb-auth-rtr.middlewares=shb-redirect,chain-no-auth-wp@file"
+      - "traefik.http.routers.nginx-dash-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.nginx-shb-beta-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.nginx-shb-rtr.service=nginx-svc"
+      - "traefik.http.routers.nginx-shb-auth-rtr.service=nginx-svc"
       - "traefik.http.routers.nginx-khub-rtr.service=nginx-svc"
       - "traefik.http.routers.nginx-dash-rtr.service=nginx-svc"
+      - "traefik.http.routers.nginx-shb-beta-rtr.service=nginx-svc"
       - "traefik.http.services.nginx-svc.loadbalancer.server.port=80"
 
   # PHP - Hypertext Preprocessor
@@ -425,164 +530,69 @@ services:
     user: $PUID:$PGID # allows upgrading WP and plugins
     networks:
       - t2_proxy
+      - default
     volumes:
       - $DOCKERDIR/sites/shb/html:/var/www/html/shb
-      - $DOCKERDIR/php/php7:/usr/local/etc/php
+      - $DOCKERDIR/sites/shb/beta:/var/www/html/beta
+      - $DOCKERDIR/appdata/php/php7:/usr/local/etc/php
       - $DOCKERDIR/sites/khub/html:/var/www/html/khub
       - $DOCKERDIR/sites/dash/html:/var/www/html/dash
 
-  ########################### MONITORING
-
-  # Glances - System Information
-  glances:
-    image: nicolargo/glances:latest
-    container_name: glances
-    restart: unless-stopped
-    privileged: true
-    # network_mode: host
-    networks:
-      - t2_proxy
-      - socket_proxy
-    # depends_on:
-    #   - socket-proxy
-    security_opt:
-      - no-new-privileges:true
-    # ports:
-    #   - "$GLANCES_PORT:61208"
-    pid: host
-    volumes:
-      - $DOCKERDIR/glances/glances.conf:/glances/conf/glances.conf # Use this if you want to add a glances.conf file
-      # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
-    environment:
-      # GLANCES_OPT: "-C /glances/conf/glances.conf --quiet --export influxdb"
-      GLANCES_OPT: "-w"
-      DOCKER_HOST: tcp://socket-proxy:2375
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.glances-rtr.entrypoints=https"
-      - "traefik.http.routers.glances-rtr.rule=HostHeader(`glances.$DOMAINNAME`)"
-      ## Middlewares
-      - "traefik.http.routers.glances-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.glances-rtr.service=glances-svc"
-      - "traefik.http.services.glances-svc.loadbalancer.server.port=61208"
-
   ########################### UTILITIES
 
-  # Traefik Certs Dumper - Extract LetsEncrypt Certificates - Traefik2 Compatible
-  certdumper:
-    container_name: traefik_certdumper
-    image: humenius/traefik-certs-dumper:latest
-    network_mode: none
-    security_opt:
-      - no-new-privileges:true
-    # command: --restart-containers container1,container2,container3
-    volumes:
-      - $DOCKERDIR/traefik2/acme:/traefik:ro
-      - $DOCKERDIR/shared/certs:/output:rw
-      # - /var/run/docker.sock:/var/run/docker.sock:ro # Only needed if restarting containers (use Docker Socket Proxy instead)
-    environment:
-      DOMAIN: $DOMAINNAME
-
-  # Dozzle - Real-time Docker Log Viewer
-  dozzle:
-    image: amir20/dozzle:latest
-    container_name: dozzle
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-      - socket_proxy
-    depends_on:
-      - socket-proxy
-    security_opt:
-      - no-new-privileges:true
-    environment:
-      DOZZLE_LEVEL: info
-      DOZZLE_TAILSIZE: 300
-      DOZZLE_FILTER: "status=running"
-      # DOZZLE_FILTER: "label=log_me" # limits logs displayed to containers with this label
-      DOCKER_HOST: tcp://socket-proxy:2375
-    # volumes:
-    #  - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.dozzle-rtr.entrypoints=https"
-      - "traefik.http.routers.dozzle-rtr.rule=HostHeader(`dozzle.$DOMAINNAME`)"
-      ## Middlewares
-      - "traefik.http.routers.dozzle-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.dozzle-rtr.service=dozzle-svc"
-      - "traefik.http.services.dozzle-svc.loadbalancer.server.port=8080"
-
   # VSCode - VSCode Editing
-  # Had to do chmod 775 vscode folder, start as root, and change user id
   vscode:
     image: codercom/code-server:latest
     container_name: vscode
-    restart: unless-stopped
+    restart: always
+    # profiles:
+    # - core
     networks:
       - t2_proxy
     volumes:
       - $USERDIR/server:/home/coder/server
       - $DOCKERDIR:/home/coder/docker
-      - $DOCKERDIR/vscode:/home/coder
+      - $DOCKERDIR/appdata/vscode:/home/coder
     environment:
       PASSWORD: $VSCODE_PASSWORD
       # Run as root first, create the directories, then change permissions to user:docker and 775. Disable run as root below.
       user: $PUID:$PGID
-      # user: "0"
+      #user: "0"
+      DOCKER_HOST: tcp://socket-proxy:2375
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.vscode-rtr.entrypoints=https"
-      - "traefik.http.routers.vscode-rtr.rule=HostHeader(`code.$DOMAINNAME`)"
+      - "traefik.http.routers.vscode-rtr.rule=Host(`code.$DOMAINNAME0`)"
       ## Middlewares
-      - "traefik.http.routers.vscode-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.vscode-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.vscode-rtr.service=vscode-svc"
       - "traefik.http.services.vscode-svc.loadbalancer.server.port=8080"
 
-  ########################### HOME
+  ############################# MAINTENANCE
 
-  # UniFi Controller - Managing UniFi Network
-  # UDP 3478 Port used for STUN. #REQUIRED
-  # TCP 5514 Port used for remote syslog capture.
-  # TCP 8080 Port used for device and controller communication. #REQUIRED
-  # TCP 8443 Port used for controller GUI/API as seen in a web browser #REQUIRED
-  # TCP 8880 Port used for HTTP portal redirection.
-  # TCP 8843 Port used for HTTPS portal redirection.
-  # TCP 6789 Port used for UniFi mobile speed test. #REQUIRED
-  # TCP 27117 Port used for local-bound database communication.
-  # UDP 5656-5699 Ports used by AP-EDU broadcasting.
-  # UDP 10001 Port used for device discovery #REQUIRED
-  # UDP 1900 Port used for "Make controller discoverable on L2 network" in controller settings.
-  unifi:
-    container_name: unifi
-    image: jacobalberty/unifi:stable
+  # Docker-GC - Automatic Docker Garbage Collection
+  # Create docker-gc-exclude file
+  dockergc:
+    image: clockworksoul/docker-gc-cron:latest
+    container_name: docker-gc
     restart: unless-stopped
+    # profiles:
+    # - core
     networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.100
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - "8080:8080"
-      - "8443:8443"
-      - "3478:3478/udp"
-      - "10001:10001/udp"
-      - "6789:6789"
-      #- "8081:8081"
-      #- "8843:8843"
-      #- "8880:8880"
+      - socket_proxy
+    depends_on:
+      - socket-proxy
     volumes:
-      - ${DOCKERDIR}/unifi:/unifi
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
+      # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+      - $DOCKERDIR/appdata/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude
     environment:
-      UNIFI_UID: $PUID
-      UNIFI_GID: $PGID
-      TZ: America/New_York
-      RUNAS_UID0: "false"
-      BIND_PRIV: "false"
+      CRON: 12 0 0 * * ? # Everyday at midnight.
+      FORCE_IMAGE_REMOVAL: 1
+      FORCE_CONTAINER_REMOVAL: 0
+      GRACE_PERIOD_SECONDS: 604800
+      DRY_RUN: 0
+      CLEAN_UP_VOLUMES: 1
+      TZ: $TZ
+      DOCKER_HOST: tcp://socket-proxy:2375
