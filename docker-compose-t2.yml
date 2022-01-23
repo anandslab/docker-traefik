@@ -266,11 +266,9 @@ services:
       - LIFETIME=86400 # 1 day
       - DEFAULT_ACTION=auth
       - DEFAULT_PROVIDER=google
-    secrets: # had trouble getting secrets to work: https://github.com/thomseddon/traefik-forward-auth/issues/155#issuecomment-664630985
-      - google_client_id
-      - google_client_secret
-      - oauth_secret
-      - my_email
+    secrets:
+      - source: traefik-forward-auth
+        target: /config
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
