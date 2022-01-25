@@ -58,10 +58,42 @@ secrets:
     file: $DOCKERDIR/secrets/guac_mysql_password
 
 ########################### EXTENSION FIELDS
+# Helps eliminate repetition of sections
+# More Info on how to use this: https://github.com/htpcBeginner/docker-traefik/pull/228
+
+# Common environment values
 x-environment: &default-tz-puid-pgid
   TZ: $TZ
   PUID: $PUID
   PGID: $PGID
+
+# Proxy Network and Security
+x-network-and-security: &network-and-security
+  networks:
+    - t2_proxy
+  security_opt:
+    - no-new-privileges:true
+
+# Keys common to some of the services in basic-services.txt
+x-common-keys-basic: &common-keys-basic
+  <<: *network-and-security
+  restart: always
+  # profiles:
+  # - basic
+
+# Keys common to some of the dependent services/apps
+x-common-keys-apps: &common-keys-apps
+  <<: *network-and-security
+  restart: unless-stopped
+  # profiles:
+  # - apps
+
+# Keys common to some of the services in media-services.txt
+x-common-keys-media: &common-keys-media
+  <<: *network-and-security
+  restart: "no"
+  # profiles:
+  # - media
 
 ########################### SERVICES
 services:
@@ -73,11 +105,9 @@ services:
   # chmod 600 $DOCKERDIR/traefik2/acme/acme.json
   # touch $DOCKERDIR/traefik2/traefik.log
   traefik:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: traefik
     image: traefik:2.5
-    restart: always
-    # profiles:
-    # - core
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=true
@@ -128,8 +158,6 @@ services:
       t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
       socket_proxy:
-    security_opt:
-      - no-new-privileges:true
     #healthcheck:
     #  test: ["CMD", "traefik", "healthcheck", "--ping"]
     #  interval: 5s
@@ -185,8 +213,6 @@ services:
     container_name: socket-proxy
     image: tecnativa/docker-socket-proxy
     restart: always
-    # profiles:
-    # - core
     networks:
       socket_proxy:
         ipv4_address: 192.168.91.254 # You can specify a static IP
@@ -233,16 +259,10 @@ services:
   # Google OAuth - Single Sign On using OAuth 2.0
   # https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/
   oauth:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: oauth
     image: thomseddon/traefik-forward-auth:latest
     # image: thomseddon/traefik-forward-auth:2.1-arm # Use this image with Raspberry Pi
-    restart: always
-    # profiles:
-    # - core
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     # Allow apps to bypass OAuth. Radarr example below will bypass OAuth if API key is present in the request (eg. from NZB360 mobile app).
     # While this is one way, the recommended way is to bypass authentication using Traefik labels shown in some of the apps later.
     # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
@@ -280,18 +300,14 @@ services:
 
   # Portainer - WebUI for Containers
   portainer:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: portainer
     image: portainer/portainer-ce:latest
-    restart: unless-stopped
-    # profiles:
-    # - apps
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
     command: -H tcp://socket-proxy:2375
     networks:
       - t2_proxy
       - socket_proxy
-    security_opt:
-      - no-new-privileges:true
     volumes:
       # - /var/run/docker.sock:/var/run/docker.sock:ro # # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/appdata/portainer/data:/data # Change to local directory if you want to save/transfer config locally
@@ -310,15 +326,9 @@ services:
 
   # Autoindex - Simple Directory Index
   autoindex:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: autoindex
     image: dceoy/nginx-autoindex:latest
-    restart: always
-    # profiles:
-    # - apps
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$AUTOINDEX_PORT:80"
     volumes:
@@ -339,15 +349,9 @@ services:
 
   # jDownloader - Download management
   jdownloader:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: jlesage/jdownloader-2:latest
     container_name: jdownloader
-    restart: always
-    # profiles:
-    # - media
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$JDOWNLOADER_PORT:5800"
     volumes:
@@ -379,9 +383,7 @@ services:
   transmission-vpn:
     image: haugene/transmission-openvpn:latest
     container_name: transmission-vpn
-    restart: always
-    # profiles:
-    # - media
+    restart: unless-stopped
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.169
@@ -442,14 +444,10 @@ services:
   # qBittorrent - Torrent downloader
   # Needs trailing / if using PathPrefixStrip
   qbittorrent:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
-    restart: always
     #network_mode: container:transmission-vpn
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$QBITTORRENT_PORT:8168"
     volumes:
@@ -472,16 +470,12 @@ services:
 
   # nzbget - Binary newsgrabber (NZB downloader)
   nzbget:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/nzbget
     container_name: nzbget
-    restart: always
-    # profiles:
-    # - media
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.216
-    security_opt:
-      - no-new-privileges:true
     ports:
       - "$NZBGET_PORT:6789"
     volumes:
@@ -514,17 +508,13 @@ services:
   # Jackett - Torrent proxy
   # Set url_base in Jackett settings if using PathPrefix
   jackett:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/jackett:latest
     container_name: jackett
-    restart: always
-    # profiles:
-    # - media
     # network_mode: container:transmission-vpn
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.161
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #  - "$JACKETT_PORT:9117"
     volumes:
@@ -546,17 +536,12 @@ services:
 
   # Prowlarr - Torrent proxy
   prowlarr:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: ghcr.io/linuxserver/prowlarr:develop
     container_name: prowlarr
-    restart: always
-    # profiles:
-    # - media
-    # network_mode: container:transmission-vpn
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.162
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #  - "$PROWLARR_PORT:9696"
     volumes:
@@ -577,15 +562,9 @@ services:
 
   # NZBHydra2 - NZB meta search
   hydra:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: linuxserver/nzbhydra2:latest
     container_name: hydra
-    restart: unless-stopped
-    # profiles:
-    # - media
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     ports:
       - "$NZBHYDRA_PORT:5076"
     volumes:
@@ -609,16 +588,12 @@ services:
   # Lidarr - Music Management
   # Set url_base in lidarr settings if using PathPrefix
   lidarr:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/lidarr:latest
     container_name: lidarr
-    restart: "no"
-    # profiles:
-    # - media
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.163
-    security_opt:
-      - no-new-privileges:true
     ports:
       - "$LIDARR_PORT:8686"
     volumes:
@@ -651,16 +626,12 @@ services:
   # Radarr - Movie management
   # Set url_base in radarr settings if using PathPrefix
   radarr:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/radarr:nightly # latest was causing "Error parsing column 45"
     container_name: radarr
-    restart: "no"
-    # profiles:
-    # - media
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.164
-    security_opt:
-      - no-new-privileges:true
     ports:
       - "$RADARR_PORT:7878"
     volumes:
@@ -693,16 +664,12 @@ services:
   # Sonarr - TV Shows management
   # Set url_base in sonarr settings if using PathPrefix
   sonarr:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/sonarr
     container_name: sonarr
-    restart: "no"
-    # profiles:
-    # - media
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.167
-    security_opt:
-      - no-new-privileges:true
     ports:
       - "$SONARR_PORT:8989"
     volumes:
@@ -735,15 +702,9 @@ services:
   # Readarr - Books management
   # Set url_base in readarr settings if using PathPrefix
   readarr:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
     image: hotio/readarr:nightly
     container_name: readarr
-    restart: "no"
-    # profiles:
-    # - media
-    networks:
-      t2_proxy:
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #  - "$READARR_PORT:8989"
     volumes:
@@ -770,15 +731,9 @@ services:
 
   # Navidrome - Music Server
   navidrome:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
     container_name: navidrome
     image: deluan/navidrome:latest
-    restart: "no"
-    # profiles:
-    # - media
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$FUNKWHALE_PORT:4533"
     user: $PUID:$PGID
@@ -805,15 +760,9 @@ services:
 
   # FunkWhale - Music Server
   funkwhale:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
     container_name: funkwhale
     image: thetarkus/funkwhale
-    restart: "no"
-    # profiles:
-    # - media
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$FUNKWHALE_PORT:80"
     volumes:
@@ -837,17 +786,11 @@ services:
 
   # Jellyfin - Media Server
   jellyfin:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
-    restart: "no"
-    # profiles:
-    # - media
-    networks:
-      - t2_proxy
     devices:
       - /dev/dri:/dev/dri # for harware transcoding
-    security_opt:
-      - no-new-privileges:true
     ports:
       - "$JELLYFIN_PORT:8096"
       - "8920:8920" # Emby also uses same port if running both
@@ -873,13 +816,9 @@ services:
 
   # Photoshow - Simple Photo Viewer
   photoshow:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/photoshow
     container_name: photoshow
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     volumes:
       - $DATADIR/media/misc:/Pictures
       - $DOCKERDIR/appdata/photoshow:/config
@@ -901,16 +840,9 @@ services:
 
   # Bazarr - Subtitle Management
   bazarr:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/bazarr
     container_name: bazarr
-    restart: "no"
-    # profiles:
-    # - media
-    networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.172
-    security_opt:
-      - no-new-privileges:true
     ports:
       - "$BAZARR_PORT:6767"
     volumes:
@@ -938,15 +870,9 @@ services:
 
   # Picard - Music Library Tagging and Management
   picard:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
     image: mikenye/picard:latest
     container_name: picard
-    restart: "no"
-    # profiles:
-    # - media
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$PICARD_PORT:5800"
     volumes:
@@ -974,15 +900,9 @@ services:
 
   # Handbrake - Video Conversion (Transcoding and compression)
   handbrake:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: jlesage/handbrake:latest
     container_name: handbrake
-    restart: unless-stopped
-    # profiles:
-    # - apps
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$HANDBRAKE_PORT:5800"
     volumes:
@@ -1013,15 +933,9 @@ services:
 
   # MKVToolNix - Video Editing (Remuxing - changing media container while keeping original source quality)
   mkvtoolnix:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: jlesage/mkvtoolnix:latest
     container_name: mkvtoolnix
-    restart: unless-stopped
-    # profiles:
-    # - apps
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$MKVTOOLNIX_PORT:5800"
     volumes:
@@ -1050,15 +964,9 @@ services:
 
   # MakeMKV - Video Editing (Ripping from Disks)
   makemkv:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: jlesage/makemkv:latest
     container_name: makemkv
-    restart: unless-stopped
-    # profiles:
-    # - apps
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$MAKEMKV_PORT:5800"
     volumes:
@@ -1090,16 +998,12 @@ services:
 
   # Grafana - Graphical data visualization for InfluxDB data
   grafana:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: grafana/grafana:latest
     container_name: grafana
-    restart: unless-stopped
-    # profiles:
-    # - monitoring
     networks:
       - t2_proxy
       - default
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$GRAFANA_PORT:3000"
     user: "0"
@@ -1121,16 +1025,12 @@ services:
   # Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser
   # Create all databases and tables first
   guacamole:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: guacamole/guacamole:latest
     container_name: guacamole
-    restart: unless-stopped
-    # profiles:
-    # - core
     networks:
       - t2_proxy
       - default
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$GUACAMOLE_PORT:8080"
     environment:
@@ -1158,29 +1058,17 @@ services:
 
   # Guacamole Daemon - Needed for Guacamole
   guacd:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: guacamole/guacd
     container_name: guacd
     restart: unless-stopped
-    # profiles:
-    # - core
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
 
   # Firefox - Web Broswer
   # VNC password not working - check
   firefox:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: jlesage/firefox:latest
     container_name: firefox
-    restart: unless-stopped
-    # profiles:
-    # - apps
-    networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.250 # You can specify a static IP
-    # network_mode: container:transmission-vpn
-    # network_mode: host
     security_opt:
       - no-new-privileges:true
       - seccomp:unconfined # October 15, 2020 https://github.com/jlesage/docker-firefox/blob/master/README.md#allowing-the-membarrier-system-call
@@ -1213,21 +1101,15 @@ services:
 
   # Glances - System Information
   glances:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: nicolargo/glances:latest
     container_name: glances
-    restart: unless-stopped
-    # profiles:
-    # - monitoring
     privileged: true
     # network_mode: host
     networks:
       - t2_proxy
       - socket_proxy
       - default
-    #depends_on:
-    #  - socket-proxy
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$GLANCES_PORT:61208"
     pid: host
@@ -1254,15 +1136,9 @@ services:
 
   # qDirStat - Directory Statistics
   qdirstat:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: jlesage/qdirstat:latest
     container_name: qdirstat
-    restart: unless-stopped
-    # profiles:
-    # - apps
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$QDIRSTAT_PORT:5800"
     volumes:
@@ -1292,18 +1168,12 @@ services:
 
   # Dozzle - Real-time Docker Log Viewer
   dozzle:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: amir20/dozzle:latest
     container_name: dozzle
-    restart: unless-stopped
-    # profiles:
-    # - monitoring
     networks:
       - t2_proxy
       - socket_proxy
-    #depends_on:
-    #  - socket-proxy
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$DOZZLE_PORT:8080"
     environment:
@@ -1327,13 +1197,9 @@ services:
 
   # VSCode - VSCode Editing
   vscode:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     image: codercom/code-server:latest
     container_name: vscode
-    restart: always
-    # profiles:
-    # - core
-    networks:
-      - t2_proxy
     ports:
       - "$VSCODE_PORT:8080"
     volumes:
@@ -1360,13 +1226,9 @@ services:
 
   # SyncThing - Keep folders in Sync
   syncthing:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/syncthing
     container_name: syncthing
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     ports:
       #- 8384:8384
       - 22000:22000/tcp
@@ -1394,15 +1256,11 @@ services:
   # Docker-GC - Automatic Docker Garbage Collection
   # Create docker-gc-exclude file
   dockergc:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: clockworksoul/docker-gc-cron:latest
     container_name: docker-gc
-    restart: unless-stopped
-    # profiles:
-    # - core
     networks:
       - socket_proxy
-    depends_on:
-      - socket-proxy
     volumes:
       # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/appdata/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude
@@ -1416,36 +1274,13 @@ services:
       TZ: $TZ
       DOCKER_HOST: tcp://socket-proxy:2375
 
-  # Traefik Certs Dumper - Extract LetsEncrypt Certificates - Traefik2 Compatible
-  certdumper:
-    container_name: traefik_certdumper
-    image: humenius/traefik-certs-dumper:latest
-    network_mode: none
-    # profiles:
-    # - core
-    security_opt:
-      - no-new-privileges:true
-    # command: --restart-containers container1,container2,container3
-    volumes:
-      - $DOCKERDIR/appdata/traefik2/acme:/traefik:ro
-      - $DOCKERDIR/shared/certs/home:/output:rw
-      # - /var/run/docker.sock:/var/run/docker.sock:ro # Only needed if restarting containers (use Docker Socket Proxy instead)
-    environment:
-      DOMAIN: $DOMAINNAME0
-
   # Cloudflare-Companion - Automatic CNAME DNS Creation
   cf-companion:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: cf-companion
     image: tiredofit/traefik-cloudflare-companion:latest
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-    # profiles:
-    # - core
     networks:
       - socket_proxy
-    #depends_on:
-    #  - socket-proxy
     environment:
       - TIMEZONE=$TZ
       - TRAEFIK_VERSION=2

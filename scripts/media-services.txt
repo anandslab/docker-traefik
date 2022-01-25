@@ -1,9 +1,10 @@
-jellyfin
+lidarr
 radarr
 sonarr
-bazarr
-lidarr
 readarr
+navidrome
+funkwhale
+jellyfin
+photoshow
+bazarr
 picard
-nzbget
-transmission-vpn
