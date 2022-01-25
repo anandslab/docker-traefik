@@ -57,6 +57,12 @@ secrets:
   guac_mysql_password:
     file: $DOCKERDIR/secrets/guac_mysql_password
 
+########################### EXTENSION FIELDS
+x-environment: &default-tz-puid-pgid
+  TZ: $TZ
+  PUID: $PUID
+  PGID: $PGID
+
 ########################### SERVICES
 services:
   ############################# FRONTENDS
@@ -394,15 +400,13 @@ services:
       - $DOCKERDIR/appdata/transmission-vpn/config:/config
       - $DATADIR/downloads:/data/downloads
     environment:
+      << : *default-tz-puid-pgid
       OPENVPN_PROVIDER: FASTESTVPN
       OPENVPN_USERNAME: $FASTEST_USERNAME
       OPENVPN_PASSWORD: $FASTEST_PASSWORD
       #OPENVPN_CONFIG: "Switzerland-UDP"
       #OPENVPN_OPTS: --inactive 3600 --ping 10 --ping-exit 60
       LOCAL_NETWORK: "$LOCAL_NETWORK"
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
       UMASK_SET: 2
       TRANSMISSION_RPC_AUTHENTICATION_REQUIRED: "true"
       TRANSMISSION_RPC_HOST_WHITELIST: "127.0.0.1,$SERVER_IP"
@@ -452,9 +456,7 @@ services:
       - $DOCKERDIR/appdata/qbittorrent:/config
       - $DATADIR/downloads:/downloads
     environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
+      << : *default-tz-puid-pgid
       UMASK_SET: 002
       WEBUI_PORT: 8168
     labels:
@@ -486,9 +488,7 @@ services:
       - $DOCKERDIR/appdata/nzbget:/config
       - $DATADIR/downloads:/data/downloads
     environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
+      << : *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
@@ -532,9 +532,7 @@ services:
       - $DATADIR/downloads:/data/downloads
       - "/etc/localtime:/etc/localtime:ro"
     environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
+      << : *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -565,9 +563,7 @@ services:
       - $DOCKERDIR/appdata/prowlarr:/config
       - "/etc/localtime:/etc/localtime:ro"
     environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
+      << : *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -596,9 +592,7 @@ services:
       - $DOCKERDIR/appdata/hydra2:/config
       - $DATADIR/downloads:/data/downloads
     environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
+      << : *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -635,9 +629,7 @@ services:
       - $DATADIR/media/music:/data/media/music
       - "/etc/localtime:/etc/localtime:ro"
     environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
+      << : *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
@@ -679,9 +671,7 @@ services:
       - $DATADIR/media:/data/media
       - "/etc/localtime:/etc/localtime:ro"
     environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
+      << : *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
@@ -723,9 +713,7 @@ services:
       - $DATADIR/media:/data/media
       - "/etc/localtime:/etc/localtime:ro"
     environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
+      << : *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
@@ -764,9 +752,7 @@ services:
       - $DATADIR/media/books:/data/media/books
       - "/etc/localtime:/etc/localtime:ro"
     environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
+      << : *default-tz-puid-pgid
       UMASK: 002
       #ARGS: ""
     labels:
@@ -866,9 +852,7 @@ services:
       - "$JELLYFIN_PORT:8096"
       - "8920:8920" # Emby also uses same port if running both
     environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
+      << : *default-tz-puid-pgid
       UMASK_SET: 022
     volumes:
       - $DOCKERDIR/appdata/jellyfin:/config
@@ -907,9 +891,7 @@ services:
       - $DOCKERDIR/appdata/bazarr:/config
       - $DATADIR/media:/data/media
     environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
+      << : *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
@@ -1369,9 +1351,7 @@ services:
       - $USERDIR:/data/home
       - $DOCKERDIR/appdata/syncthing:/config
     environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
+      << : *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers

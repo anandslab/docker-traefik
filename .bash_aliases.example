@@ -13,8 +13,10 @@ alias dcrm='dcrun rm'
 alias docdf='sudo docker system df'
 alias dclogs='sudo docker logs -tf --tail="50" '
 alias fixsecrets='sudo chown -R root:root /home/USER/docker/secrets ; sudo chmod -R 600 /home/USER/docker/secrets'
-# depends on having jq installed, but makes it so much easier
-alias doips="sudo docker ps -q | xargs -n 1 docker inspect --format '{{json .}}' | jq -rs 'map(.Name,.NetworkSettings.Networks[].IPAddress) | .[]'"
+# depends on having column installed for table formatting, sorted by name
+alias doips="sudo docker ps -q | xargs -n 1 docker inspect -f '{{.Name}}%tab%{{range .NetworkSettings.Networks}}{{.IPAddress}}%tab%{{end}}' | sed 's#%tab%#\t#g' | sed 's#/##g' | sort | column -t -N NAME,IP\(s\) -o $'\t'"
+# sorted by first IP
+alias doipsi="sudo docker ps -q | xargs -n 1 docker inspect -f '{{.Name}}%tab%{{range .NetworkSettings.Networks}}{{.IPAddress}}%tab%{{end}}' | sed 's#%tab%#\t#g' | sed 's#/##g' | sort -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n | column -t -N NAME,IP\(s\) -o $'\t'"
 doip() {
   sudo docker inspect --format '{{json .}}' "$1" | jq -rs 'map(.NetworkSettings.Networks[].IPAddress) | .[]'
 }
