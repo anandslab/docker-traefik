@@ -1,7 +1,7 @@
 version: "3.9"
 
 ######### IMPORTANT #############
-# This is my main docker-compose file with most of the apps. I run docker on other systems with smaller stacks (web and synology). 
+# This is my main docker-compose file with most of the apps. I run docker on other systems with smaller stacks (web and synology).
 # You can copy-paste services from one docker-compose file in this repo to another to add other apps.
 
 ########################### SYSTEM DESCRIPTION
@@ -400,7 +400,7 @@ services:
       - $DOCKERDIR/appdata/transmission-vpn/config:/config
       - $DATADIR/downloads:/data/downloads
     environment:
-      << : *default-tz-puid-pgid
+      <<: *default-tz-puid-pgid
       OPENVPN_PROVIDER: FASTESTVPN
       OPENVPN_USERNAME: $FASTEST_USERNAME
       OPENVPN_PASSWORD: $FASTEST_PASSWORD
@@ -456,7 +456,7 @@ services:
       - $DOCKERDIR/appdata/qbittorrent:/config
       - $DATADIR/downloads:/downloads
     environment:
-      << : *default-tz-puid-pgid
+      <<: *default-tz-puid-pgid
       UMASK_SET: 002
       WEBUI_PORT: 8168
     labels:
@@ -488,7 +488,7 @@ services:
       - $DOCKERDIR/appdata/nzbget:/config
       - $DATADIR/downloads:/data/downloads
     environment:
-      << : *default-tz-puid-pgid
+      <<: *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
@@ -532,7 +532,7 @@ services:
       - $DATADIR/downloads:/data/downloads
       - "/etc/localtime:/etc/localtime:ro"
     environment:
-      << : *default-tz-puid-pgid
+      <<: *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -563,7 +563,7 @@ services:
       - $DOCKERDIR/appdata/prowlarr:/config
       - "/etc/localtime:/etc/localtime:ro"
     environment:
-      << : *default-tz-puid-pgid
+      <<: *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -592,7 +592,7 @@ services:
       - $DOCKERDIR/appdata/hydra2:/config
       - $DATADIR/downloads:/data/downloads
     environment:
-      << : *default-tz-puid-pgid
+      <<: *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -629,7 +629,7 @@ services:
       - $DATADIR/media/music:/data/media/music
       - "/etc/localtime:/etc/localtime:ro"
     environment:
-      << : *default-tz-puid-pgid
+      <<: *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
@@ -671,7 +671,7 @@ services:
       - $DATADIR/media:/data/media
       - "/etc/localtime:/etc/localtime:ro"
     environment:
-      << : *default-tz-puid-pgid
+      <<: *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
@@ -713,7 +713,7 @@ services:
       - $DATADIR/media:/data/media
       - "/etc/localtime:/etc/localtime:ro"
     environment:
-      << : *default-tz-puid-pgid
+      <<: *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
@@ -752,7 +752,7 @@ services:
       - $DATADIR/media/books:/data/media/books
       - "/etc/localtime:/etc/localtime:ro"
     environment:
-      << : *default-tz-puid-pgid
+      <<: *default-tz-puid-pgid
       UMASK: 002
       #ARGS: ""
     labels:
@@ -852,7 +852,7 @@ services:
       - "$JELLYFIN_PORT:8096"
       - "8920:8920" # Emby also uses same port if running both
     environment:
-      << : *default-tz-puid-pgid
+      <<: *default-tz-puid-pgid
       UMASK_SET: 022
     volumes:
       - $DOCKERDIR/appdata/jellyfin:/config
@@ -870,6 +870,32 @@ services:
       ## HTTP Services
       - "traefik.http.routers.jellyfin-rtr.service=jellyfin-svc"
       - "traefik.http.services.jellyfin-svc.loadbalancer.server.port=8096"
+
+  # Photoshow - Simple Photo Viewer
+  photoshow:
+    image: lscr.io/linuxserver/photoshow
+    container_name: photoshow
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - $DATADIR/media/misc:/Pictures
+      - $DOCKERDIR/appdata/photoshow:/config
+      - $DATADIR/temp/docker/appdata/photoshow:/Thumbs
+    environment:
+      <<: *default-tz-puid-pgid
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.photoshow-rtr.entrypoints=https"
+      - "traefik.http.routers.photoshow-rtr.rule=Host(`photoshow.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.photoshow-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.photoshow-rtr.service=photoshow-svc"
+      - "traefik.http.services.photoshow-svc.loadbalancer.server.port=80"
 
   ############################# MEDIA FILE MANAGEMENT
 
@@ -891,7 +917,7 @@ services:
       - $DOCKERDIR/appdata/bazarr:/config
       - $DATADIR/media:/data/media
     environment:
-      << : *default-tz-puid-pgid
+      <<: *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
@@ -1351,7 +1377,7 @@ services:
       - $USERDIR:/data/home
       - $DOCKERDIR/appdata/syncthing:/config
     environment:
-      << : *default-tz-puid-pgid
+      <<: *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers

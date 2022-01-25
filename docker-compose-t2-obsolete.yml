@@ -1,19 +1,10 @@
-version: "3.7"
+THIS FILE NEEDS A CLEANUP
 
-# CAUTION CAUTION CAUTION #
-
-# THESE ARE APPS THAT I DO NOT USE ANYMORE OR TESTED BUT FOUND TO BE NOT USEFUL TO ME. 
-# DOCKER COMPOSE SNIPPETS FOR SERVICES BELOW WORKED FOR ME WHEN I USED/TRIED THEM. 
-# THERE IS NO GUARANTEE THAT THEY WILL CONTINUE. 
-# DOCKER AND MY OWN STACK CONTINUE TO CHANGE AND EVOLVE CONSTANTLY - I AM NOT ACTIVELY MAINTAINING THESE.
-
-########################### NETWORKS
-networks:
-  t2_proxy:
-    external:
-      name: t2_proxy
-  default:
-    driver: bridge
+################### CAUTION CAUTION CAUTION ###############
+# These are apps that I do not use anymore or tested but found to be not useful to me. 
+# Docker-compose snippets for services below worked for me when I used/tried them.
+# My stack and Docker itself continue to change and evolve constantly. 
+# I do not actively check or maintain these. Therefore, there is no guarantee that they will continue to work.
 
 ########################### SERVICES
 services:
@@ -216,36 +207,6 @@ services:
       ## HTTP Services
       - "traefik.http.routers.code-server-rtr.service=code-server-svc"
       - "traefik.http.services.code-server-svc.loadbalancer.server.port=8443"
-
-  # qBittorrent - Torrent downloader
-  # Needs trailing / if using PathPrefixStrip
-  qbittorrent:
-    image: linuxserver/qbittorrent:latest
-    container_name: qbittorrent
-    restart: always
-    network_mode: container:transmission-vpn
-    security_opt:
-      - no-new-privileges:true
-    volumes:
-      - $USERDIR/docker/qbittorrent:/config
-      - $USERDIR/Downloads:/downloads
-    environment:
-      PUID: $PUID
-      PGID: $PGID
-      TZ: $TZ
-      UMASK_SET: 002
-      WEBUI_PORT: 8168
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.qbittorrent-rtr.entrypoints=https"
-      - "traefik.http.routers.qbittorrent-rtr.rule=Host(`qbit.$DOMAINNAME`)"
-      - "traefik.http.routers.qbittorrent-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.qbittorrent-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.qbittorrent-rtr.service=qbittorrent-svc"
-      - "traefik.http.services.qbittorrent-svc.loadbalancer.server.port=8168"
 
   # Cloudflare DDNS - Dynamic DNS Updater
   cloudddns:
@@ -1345,3 +1306,299 @@ services:
       - "traefik.http.routers.motioneye-rtr.service=motioneye-svc"
       # - "traefik.http.routers.motioneye-rtr-bypass.service=motioneye-svc"
       - "traefik.http.services.motioneye-svc.loadbalancer.server.port=8765"
+
+########################### SECRETS
+secrets:
+  guac_db_name:
+    file: $SECRETSDIR/guac_db_name
+  guac_mysql_user:
+    file: $SECRETSDIR/guac_mysql_user
+  guac_mysql_password:
+    file: $SECRETSDIR/guac_mysql_password
+
+services:
+  ########################### HOME
+
+  # UniFi Controller - Managing UniFi Network
+  # UDP 3478 Port used for STUN. #REQUIRED
+  # TCP 5514 Port used for remote syslog capture.
+  # TCP 8080 Port used for device and controller communication. #REQUIRED
+  # TCP 8443 Port used for controller GUI/API as seen in a web browser #REQUIRED
+  # TCP 8880 Port used for HTTP portal redirection.
+  # TCP 8843 Port used for HTTPS portal redirection.
+  # TCP 6789 Port used for UniFi mobile speed test. #REQUIRED
+  # TCP 27117 Port used for local-bound database communication.
+  # UDP 5656-5699 Ports used by AP-EDU broadcasting.
+  # UDP 10001 Port used for device discovery #REQUIRED
+  # UDP 1900 Port used for "Make controller discoverable on L2 network" in controller settings.
+  unifi:
+    container_name: unifi
+    image: jacobalberty/unifi:stable
+    restart: unless-stopped
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.100
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+      - "3478:3478/udp"
+      - "10001:10001/udp"
+      - "6789:6789"
+      #- "8081:8081"
+      #- "8843:8843"
+      #- "8880:8880"
+    volumes:
+      - ${DOCKERDIR}/unifi:/unifi
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      UNIFI_UID: $PUID
+      UNIFI_GID: $PGID
+      TZ: America/New_York
+      RUNAS_UID0: "false"
+      BIND_PRIV: "false"
+
+  # cAdvisor - Container Advisor
+  cadvisor:
+    image: gcr.io/google-containers/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    #ports:
+    #  - 8080:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    #depends_on:
+    #  - redis
+    # privileged: true # Only needed for CentOS, Fedora, Red Hat, etc.
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.cadvisor-rtr.entrypoints=https"
+      - "traefik.http.routers.cadvisor-rtr.rule=HostHeader(`cad.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.cadvisor-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.cadvisor-rtr.service=cadvisor-svc"
+      - "traefik.http.services.cadvisor-svc.loadbalancer.server.port=8080"
+
+  # Guacamole Daemon - Needed for Guacamole
+  guacd:
+    image: guacamole/guacd
+    container_name: guacd
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - t2_proxy
+
+  # Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser
+  guacamole:
+    image: guacamole/guacamole:latest
+    container_name: guacamole
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      GUACD_HOSTNAME: guacd
+      MYSQL_HOSTNAME: mariadb
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE_FILE: /run/secrets/guac_db_name
+      MYSQL_USER_FILE: /run/secrets/guac_mysql_user
+      MYSQL_PASSWORD_FILE: /run/secrets/guac_mysql_password
+    secrets:
+      - guac_db_name
+      - guac_mysql_user
+      - guac_mysql_password
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.guacamole-rtr.entrypoints=https"
+      - "traefik.http.routers.guacamole-rtr.rule=HostHeader(`guac.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.guacamole-rtr.middlewares=chain-authelia@file,add-guacamole"
+      - "traefik.http.middlewares.add-guacamole.addPrefix.prefix=/guacamole"
+      ## HTTP Services
+      - "traefik.http.routers.guacamole-rtr.service=guacamole-svc"
+      - "traefik.http.services.guacamole-svc.loadbalancer.server.port=8080"
+
+  # Traefik - Custom Error Pages
+  traefik-error-pages:
+    container_name: traefik-error-pages
+    image: guillaumebriday/traefik-custom-error-pages
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.traefik-error-pages-rtr.entrypoints=https"
+      - "traefik.http.routers.traefik-error-pages-rtr.rule=HostRegexp(`{host:.+}`)"
+      - "traefik.http.routers.traefik-error-pages-rtr.priority=1"
+      # Middlewares
+      - "traefik.http.routers.traefik-error-pages-rtr.middlewares=traefik-error-pages"
+      - "traefik.http.middlewares.traefik-error-pages.errors.service=traefik-error-pages-svc"
+      - "traefik.http.middlewares.traefik-error-pages.errors.status=401,403,404,429,500,502,503"
+      - "traefik.http.middlewares.traefik-error-pages.errors.query=/{status}.html"
+      # HTTP Services
+      - "traefik.http.routers.traefik-error-pages-rtr.service=traefik-error-pages-svc"
+      - "traefik.http.services.traefik-error-pages-svc.loadbalancer.server.port=80"
+
+  # Traefik Certs Dumper - Extract LetsEncrypt Certificates - Traefik2 Compatible
+  certdumper:
+    container_name: traefik_certdumper
+    image: humenius/traefik-certs-dumper:latest
+    network_mode: none
+    security_opt:
+      - no-new-privileges:true
+    # command: --restart-containers container1,container2,container3
+    volumes:
+      - $DOCKERDIR/traefik2/acme:/traefik:ro
+      - $DOCKERDIR/shared/certs:/output:rw
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Only needed if restarting containers (use Docker Socket Proxy instead)
+    environment:
+      DOMAIN: $DOMAINNAME
+
+  # Dozzle - Real-time Docker Log Viewer
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+      - socket_proxy
+    depends_on:
+      - socket-proxy
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      DOZZLE_LEVEL: info
+      DOZZLE_TAILSIZE: 300
+      DOZZLE_FILTER: "status=running"
+      # DOZZLE_FILTER: "label=log_me" # limits logs displayed to containers with this label
+      DOCKER_HOST: tcp://socket-proxy:2375
+    # volumes:
+    #  - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.dozzle-rtr.entrypoints=https"
+      - "traefik.http.routers.dozzle-rtr.rule=HostHeader(`dozzle.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.dozzle-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.dozzle-rtr.service=dozzle-svc"
+      - "traefik.http.services.dozzle-svc.loadbalancer.server.port=8080"
+
+  # Redis Commander - Redis Management Tool
+  rediscommander:
+    container_name: rediscommander
+    image: rediscommander/redis-commander:latest
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=$REDIS_PASSWORD
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.rediscommander-rtr.entrypoints=https"
+      - "traefik.http.routers.rediscommander-rtr.rule=HostHeader(`rediscom.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.rediscommander-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.rediscommander-rtr.service=rediscommander-svc"
+      - "traefik.http.services.rediscommander-svc.loadbalancer.server.port=8081"
+
+  # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
+  socket-proxy:
+    container_name: socket-proxy
+    image: tecnativa/docker-socket-proxy
+    restart: always
+    networks:
+      # t2_proxy:
+      socket_proxy:
+        ipv4_address: 192.168.91.254 # You can specify a static IP
+    ports:
+      - "127.0.0.1:2375:2375" # Port 2375 should only ever get exposed to the internal network.
+    privileged: true
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      - LOG_LEVEL=info # debug,info,notice,warning,err,crit,alert,emerg
+      ## Variables match the URL prefix (i.e. AUTH blocks access to /auth/* parts of the API, etc.).
+      # 0 to revoke access.
+      # 1 to grant access.
+      ## Granted by Default
+      - EVENTS=1
+      - PING=1
+      - VERSION=1
+      ## Revoked by Default
+      # Security critical
+      - AUTH=0
+      - SECRETS=0
+      - POST=1 # Ouroboros
+      # Not always needed
+      - BUILD=0
+      - COMMIT=0
+      - CONFIGS=0
+      - CONTAINERS=1 # Traefik, portainer, etc.
+      - DISTRIBUTION=0
+      - EXEC=0
+      - IMAGES=1 # Portainer
+      - INFO=1 # Portainer
+      - NETWORKS=1 # Portainer
+      - NODES=0
+      - PLUGINS=0
+      - SERVICES=1 # Portainer
+      - SESSION=0
+      - SWARM=0
+      - SYSTEM=0
+      - TASKS=1 # Portaienr
+      - VOLUMES=1 # Portainer
+
+  # Glances - System Information
+  glances:
+    image: nicolargo/glances:latest
+    container_name: glances
+    restart: unless-stopped
+    privileged: true
+    # network_mode: host
+    networks:
+      - t2_proxy
+      - socket_proxy
+    # depends_on:
+    #   - socket-proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$GLANCES_PORT:61208"
+    pid: host
+    volumes:
+      - $DOCKERDIR/glances/glances.conf:/glances/conf/glances.conf # Use this if you want to add a glances.conf file
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
+    environment:
+      # GLANCES_OPT: "-C /glances/conf/glances.conf --quiet --export influxdb"
+      GLANCES_OPT: "-w"
+      DOCKER_HOST: tcp://socket-proxy:2375
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.glances-rtr.entrypoints=https"
+      - "traefik.http.routers.glances-rtr.rule=Host(`glances.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.glances-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.glances-rtr.service=glances-svc"
+      - "traefik.http.services.glances-svc.loadbalancer.server.port=61208"
