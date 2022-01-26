@@ -61,6 +61,44 @@ secrets:
   my_email:
     file: $SECRETSDIR/my_email
 
+########################### EXTENSION FIELDS
+# Helps eliminate repetition of sections
+# More Info on how to use this: https://github.com/htpcBeginner/docker-traefik/pull/228
+
+# Common environment values
+x-environment: &default-tz-puid-pgid
+  TZ: $TZ
+  PUID: $PUID
+  PGID: $PGID
+
+# Proxy Network and Security
+x-network-and-security: &network-and-security
+  networks:
+    - t2_proxy
+  security_opt:
+    - no-new-privileges:true
+
+# Keys common to some of the services in basic-services.txt
+x-common-keys-basic: &common-keys-basic
+  <<: *network-and-security
+  restart: always
+  # profiles:
+  # - basic
+
+# Keys common to some of the dependent services/apps
+x-common-keys-apps: &common-keys-apps
+  <<: *network-and-security
+  restart: unless-stopped
+  # profiles:
+  # - apps
+
+# Keys common to some of the services in media-services.txt
+x-common-keys-media: &common-keys-media
+  <<: *network-and-security
+  restart: "no"
+  # profiles:
+  # - media
+
 ########################### SERVICES
 services:
   ############################# FRONTENDS
@@ -71,11 +109,9 @@ services:
   # chmod 600 $DOCKERDIR/traefik2/acme/acme.json
   # touch $DOCKERDIR/traefik2/traefik.log
   traefik:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: traefik
     image: traefik:2.5
-    restart: always
-    # profiles:
-    # - core
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=true
@@ -93,7 +129,7 @@ services:
       # - --serversTransport.insecureSkipVerify=true
       - --log=true
       - --log.level=WARN # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
-      - --accessLog=true
+      - --accessLog=false
       - --accessLog.filePath=/traefik.log
       - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
       - --accessLog.filters.statusCodes=400-499
@@ -126,8 +162,6 @@ services:
       t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
       socket_proxy:
-    security_opt:
-      - no-new-privileges:true
     #healthcheck:
     #  test: ["CMD", "traefik", "healthcheck", "--ping"]
     #  interval: 5s
@@ -180,11 +214,9 @@ services:
 
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: socket-proxy
     image: tecnativa/docker-socket-proxy
-    restart: always
-    # profiles:
-    # - core
     networks:
       socket_proxy:
         ipv4_address: 192.168.91.254 # You can specify a static IP
@@ -231,16 +263,10 @@ services:
   # Google OAuth - Single Sign On using OAuth 2.0
   # https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/
   oauth:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: oauth
     image: thomseddon/traefik-forward-auth:latest
     # image: thomseddon/traefik-forward-auth:2.1-arm # Use this image with Raspberry Pi
-    restart: always
-    # profiles:
-    # - core
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     # Allow apps to bypass OAuth. Radarr example below will bypass OAuth if API key is present in the request (eg. from NZB360 mobile app).
     # While this is one way, the recommended way is to bypass authentication using Traefik labels shown in some of the apps later.
     # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
@@ -278,18 +304,14 @@ services:
 
   # Portainer - WebUI for Containers
   portainer:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: portainer
     image: portainer/portainer-ce:latest
-    restart: unless-stopped
-    # profiles:
-    # - apps
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
     command: -H tcp://socket-proxy:2375
     networks:
       - t2_proxy
       - socket_proxy
-    security_opt:
-      - no-new-privileges:true
     volumes:
       # - /var/run/docker.sock:/var/run/docker.sock:ro # # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/appdata/portainer/data:/data # Change to local directory if you want to save/transfer config locally
@@ -308,15 +330,9 @@ services:
 
   # Autoindex - Simple Directory Index
   autoindex:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: autoindex
     image: dceoy/nginx-autoindex:latest
-    restart: always
-    # profiles:
-    # - apps
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$AUTOINDEX_PORT:80"
     volumes:
@@ -338,13 +354,9 @@ services:
   # MariaDB - MySQL Database
   # After starting container for first time dexec and mysqladmin -u root password <password>
   mariadb:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: mariadb
     image: lscr.io/linuxserver/mariadb
-    restart: always
-    # profiles:
-    # - core
-    security_opt:
-      - no-new-privileges:true
     ports:
       - "$MARIADB_PORT:3306"
     volumes:
@@ -360,13 +372,9 @@ services:
   # InfluxDB - Database for sensor data
   # Create influxdb.conf
   influxdb:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     image: influxdb:latest
     container_name: influxdb
-    restart: always
-    # profiles:
-    # - core
-    security_opt:
-      - no-new-privileges:true
     ports:
       - "$INFLUXDB_PORT:8086"
       - "$INFLUXDB_PORT_PROXMOX:8087/udp"
@@ -377,16 +385,12 @@ services:
 
   # Redis - Key-value Store
   redis:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: redis
     image: redis:latest
-    restart: always
-    # profiles:
-    # - core
     entrypoint: redis-server --appendonly yes --requirepass $REDIS_PASSWORD --maxmemory 512mb --maxmemory-policy allkeys-lru
     ports:
       - "$REDIS_PORT:6379"
-    security_opt:
-      - no-new-privileges:true
     volumes:
       - $DOCKERDIR/appdata/redis/data:/data
       - /etc/timezone:/etc/timezone:ro
@@ -394,18 +398,11 @@ services:
 
   # Redis Commander - Redis Management Tool
   rediscommander:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: rediscommander
     image: rediscommander/redis-commander:latest
-    restart: unless-stopped
-    # profiles:
-    # - apps
-    networks:
-      - t2_proxy
-      - default
     # ports:
     #   - "$REDISCOMMANDER_PORT:8081"
-    security_opt:
-      - no-new-privileges:true
     environment:
       - REDIS_HOST=$REDIS_HOST
       - REDIS_PASSWORD=$REDIS_PASSWORD
@@ -423,16 +420,9 @@ services:
   # phpMyAdmin - Database management
   # Create a new user with admin privileges. Cannot login as MySQL root for some reason.
   phpmyadmin:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: phpmyadmin/phpmyadmin:latest
     container_name: phpmyadmin
-    restart: unless-stopped
-    # profiles:
-    # - apps
-    networks:
-      - t2_proxy
-      - default
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$PHPMYADMIN_PORT:80"
     # volumes:
@@ -459,14 +449,11 @@ services:
 
   # Nginx - Web Server
   nginx:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: nginx
     image: nginx:1.20 # 1.18 # Updated 8/9/2021
-    restart: unless-stopped
     depends_on:
       - php7
-    networks:
-      - t2_proxy
-      - default
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
@@ -521,16 +508,13 @@ services:
 
   # PHP - Hypertext Preprocessor
   php7:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: php7
     image: php:7.4-fpm-custom
     build:
       context: $DOCKERDIR/custom/
       dockerfile: Dockerfile-php7
-    restart: unless-stopped
     user: $PUID:$PGID # allows upgrading WP and plugins
-    networks:
-      - t2_proxy
-      - default
     volumes:
       - $DOCKERDIR/sites/shb/html:/var/www/html/shb
       - $DOCKERDIR/sites/shb/beta:/var/www/html/beta
@@ -542,13 +526,9 @@ services:
 
   # VSCode - VSCode Editing
   vscode:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     image: codercom/code-server:latest
     container_name: vscode
-    restart: always
-    # profiles:
-    # - core
-    networks:
-      - t2_proxy
     volumes:
       - $USERDIR/server:/home/coder/server
       - $DOCKERDIR:/home/coder/docker
@@ -575,15 +555,11 @@ services:
   # Docker-GC - Automatic Docker Garbage Collection
   # Create docker-gc-exclude file
   dockergc:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: clockworksoul/docker-gc-cron:latest
     container_name: docker-gc
-    restart: unless-stopped
-    # profiles:
-    # - core
     networks:
       - socket_proxy
-    depends_on:
-      - socket-proxy
     volumes:
       # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/appdata/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude

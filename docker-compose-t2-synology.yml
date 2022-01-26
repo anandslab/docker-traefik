@@ -56,6 +56,44 @@ secrets:
   mysql_root_password:
     file: $DOCKERDIR/secrets/mysql_root_password
 
+########################### EXTENSION FIELDS
+# Helps eliminate repetition of sections
+# More Info on how to use this: https://github.com/htpcBeginner/docker-traefik/pull/228
+
+# Common environment values
+x-environment: &default-tz-puid-pgid
+  TZ: $TZ
+  PUID: $PUID
+  PGID: $PGID
+
+# Proxy Network and Security
+x-network-and-security: &network-and-security
+  networks:
+    - t2_proxy
+  security_opt:
+    - no-new-privileges:true
+
+# Keys common to some of the services in basic-services.txt
+x-common-keys-basic: &common-keys-basic
+  <<: *network-and-security
+  restart: always
+  # profiles:
+  # - basic
+
+# Keys common to some of the dependent services/apps
+x-common-keys-apps: &common-keys-apps
+  <<: *network-and-security
+  restart: unless-stopped
+  # profiles:
+  # - apps
+
+# Keys common to some of the services in media-services.txt
+x-common-keys-media: &common-keys-media
+  <<: *network-and-security
+  restart: "no"
+  # profiles:
+  # - media
+
 ########################### SERVICES
 services:
   ############################# FRONTENDS
@@ -66,11 +104,9 @@ services:
   # chmod 600 $DOCKERDIR/traefik2/acme/acme.json
   # touch $DOCKERDIR/traefik2/traefik.log
   traefik:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: traefik
     image: traefik:2.5
-    restart: always
-    # profiles:
-    # - core
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=true
@@ -88,7 +124,7 @@ services:
       # - --serversTransport.insecureSkipVerify=true
       - --log=true
       - --log.level=WARN # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
-      - --accessLog=true
+      - --accessLog=false
       - --accessLog.filePath=/traefik.log
       - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
       - --accessLog.filters.statusCodes=400-499
@@ -120,8 +156,6 @@ services:
     networks:
       - t2_proxy
       - socket_proxy
-    security_opt:
-      - no-new-privileges:true
     #healthcheck:
     #  test: ["CMD", "traefik", "healthcheck", "--ping"]
     #  interval: 5s
@@ -174,9 +208,9 @@ services:
 
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: socket-proxy
     image: fluencelabs/docker-socket-proxy
-    restart: always
     networks:
       - socket_proxy
     privileged: true
@@ -228,9 +262,9 @@ services:
 
   # Portainer - WebUI for Containers
   portainer:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: portainer
     image: portainer/portainer-ce:latest
-    restart: unless-stopped
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
     command: -H tcp://socket-proxy:2375
     networks:
@@ -238,8 +272,6 @@ services:
       - socket_proxy
     #ports:
     #  - "$PORTAINER_PORT:9000"
-    security_opt:
-      - no-new-privileges:true
     volumes:
       # - /var/run/docker.sock:/var/run/docker.sock:ro # # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/appdata/portainer/data:/data # Change to local directory if you want to save/transfer config locally
@@ -258,13 +290,9 @@ services:
 
   # Autoindex - Simple Directory Index
   autoindex:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: autoindex
     image: dceoy/nginx-autoindex:latest
-    restart: always
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$AUTOINDEX_PORT:80"
     volumes:
@@ -286,11 +314,9 @@ services:
   # Create mosquitto.conf, passwd, mosquitto.log files  and set permissions to 775 user:docker
   # dexec mosquitto /bin/sh -> mosquitto_passwd -b /mosquitto/config/passwd username passwd
   mosquitto:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: eclipse-mosquitto:latest
     container_name: mosquitto
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
     ports:
       - "$MOSQUITTO_HTTP_PORT:1883" #http
       - "9001:9001" #websockets
@@ -309,11 +335,9 @@ services:
   # MariaDB - MySQL Database
   # After starting container for first time dexec and mysqladmin -u root password <password>
   mariadb:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: mariadb
     image: linuxserver/mariadb:latest
-    restart: always
-    security_opt:
-      - no-new-privileges:true
     ports:
       - "$MARIADB_PORT:3306"
     volumes:
@@ -330,11 +354,9 @@ services:
   # InfluxDB - Database for sensor data
   # Create influxdb.conf
   influxdb:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     image: influxdb:latest
     container_name: influxdb
-    restart: always
-    security_opt:
-      - no-new-privileges:true
     ports:
       - "$INFLUXDB_PORT:8086"
     volumes:
@@ -342,32 +364,12 @@ services:
       - $DOCKERDIR/appdata/influxdb/db:/var/lib/influxdb
   #    command: -config /etc/influxdb/influxdb.conf
 
-  # Redis - Key-value Store
-  redis:
-    container_name: redis
-    image: redis:latest
-    restart: unless-stopped
-    entrypoint: redis-server --appendonly yes --requirepass $REDIS_PASSWORD --maxmemory 512mb --maxmemory-policy allkeys-lru
-    ports:
-      - "$REDIS_PORT:6379"
-    security_opt:
-      - no-new-privileges:true
-    volumes:
-      - $DOCKERDIR/appdata/redis/data:/data
-      - /etc/TZ:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-
   # phpMyAdmin - Database management
   # Create a new user with admin privileges. Cannot login as MySQL root for some reason.
   phpmyadmin:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: phpmyadmin/phpmyadmin:latest
     container_name: phpmyadmin
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-      - default
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$PHPMYADMIN_PORT:80"
     # volumes:
@@ -395,17 +397,13 @@ services:
   # qBittorrent - Torrent downloader
   # Needs trailing / if using PathPrefixStrip
   qbittorrent:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/qbittorrent
     container_name: qbittorrent
-    restart: always
-    networks:
-      - t2_proxy
     # ports:
     #- "$QBITTORRENT_PORT:8168"
     #- 6881:6881
     #- 6881:6881/udp
-    security_opt:
-      - no-new-privileges:true
     volumes:
       - $DOCKERDIR/appdata/qbittorrent:/config
       - $DOWNLOADSDIR:/downloads
@@ -431,11 +429,9 @@ services:
 
   # Plex - Media Server
   plexms:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
     image: plexinc/pms-docker:public
     container_name: plexms
-    restart: unless-stopped
-    networks:
-      - t2_proxy
     ports:
       - "$PLEX_PORT:32400/tcp"
       - "3005:3005/tcp"
@@ -449,8 +445,6 @@ services:
       - "$PLEX_WEB_TOOLS_PORT:33400"
     devices:
       - /dev/dri:/dev/dri # for hardware transcoding
-    security_opt:
-      - no-new-privileges:true
     volumes:
       - $DOCKERDIR/appdata/plexms:/config
       - $DOWNLOADSDIR:/downloads
@@ -480,16 +474,9 @@ services:
 
   # Tdarr Server - Library Optimizer
   tdarr:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
     image: haveagitgat/tdarr:latest
     container_name: tdarr
-    restart: unless-stopped
-    # profiles:
-    # - media
-    networks:
-      - t2_proxy
-      - default
-    security_opt:
-      - no-new-privileges:true
     #ports:
     #  - "$TDARR_SERVER_PORT:8266"
     #  - "$TDARR_WEB_PORT:8265"
@@ -522,15 +509,9 @@ services:
 
   # Tdarr Node - Transcoder Node
   tdarr-node1:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
     image: haveagitgat/tdarr_node:latest
     container_name: tdarr-node1
-    restart: unless-stopped
-    # profiles:
-    # - media
-    security_opt:
-      - no-new-privileges:true
-    networks:
-      - default
     devices:
       - /dev/dri:/dev/dri # for hardware transcoding
     environment:
@@ -557,11 +538,9 @@ services:
   # https://github.com/romancin/rclonebrowser-docker
   # https://hub.docker.com/r/d2dyno/rclone-gui
   rclone-drive:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: rclone-drive
     image: rclone/rclone:latest
-    networks:
-      - t2_proxy
-    restart: always
     cap_add:
       - SYS_ADMIN
     security_opt:
@@ -621,9 +600,9 @@ services:
 
   # Rclone - Google Drive Mount
   rclone-crypt:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: rclone-crypt
     image: rclone/rclone:latest
-    restart: always
     cap_add:
       - SYS_ADMIN
     security_opt:
@@ -672,11 +651,9 @@ services:
   # Firefox - Web Broswer
   # VNC password not working - check
   firefox:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: jlesage/firefox:latest
     container_name: firefox
-    restart: unless-stopped
-    networks:
-      - t2_proxy
     security_opt:
       - no-new-privileges:true
       - seccomp:unconfined # October 15, 2020 https://github.com/jlesage/docker-firefox/blob/master/README.md#allowing-the-membarrier-system-call
@@ -709,16 +686,14 @@ services:
 
   # Glances - System Information
   glances:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: nicolargo/glances:latest
     container_name: glances
-    restart: unless-stopped
     privileged: true
     # network_mode: host
     networks:
       - t2_proxy
       - socket_proxy
-    security_opt:
-      - no-new-privileges:true
     ports:
       - "$GLANCES_PORT:61208"
     pid: host
@@ -742,13 +717,9 @@ services:
 
   # qDirStat - Directory Statistics
   qdirstat:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: jlesage/qdirstat:latest
     container_name: qdirstat
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     # ports:
     #   - "$QDIRSTAT_PORT:5800"
     volumes:
@@ -777,13 +748,9 @@ services:
 
   # SyncThing - Keep folders in Sync
   syncthing:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/syncthing
     container_name: syncthing
-    restart: always
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
     ports:
       - "8384:8384"
       - "22000:22000/tcp"
@@ -817,8 +784,6 @@ services:
     networks:
       - default
       - socket_proxy
-    depends_on:
-      - socket-proxy
     environment:
       TZ: $TZ
       WATCHTOWER_CLEANUP: "true"
@@ -835,15 +800,12 @@ services:
   # Docker-GC - Automatic Docker Garbage Collection
   # Create docker-gc-exclude file
   dockergc:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: clockworksoul/docker-gc-cron:latest
     container_name: docker-gc
     restart: unless-stopped
-    # profiles:
-    # - core
     networks:
       - socket_proxy
-    depends_on:
-      - socket-proxy
     volumes:
       # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/appdata/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude
@@ -859,11 +821,9 @@ services:
 
   # Cloudflare DDNS - Dynamic DNS Updater
   cf-ddns:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: cf-ddns
     image: oznu/cloudflare-ddns:latest
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
     environment:
       API_KEY: $CLOUDFLARE_API_TOKEN
       ZONE: $DOMAINNAME0
@@ -877,17 +837,11 @@ services:
 
   # Cloudflare-Companion - Automatic CNAME DNS Creation
   cf-companion:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: cf-companion
     image: tiredofit/traefik-cloudflare-companion:latest
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-    # profiles:
-    # - core
     networks:
       - socket_proxy
-    #depends_on:
-    #  - socket-proxy
     environment:
       - TIMEZONE=$TZ
       - TRAEFIK_VERSION=2

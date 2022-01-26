@@ -125,7 +125,7 @@ services:
       # - --serversTransport.insecureSkipVerify=true
       - --log=true
       - --log.level=WARN # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
-      - --accessLog=true
+      - --accessLog=false
       - --accessLog.filePath=/traefik.log
       - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
       - --accessLog.filters.statusCodes=400-499
@@ -210,9 +210,9 @@ services:
 
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     container_name: socket-proxy
     image: tecnativa/docker-socket-proxy
-    restart: always
     networks:
       socket_proxy:
         ipv4_address: 192.168.91.254 # You can specify a static IP
@@ -326,7 +326,7 @@ services:
 
   # Autoindex - Simple Directory Index
   autoindex:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: autoindex
     image: dceoy/nginx-autoindex:latest
     # ports:
@@ -1226,7 +1226,7 @@ services:
 
   # SyncThing - Keep folders in Sync
   syncthing:
-    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    <<: *common-keys-basic # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/syncthing
     container_name: syncthing
     ports:

@@ -14,6 +14,10 @@
 !docker-compose-t2-web.yml
 !docker-compose-t2-nuc.yml
 
+!custom
+custom/*
+!custom/*.example
+
 !shared
 shared/*
 !shared/*.example
