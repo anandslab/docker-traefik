@@ -52,6 +52,8 @@ secrets:
     file: $DOCKERDIR/secrets/authelia_notifier_smtp_password
   authelia_duo_api_secret_key:
     file: $DOCKERDIR/secrets/authelia_duo_api_secret_key
+  authelia_storage_encryption_key:
+    file: $DOCKERDIR/secrets/authelia_storage_encryption_key
   oauth_secret:
     file: $DOCKERDIR/secrets/oauth_secret
   google_client_secret:
@@ -70,7 +72,7 @@ secrets:
     file: $DOCKERDIR/secrets/traefik_pilot_token
   mysql_root_password:
     file: $DOCKERDIR/secrets/mysql_root_password
-
+  
 ########################### SERVICES
 services:
   ############################# FRONTENDS
@@ -296,12 +298,14 @@ services:
       - AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE=/run/secrets/authelia_storage_mysql_password
       - AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE=/run/secrets/authelia_notifier_smtp_password
       - AUTHELIA_DUO_API_SECRET_KEY_FILE=/run/secrets/authelia_duo_api_secret_key
+      - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
     secrets:
       - authelia_jwt_secret
       - authelia_session_secret
       - authelia_storage_mysql_password
       - authelia_notifier_smtp_password
       - authelia_duo_api_secret_key
+      - authelia_storage_encryption_key
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
