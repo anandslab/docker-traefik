@@ -47,14 +47,8 @@ secrets:
     file: $DOCKERDIR/secrets/authelia_notifier_smtp_password
   authelia_duo_api_secret_key:
     file: $DOCKERDIR/secrets/authelia_duo_api_secret_key
-  oauth_secret:
-    file: $DOCKERDIR/secrets/oauth_secret
-  google_client_secret:
-    file: $DOCKERDIR/secrets/google_client_secret
-  google_client_id:
-    file: $DOCKERDIR/secrets/google_client_id
-  my_email:
-    file: $DOCKERDIR/secrets/my_email
+  traefik-forward-auth:
+    file: $SECRETSDIR/traefik-forward-auth
   plex_claim:
     file: $DOCKERDIR/secrets/plex_claim
   guac_db_name:
@@ -253,14 +247,11 @@ services:
     # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
     # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
-      - PROVIDERS_GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
-      - PROVIDERS_GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
-      - SECRET=$OAUTH_SECRET
+      - CONFIG=/config
       - COOKIE_DOMAIN=$DOMAINNAME0
       - INSECURE_COOKIE=false
       - AUTH_HOST=oauth.$DOMAINNAME0
       - URL_PATH=/_oauth
-      - WHITELIST=$MY_EMAIL
       - LOG_LEVEL=warn
       - LOG_FORMAT=text
       - LIFETIME=86400 # 1 day
