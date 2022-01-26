@@ -68,11 +68,47 @@ secrets:
     file: $DOCKERDIR/secrets/guac_mysql_user
   guac_mysql_password:
     file: $DOCKERDIR/secrets/guac_mysql_password
-  traefik_pilot_token:
-    file: $DOCKERDIR/secrets/traefik_pilot_token
   mysql_root_password:
     file: $DOCKERDIR/secrets/mysql_root_password
-  
+
+########################### EXTENSION FIELDS
+# Helps eliminate repetition of sections
+# More Info on how to use this: https://github.com/htpcBeginner/docker-traefik/pull/228
+
+# Common environment values
+x-environment: &default-tz-puid-pgid
+  TZ: $TZ
+  PUID: $PUID
+  PGID: $PGID
+
+# Proxy Network and Security
+x-network-and-security: &network-and-security
+  networks:
+    - t2_proxy
+  security_opt:
+    - no-new-privileges:true
+
+# Keys common to some of the services in basic-services.txt
+x-common-keys-basic: &common-keys-basic
+  <<: *network-and-security
+  restart: always
+  # profiles:
+  # - basic
+
+# Keys common to some of the dependent services/apps
+x-common-keys-apps: &common-keys-apps
+  <<: *network-and-security
+  restart: unless-stopped
+  # profiles:
+  # - apps
+
+# Keys common to some of the services in media-services.txt
+x-common-keys-media: &common-keys-media
+  <<: *network-and-security
+  restart: "no"
+  # profiles:
+  # - media
+
 ########################### SERVICES
 services:
   ############################# FRONTENDS
