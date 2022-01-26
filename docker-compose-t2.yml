@@ -64,10 +64,12 @@ secrets:
     file: $DOCKERDIR/secrets/guac_db_name
   guac_mysql_user:
     file: $DOCKERDIR/secrets/guac_mysql_user
-  traefik_pilot_token:
-    file: $DOCKERDIR/secrets/traefik_pilot_token
   guac_mysql_password:
     file: $DOCKERDIR/secrets/guac_mysql_password
+  traefik_pilot_token:
+    file: $DOCKERDIR/secrets/traefik_pilot_token
+  mysql_root_password:
+    file: $DOCKERDIR/secrets/mysql_root_password
 
 ########################### SERVICES
 services:
