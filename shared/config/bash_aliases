@@ -1,0 +1,247 @@
+# This is my current / up-to-date list of bash aliases.
+# This is the exact same file that is on all of my hosts.
+# Aliases will automatically adapt slightly based on the host. 
+
+# SOURCE ENVIRONMENTAL VARIABLES FOR BASH_ALIASES
+# Sensitive information goes into the .env file - this allows me to share my bash aliases with the community
+# Rename shared/config/bash_aliases.env.example and use it as a starter
+source .bash_aliases.env
+
+# DOCKER COMMON - All docker commands start with "d"
+alias dstop='sudo docker stop $(docker ps -a -q)'
+alias dstopall='sudo docker stop $(sudo docker ps -aq)'
+alias drm='sudo docker rm $(docker ps -a -q)'
+alias dprunevol='sudo docker volume prune'
+alias dprunesys='sudo docker system prune -a'
+alias ddelimages='sudo docker rmi $(docker images -q)'
+alias derase='dstopcont ; drmcont ; ddelimages ; dvolprune ; dsysprune'
+alias dprune='ddelimages ; dvolprune ; dsysprune'
+alias dexec='sudo docker exec -ti'
+alias dps='sudo docker ps -a'
+alias ddf='sudo docker system df'
+alias dlogs='sudo docker logs -tf --tail="50" '
+# depends on having jq installed, but makes it so much easier. https://github.com/htpcBeginner/docker-traefik/commit/d827c85565767c761e100a133088135cba5c3ffa
+alias dips="sudo docker ps -q | xargs -n 1 docker inspect --format '{{json .}}' | jq -rs 'map(.Name,.NetworkSettings.Networks[].IPAddress) | .[]'"
+dip() {
+  sudo docker inspect --format '{{json .}}' "$1" | jq -rs 'map(.NetworkSettings.Networks[].IPAddress) | .[]'
+}
+
+# DOCKER COMPOSE FILE BY HOSTNAME
+# I am sure there is a better way than using $HOSTNAME - if you do, feel free to share/contribute
+case $HOSTNAME in
+    cDoc|zDoc) 
+      alias dcrun2='sudo docker-compose -f /home/$BA_USERNAME/docker/docker-compose-t2.yml'
+      ;;
+    cSHB|zSHB) 
+      alias dcrun2='sudo docker-compose -f /home/$BA_USERNAME/docker/docker-compose-t2-web.yml'
+      ;;
+    zSyn) 
+      alias dcrun2='sudo docker-compose -f /volume1/docker/docker-compose-t2-synology.yml'
+      ;;
+    *)
+esac
+
+# DOCKER COMPOSE TRAEFIK 2 - All docker-compose commands start with "dc" 
+alias dclogs2='dcrun2 logs -tf --tail="50" '
+alias dcup2='dcrun2 up -d --build --remove-orphans'
+alias dcdown2='dcrun2 down --remove-orphans'
+alias dcrec2='dcrun2 up -d --force-recreate'
+alias dcstop2='dcrun2 stop'
+alias dcrestart2='dcrun2 restart '
+alias dcpull2='dcrun2 pull'
+
+# DOCKER TRAEFIK 1 SWARM
+alias dslogs='sudo docker service logs -tf --tail="50"'
+alias dsps='sudo docker stack ps zstack'
+alias dsse='sudo docker stack services zstack'
+alias dsls='sudo docker stack ls'
+alias dsrm='sudo docker stack rm'
+alias dsup='sudo docker stack deploy --compose-file /home/$BA_USERNAME/docker/docker-compose-swarm.yml zstack'
+alias dshelp='echo "dslogs dsps dsse dsls dsrm dsup"'
+
+# MOSQUITTO
+alias mossub="mosquitto_sub -v -u $BA_MOSQUITTO_USERNAME -P $BA_MOSQUITTO_PASSWORD -h $BA_MOSQUITTO_HOST -p 1883 -t '#'"
+
+# PiHole
+alias pidis='bash /home/$BA_USERNAME/server/scripts/pihole-disable.sh'
+alias pien='bash /home/$BA_USERNAME/server/scripts/pihole-enable.sh'
+alias pi10='bash /home/$BA_USERNAME/server/scripts/pihole-10.sh'
+alias piup='bash /home/$BA_USERNAME/server/scripts/pihole-update.sh'
+alias rpi3up='bash /home/$BA_USERNAME/server/scripts/rpi3-update.sh'
+alias rpi0up='bash /home/$BA_USERNAME/server/scripts/rpi0-update.sh'
+
+# VNC
+alias vnc1='vncserver -geometry 1270x720 -depth 24'
+alias vnckill1='vncserver -kill :1'
+
+# COMPRESSION
+alias untargz='tar -zxvf'
+alias untarbz='tar -jzvf'
+alias lstar='tar -ztvf'
+alias untar='tar -zxvf'
+
+# NAVIGATION
+alias cd..='cd ..'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias .3='cd ../../..'
+alias .4='cd ../../../..'
+alias .5='cd ../../../../..'
+
+# SYNC AND COPY
+alias scp='scp -r'
+alias rsyncr='sudo rsync -avz --human-readable --no-links --progress --force --delete --exclude-from /home/$BA_USERNAME/docker/shared/config/rsync-exclude'
+alias rsyncs='sudo rsync -avz --human-readable --no-links --progress --force --delete --exclude-from /home/$BA_USERNAME/docker/shared/config/rsync-exclude -e ssh'
+alias cp='cp --verbose'
+alias cpv='rsync -ah --info=progress2'
+alias mv='mv --verbose'
+
+# SEARCH AND FIND
+alias gh='history|grep' # search bash history
+alias findr='sudo find / -name'
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+
+# TRASH - trash-cli
+alias rm='trash-put'
+alias tput='trash-put'
+alias tempty='trash-empty ; sudo trash-empty ; sudo -H trash-empty'
+alias tlist='trash-list'
+alias rd='sudo rm -R'
+
+# FILE SIZE AND STORAGE
+alias fdisk='sudo fdisk -l'
+alias uuid='sudo vol_id -u'
+alias ls='ls -F --color=auto'
+alias ll='ls -alh --color=auto'
+alias lt='ls --human-readable --color=auto --size -1 -S --classify' # file size sorted
+alias lsr='ls --color=auto -t -1' # recently modified
+alias mnt='mount | grep -E ^/dev | column -t' # show mounted drives
+alias dirsize='sudo du -hx --max-depth=1'
+alias dirusage='du -ch | grep total' # Grabs the disk usage in the current directory
+alias diskusage='df -hl --total | grep total' # Gets the total disk usage on your machine
+alias partusage='df -hlT --exclude-type=tmpfs --exclude-type=devtmpfs' # Shows the individual partition usages without the temporary memory values
+alias usage10='du -hsx * | sort -rh | head -10' # Gives you what is using the most space. Both directories and files. Varies on current directory
+
+# BASH
+alias baupdate='. ~/.bashrc'
+alias baedit='nano /home/$BA_USERNAME/.bash_aliases'
+alias bacopy='sudo cp /home/$BA_USERNAME/.bash_aliases* /root/'
+alias badomain='echo $BA_DOMAINNAME' # for troubleshooting
+
+# GIT AND SITE MANAGEMENT
+alias gcommit='cd /home/$BA_USERNAME/docker ; bash doccheck.sh'
+alias gpush='cd /home/$BA_USERNAME/docker ; git push'
+alias ggraph='git log --all --decorate --oneline --graph'
+
+# MAIL SERVER
+alias nullsend='sudo echo 1 > /var/spool/nullmailer/trigger'
+alias tmail1='echo "Tmail1 This mail test needs an email id after tmail1 command" ; echo "Test mail from zNUC using tmail1." | mail -s "tmail1 from zNUC"'
+alias tmail2='echo "Tmail2 This is the message body" | mail -s "tmail2 this is the subject" info@$BA_DOMAINNAME -aFrom:server@$BA_DOMAINNAME'
+alias tmail3='echo "Test mail from zNUC using tmail3." | mail -s "tmail3 from zNUC" $BA_MYEMAIL1'
+alias pftest='mail -s "Postfix Mailgun Test mail" $BA_MYEMAIL1 <<< "A test message using Mailgun and Postfix"'
+
+# UFW FIREWALL
+alias ufwenable='sudo ufw enable'
+alias ufwdisable='sudo ufw disable'
+alias ufwallow='sudo ufw allow'
+alias ufwlimit='sudo ufw limit'
+alias ufwlist='sudo ufw status numbered'
+alias ufwdelete='sudo ufw delete'
+alias ufwreload='sudo ufw reload'
+
+# SYSTEMD START, STOP AND RESTART
+alias ctlreload='sudo systemctl daemon-reload'
+alias ctlstart='sudo systemctl start'
+alias ctlstop='sudo systemctl stop'
+alias ctlrestart='sudo systemctl restart'
+alias ctlstatus='sudo systemctl status'
+alias ctlenable='sudo systemctl enable'
+alias ctldisable='sudo systemctl disable'
+
+alias shellstart='ctlstart shellinabox'
+alias shellstop='ctlstop shellinabox'
+alias shellrestart='ctlrestart shellinabox'
+alias shellstatus='ctlstatus shellinabox'
+
+alias sshstart='ctlstart ssh'
+alias sshstop='ctlstop ssh'
+alias sshrestart='ctlrestart ssh'
+alias sshstatus='ctlstatus ssh'
+
+alias ufwstart='ctlstart ufw'
+alias ufwstop='ctlstop ufw'
+alias ufwrestart='ctlrestart ufw'
+alias ufwstatus='ctlstatus ufw'
+
+alias webminstart='ctlstart webmin'
+alias webminstop='ctlstop webmin'
+alias webminrestart='ctlrestart webmin'
+alias webminstatus='ctlstatus webmin'
+
+alias sambastart='ctlstart smbd'
+alias sambastop='ctlstop smbd'
+alias sambarestart='ctlrestart smbd'
+alias sambastatus='ctlstatus smbd'
+
+alias nfsstart='ctlstart nfs-kernel-server'
+alias nfsstop='ctlstop nfs-kernel-server'
+alias nfsrestart='ctlrestart nfs-kernel-server'
+alias nfsstatus='ctlstatus nfs-kernel-server'
+alias nfsreload='sudo exportfs -a'
+
+# INSTALLATION AND UPGRADE
+alias update='sudo apt-get update'
+alias upgrade='sudo apt-get update && sudo apt-get upgrade'
+alias install='sudo apt-get install'
+alias finstall='sudo apt-get -f install'
+alias rinstall='sudo apt-get -f install --reinstall'
+alias uninstall='sudo apt-get remove'
+alias search='sudo apt-cache search'
+alias addkey='sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com'
+
+# CLEANING
+alias clean='sudo apt-get clean && sudo apt-get autoclean'
+alias remove='sudo apt-get remove && sudo apt-get autoremove'
+alias purge='sudo apt-get purge'
+alias deborphan='sudo deborphan | xargs sudo apt-get -y remove --purge'
+alias cleanall='clean && remove && deborphan && purge'
+
+# SHUTDOWN AND RESTART
+alias shutdown='sudo shutdown -h now'
+alias reboot='sudo reboot'
+
+# NETWORKING
+alias portsused='sudo netstat -tulpn | grep LISTEN'
+alias showports='netstat -lnptu'
+alias showlistening='lsof -i -n | egrep "COMMAND|LISTEN"'
+alias ping='ping -c 5'
+alias ipe='curl ipinfo.io/ip' # external ip
+alias ipi='ipconfig getifaddr en0' # internal ip
+alias header='curl -I' # get web server headers 
+
+# SYNOLOGY DSM COMMANDS
+alias servicelist='sudo synoservicecfg --list'
+alias servicestatus='sudo synoservice --status'
+alias servicestop='sudo synoservicecfg --stop'
+alias servicehstop='sudo synoservicecfg --hard-stop'
+alias servicestart='sudo synoservicecfg --start'
+alias servicehstart='sudo synoservicecfg --hard-start'
+alias servicerestart='sudo synoservice --restart'
+alias servicerestart2='sudo synoservicectl --restart'
+alias restartdocker='sudo synoservice --restart pkgctl-Docker'
+
+# MISCELLANEOUS
+alias wget='wget -c'
+alias nano='sudo nano -iSw$'
+
+# SYSTEM MONITORING
+alias meminfo='free -m -l -t' # memory usage
+alias psmem='ps auxf | sort -nr -k 4' # get top process eating memory
+alias psmem10='ps auxf | sort -nr -k 4 | head -10' # get top process eating memory
+alias pscpu='ps auxf | sort -nr -k 3' # get top process eating cpu
+alias pscpu10='ps auxf | sort -nr -k 3 | head -10' # get top process eating cpu
+alias cpuinfo='lscpu' # Get server cpu info
+alias gpumeminfo='grep -i --color memory /var/log/Xorg.0.log' # get GPU ram on desktop / laptop
+alias free='free -h'

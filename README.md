@@ -6,6 +6,31 @@ This is the updated docker-compose repo of all the media, home, and web server a
 - [WordPress on Docker with Nginx, Traefik, LE SSL, Security, and Speed](https://www.smarthomebeginner.com/wordpress-on-docker-traefik/)
 - [Synology Docker Media Server with Traefik, Docker Compose, and Cloudflare](https://www.smarthomebeginner.com/synology-docker-media-server/)
 
+<div style="padding:20px;border: 3px solid red;">
+<h3>IMPORTANT</h3>
+If you are going to start from scratch using this repo, be prepared to be patient and start slow. There are so many details to pay attention to. I strongly suggest getting Traefik and Traefik dashboard up and running before adding any other app. Here is the order I would recommend:
+
+<ol>
+<li>Traefik with HTTP Authentication. This requires:</li>
+<ul>
+<li>.env file</li>
+<li>secrets</li>
+<li>network definition</li>
+<li>middlewares and chains</li>
+</ul>
+<li>Socket Proxy</li>
+<li>Check to ensure Traefik still works</li>
+<li>OAuth or Authelia (optional)</li>
+<li>Check to ensure OAuth works</li>
+<li>Put Traefik dashboard behind OAuth or Authelia and disable HTTP Authentication</li>
+<li>Ensure Traefik dashboard works behind OAuth/Authelia</li>
+<li>Proceed to add portainer and other apps/services</li>
+</ol>
+
+Go step-by-step. If you bite too big of a piece, I guarantee you will choke.
+
+</div>
+
 <strong>Supporting Articles:</strong>
 
 - [Cloudflare Settings for Traefik Docker: DDNS, CNAMEs, & Tweaks](https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/)

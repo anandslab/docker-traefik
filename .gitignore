@@ -21,6 +21,10 @@ custom/*
 !shared
 shared/*
 !shared/*.example
+!shared/config
+shared/config/*
+!shared/config/*.example
+!shared/config/bash_aliases
 
 !secrets_example
 !secrets_example/*
@@ -70,6 +74,12 @@ appdata/traefik2/rules/web/*
 !appdata/traefik2/rules/toml
 appdata/traefik2/rules/toml/*
 !appdata/traefik2/rules/toml/*.example
+!appdata/traefik2/rules/synology
+appdata/traefik2/rules/synology/*
+!appdata/traefik2/rules/synology/*.example
+!appdata/traefik2/rules/homeserver
+appdata/traefik2/rules/homeserver/*
+!appdata/traefik2/rules/homeserver/*.example
 
 !appdata/authelia
 appdata/authelia/*

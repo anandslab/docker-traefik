@@ -54,14 +54,8 @@ secrets:
     file: $DOCKERDIR/secrets/authelia_duo_api_secret_key
   authelia_storage_encryption_key:
     file: $DOCKERDIR/secrets/authelia_storage_encryption_key
-  oauth_secret:
-    file: $DOCKERDIR/secrets/oauth_secret
-  google_client_secret:
-    file: $DOCKERDIR/secrets/google_client_secret
-  google_client_id:
-    file: $DOCKERDIR/secrets/google_client_id
-  my_email:
-    file: $DOCKERDIR/secrets/my_email
+  traefik-forward-auth:
+    file: $DOCKERDIR/secrets/traefik-forward-auth
   guac_db_name:
     file: $DOCKERDIR/secrets/guac_db_name
   guac_mysql_user:
@@ -190,7 +184,7 @@ services:
       #   protocol: tcp
       #   mode: host
     volumes:
-      - $DOCKERDIR/appdata/traefik2/rules:/rules # file provider directory
+      - $DOCKERDIR/appdata/traefik2/rules/homeserver:/rules # file provider directory
       # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/appdata/traefik2/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
       - $DOCKERDIR/appdata/traefik2/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
@@ -282,14 +276,19 @@ services:
     # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
     # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
+      #- CONFIG=/config
+      #- PROVIDERS_GOOGLE_CLIENT_ID=/config/providers.google.client-id
+      #- PROVIDERS_GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+      #- SECRET=$OAUTH_SECRET
+      #- WHITELIST=$MY_EMAIL
       - PROVIDERS_GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
       - PROVIDERS_GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
       - SECRET=$OAUTH_SECRET
+      - WHITELIST=$MY_EMAIL
       - COOKIE_DOMAIN=$DOMAINNAME0
       - INSECURE_COOKIE=false
       - AUTH_HOST=oauth.$DOMAINNAME0
       - URL_PATH=/_oauth
-      - WHITELIST=$MY_EMAIL
       - LOG_LEVEL=warn
       - LOG_FORMAT=text
       - LIFETIME=86400 # 1 day
@@ -332,14 +331,14 @@ services:
       - AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE=/run/secrets/authelia_storage_mysql_password
       - AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE=/run/secrets/authelia_notifier_smtp_password
       - AUTHELIA_DUO_API_SECRET_KEY_FILE=/run/secrets/authelia_duo_api_secret_key
-      - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
+      #- AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
     secrets:
       - authelia_jwt_secret
       - authelia_session_secret
       - authelia_storage_mysql_password
       - authelia_notifier_smtp_password
       - authelia_duo_api_secret_key
-      - authelia_storage_encryption_key
+      #- authelia_storage_encryption_key
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
