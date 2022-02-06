@@ -54,8 +54,8 @@ seconds=$((rounds * 5))
 
 if [[ "$mounted" -eq "$num_drives" ]]; then
 	echo -e "All drives mounted: \n\n - $drive1 in $drive1_seconds \n - $drive2 in $drive2_seconds \n - $drive3 in $drive3_seconds\n\nStarting media containers." | mail -s "[cDoc MSG] Starting media containers" info@example.com -aFrom:cDoc@example.com
-	sudo docker start $(cat /home/USER/docker/scripts/media-services.txt)
+	sudo docker start $(cat /home/USER/docker/scripts/homeserver/media-services.txt)
 else
 	echo -e "Not all drives mounted after reboot: \n\n - $drive1 is $drive1_status \n - $drive2 is $drive2_status \n - $drive3 is $drive3_status\n\nTimed out after $seconds seconds." | mail -s "[cDoc ERROR] Mounted not equal to $num_drives." info@example.com -aFrom:cDoc@example.com
-	sudo docker stop $(cat /home/USER/docker/scripts/media-services.txt)
+	sudo docker stop $(cat /home/USER/docker/scripts/homeserver/media-services.txt)
 fi

@@ -42,6 +42,8 @@ secrets:
     file: $DOCKERDIR/secrets/cloudflare_api_key
   cloudflare_api_token:
     file: $DOCKERDIR/secrets/cloudflare_api_token
+  traefik_forward_auth:
+    file: $DOCKERDIR/secrets/traefik_forward_auth
   authelia_jwt_secret:
     file: $DOCKERDIR/secrets/authelia_jwt_secret
   authelia_session_secret:
@@ -54,8 +56,6 @@ secrets:
     file: $DOCKERDIR/secrets/authelia_duo_api_secret_key
   authelia_storage_encryption_key:
     file: $DOCKERDIR/secrets/authelia_storage_encryption_key
-  traefik-forward-auth:
-    file: $DOCKERDIR/secrets/traefik-forward-auth
   guac_db_name:
     file: $DOCKERDIR/secrets/guac_db_name
   guac_mysql_user:
@@ -83,7 +83,7 @@ x-network-and-security: &network-and-security
     - no-new-privileges:true
 
 # Keys common to some of the services in basic-services.txt
-x-common-keys-basic: &common-keys-basic
+x-common-keys-core: &common-keys-core
   <<: *network-and-security
   restart: always
   # profiles:
@@ -113,7 +113,7 @@ services:
   # chmod 600 $DOCKERDIR/traefik2/acme/acme.json
   # touch $DOCKERDIR/traefik2/traefik.log
   traefik:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
     image: traefik:2.5
     command: # CLI arguments
@@ -218,7 +218,7 @@ services:
 
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: socket-proxy
     image: tecnativa/docker-socket-proxy
     networks:
@@ -267,7 +267,7 @@ services:
   # Google OAuth - Single Sign On using OAuth 2.0
   # https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/
   oauth:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: oauth
     image: thomseddon/traefik-forward-auth:latest
     # image: thomseddon/traefik-forward-auth:2.1-arm # Use this image with Raspberry Pi
@@ -276,15 +276,7 @@ services:
     # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
     # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
-      #- CONFIG=/config
-      #- PROVIDERS_GOOGLE_CLIENT_ID=/config/providers.google.client-id
-      #- PROVIDERS_GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
-      #- SECRET=$OAUTH_SECRET
-      #- WHITELIST=$MY_EMAIL
-      - PROVIDERS_GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
-      - PROVIDERS_GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
-      - SECRET=$OAUTH_SECRET
-      - WHITELIST=$MY_EMAIL
+      - CONFIG=/config
       - COOKIE_DOMAIN=$DOMAINNAME0
       - INSECURE_COOKIE=false
       - AUTH_HOST=oauth.$DOMAINNAME0
@@ -295,7 +287,7 @@ services:
       - DEFAULT_ACTION=auth
       - DEFAULT_PROVIDER=google
     secrets:
-      - source: traefik-forward-auth
+      - source: traefik_forward_auth
         target: /config
     labels:
       - "traefik.enable=true"
@@ -315,8 +307,6 @@ services:
     # Check this before upgrading: https://github.com/authelia/authelia/blob/master/BREAKING.md
     image: authelia/authelia:latest
     restart: always
-    # profiles:
-    # - core
     networks:
       - t2_proxy
       - default
@@ -353,7 +343,7 @@ services:
 
   # Portainer - WebUI for Containers
   portainer:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: portainer
     image: portainer/portainer-ce:latest
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
@@ -1250,7 +1240,7 @@ services:
 
   # VSCode - VSCode Editing
   vscode:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     image: codercom/code-server:latest
     container_name: vscode
     ports:
@@ -1279,7 +1269,7 @@ services:
 
   # SyncThing - Keep folders in Sync
   syncthing:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/syncthing
     container_name: syncthing
     ports:

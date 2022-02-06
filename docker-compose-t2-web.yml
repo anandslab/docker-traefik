@@ -40,6 +40,8 @@ secrets:
     file: $SECRETSDIR/cloudflare_email
   cloudflare_api_key:
     file: $SECRETSDIR/cloudflare_api_key
+  traefik_forward_auth:
+    file: $DOCKERDIR/secrets/traefik_forward_auth
   mysql_root_password:
     file: $SECRETSDIR/mysql_root_password
   authelia_jwt_secret:
@@ -52,14 +54,6 @@ secrets:
     file: $SECRETSDIR/authelia_notifier_smtp_password
   authelia_duo_api_secret_key:
     file: $SECRETSDIR/authelia_duo_api_secret_key
-  oauth_secret:
-    file: $SECRETSDIR/oauth_secret
-  google_client_secret:
-    file: $SECRETSDIR/google_client_secret
-  google_client_id:
-    file: $SECRETSDIR/google_client_id
-  my_email:
-    file: $SECRETSDIR/my_email
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
@@ -79,11 +73,11 @@ x-network-and-security: &network-and-security
     - no-new-privileges:true
 
 # Keys common to some of the services in basic-services.txt
-x-common-keys-basic: &common-keys-basic
+x-common-keys-core: &common-keys-core
   <<: *network-and-security
   restart: always
   # profiles:
-  # - basic
+  # - core
 
 # Keys common to some of the dependent services/apps
 x-common-keys-apps: &common-keys-apps
@@ -109,7 +103,7 @@ services:
   # chmod 600 $DOCKERDIR/traefik2/acme/acme.json
   # touch $DOCKERDIR/traefik2/traefik.log
   traefik:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
     image: traefik:2.5
     command: # CLI arguments
@@ -214,7 +208,7 @@ services:
 
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: socket-proxy
     image: tecnativa/docker-socket-proxy
     networks:
@@ -263,7 +257,7 @@ services:
   # Google OAuth - Single Sign On using OAuth 2.0
   # https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/
   oauth:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: oauth
     image: thomseddon/traefik-forward-auth:latest
     # image: thomseddon/traefik-forward-auth:2.1-arm # Use this image with Raspberry Pi
@@ -272,24 +266,19 @@ services:
     # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
     # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
-      - PROVIDERS_GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
-      - PROVIDERS_GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
-      - SECRET=$OAUTH_SECRET
+      - CONFIG=/config
       - COOKIE_DOMAIN=$DOMAINNAME1
       - INSECURE_COOKIE=false
       - AUTH_HOST=oauth.$DOMAINNAME1
       - URL_PATH=/_oauth
-      - WHITELIST=$MY_EMAIL
       - LOG_LEVEL=warn
       - LOG_FORMAT=text
       - LIFETIME=86400 # 1 day
       - DEFAULT_ACTION=auth
       - DEFAULT_PROVIDER=google
-    secrets: # had trouble getting secrets to work: https://github.com/thomseddon/traefik-forward-auth/issues/155#issuecomment-664630985
-      - google_client_id
-      - google_client_secret
-      - oauth_secret
-      - my_email
+    secrets:
+      - source: traefik_forward_auth
+        target: /config
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -304,7 +293,7 @@ services:
 
   # Portainer - WebUI for Containers
   portainer:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: portainer
     image: portainer/portainer-ce:latest
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
@@ -354,7 +343,7 @@ services:
   # MariaDB - MySQL Database
   # After starting container for first time dexec and mysqladmin -u root password <password>
   mariadb:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: mariadb
     image: lscr.io/linuxserver/mariadb
     ports:
@@ -372,7 +361,7 @@ services:
   # InfluxDB - Database for sensor data
   # Create influxdb.conf
   influxdb:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     image: influxdb:latest
     container_name: influxdb
     ports:
@@ -385,7 +374,7 @@ services:
 
   # Redis - Key-value Store
   redis:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: redis
     image: redis:latest
     entrypoint: redis-server --appendonly yes --requirepass $REDIS_PASSWORD --maxmemory 512mb --maxmemory-policy allkeys-lru
@@ -449,7 +438,7 @@ services:
 
   # Nginx - Web Server
   nginx:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: nginx
     image: nginx:1.20 # 1.18 # Updated 8/9/2021
     depends_on:
@@ -509,7 +498,7 @@ services:
 
   # PHP - Hypertext Preprocessor
   php7:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: php7
     image: php:7.4-fpm-custom
     build:
@@ -527,7 +516,7 @@ services:
 
   # VSCode - VSCode Editing
   vscode:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     image: codercom/code-server:latest
     container_name: vscode
     volumes:

@@ -1,5 +1,6 @@
 ### EXAMPLE OF REQUIRED FILE TO ALLOW DOCKER SECRETS TO FUNCTION WITH GOOGLE OAUTH
 ### FOR FURTHER DETAILS SEE https://github.com/thomseddon/traefik-forward-auth
+# Guide: https://www.smarthomebeginner.com/google-oauth-with-traefik-2-docker/
 
 providers.google.client-id=yourGOOGLEclientID
 providers.google.client-secret=yourCLIENTsecret

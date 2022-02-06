@@ -31,14 +31,19 @@ shared/config/*
 
 !scripts
 scripts/*
-!scripts/*.example
-!scripts/media-services.txt
+!scripts/homeserver
+scripts/homeserver/*
+!scripts/homeserver/*.example
+!scripts/homeserver/media-services.txt
 !scripts/systemd
 scripts/systemd/*
 !scripts/systemd/*.example
 !scripts/synology
 scripts/synology/*
 !scripts/synology/*.example
+!scripts/web
+scripts/web/*
+!scripts/web/*.example
 
 !archives
 archives/*

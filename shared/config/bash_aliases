@@ -131,7 +131,7 @@ alias bacopy='sudo cp /home/$BA_USERNAME/.bash_aliases* /root/'
 alias badomain='echo $BA_DOMAINNAME' # for troubleshooting
 
 # GIT AND SITE MANAGEMENT
-alias gcommit='cd /home/$BA_USERNAME/docker ; bash doccheck.sh'
+alias gcommit='cd /home/$BA_USERNAME/docker ; bash scripts/homeserver/doccheck.sh'
 alias gpush='cd /home/$BA_USERNAME/docker ; git push'
 alias ggraph='git log --all --decorate --oneline --graph'
 

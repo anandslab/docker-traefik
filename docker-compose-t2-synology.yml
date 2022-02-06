@@ -74,11 +74,11 @@ x-network-and-security: &network-and-security
     - no-new-privileges:true
 
 # Keys common to some of the services in basic-services.txt
-x-common-keys-basic: &common-keys-basic
+x-common-keys-core: &common-keys-core
   <<: *network-and-security
   restart: always
   # profiles:
-  # - basic
+  # - core
 
 # Keys common to some of the dependent services/apps
 x-common-keys-apps: &common-keys-apps
@@ -104,7 +104,7 @@ services:
   # chmod 600 $DOCKERDIR/traefik2/acme/acme.json
   # touch $DOCKERDIR/traefik2/traefik.log
   traefik:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
     image: traefik:2.5
     command: # CLI arguments
@@ -208,7 +208,7 @@ services:
 
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: socket-proxy
     image: fluencelabs/docker-socket-proxy
     networks:
@@ -262,7 +262,7 @@ services:
 
   # Portainer - WebUI for Containers
   portainer:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: portainer
     image: portainer/portainer-ce:latest
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
@@ -335,7 +335,7 @@ services:
   # MariaDB - MySQL Database
   # After starting container for first time dexec and mysqladmin -u root password <password>
   mariadb:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: mariadb
     image: linuxserver/mariadb:latest
     ports:
@@ -354,7 +354,7 @@ services:
   # InfluxDB - Database for sensor data
   # Create influxdb.conf
   influxdb:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     image: influxdb:latest
     container_name: influxdb
     ports:
@@ -538,7 +538,7 @@ services:
   # https://github.com/romancin/rclonebrowser-docker
   # https://hub.docker.com/r/d2dyno/rclone-gui
   rclone-drive:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: rclone-drive
     image: rclone/rclone:latest
     cap_add:
@@ -600,7 +600,7 @@ services:
 
   # Rclone - Google Drive Mount
   rclone-crypt:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: rclone-crypt
     image: rclone/rclone:latest
     cap_add:
@@ -748,7 +748,7 @@ services:
 
   # SyncThing - Keep folders in Sync
   syncthing:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/syncthing
     container_name: syncthing
     ports:
@@ -821,7 +821,7 @@ services:
 
   # Cloudflare DDNS - Dynamic DNS Updater
   cf-ddns:
-    <<: *common-keys-basic # See EXTENSION FIELDS at the top
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: cf-ddns
     image: oznu/cloudflare-ddns:latest
     environment:
