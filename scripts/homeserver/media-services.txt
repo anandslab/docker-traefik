@@ -3,8 +3,5 @@ radarr
 sonarr
 readarr
 navidrome
-funkwhale
 jellyfin
-photoshow
 bazarr
-picard

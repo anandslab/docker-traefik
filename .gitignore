@@ -31,6 +31,7 @@ shared/config/*
 
 !scripts
 scripts/*
+!scripts/*.example
 !scripts/homeserver
 scripts/homeserver/*
 !scripts/homeserver/*.example

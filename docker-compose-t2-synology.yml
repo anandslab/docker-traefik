@@ -847,7 +847,7 @@ services:
       - TRAEFIK_VERSION=2
       #- CF_EMAIL=$CLOUDFLARE_EMAIL
       - CF_TOKEN=$CLOUDFLARE_API_TOKEN
-      - TARGET_DOMAIN=home.$DOMAINNAME0
+      - TARGET_DOMAIN=home.$DOMAINNAME0 # Edit this. Either a subdomain or just $DOMAINNAME0 pointing to the IP will work. See: https://github.com/htpcBeginner/docker-traefik/issues/244.
       - DOMAIN1=$DOMAINNAME0
       - DOMAIN1_ZONE_ID=$CLOUDFLARE_ZONEID # Copy from Cloudflare Overview page
       - DOMAIN1_PROXIED=TRUE

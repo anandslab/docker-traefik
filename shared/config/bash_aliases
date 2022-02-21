@@ -5,7 +5,7 @@
 # SOURCE ENVIRONMENTAL VARIABLES FOR BASH_ALIASES
 # Sensitive information goes into the .env file - this allows me to share my bash aliases with the community
 # Rename shared/config/bash_aliases.env.example and use it as a starter
-source .bash_aliases.env
+source ~/.bash_aliases.env
 
 # DOCKER COMMON - All docker commands start with "d"
 alias dstop='sudo docker stop $(docker ps -a -q)'
@@ -20,6 +20,8 @@ alias dexec='sudo docker exec -ti'
 alias dps='sudo docker ps -a'
 alias ddf='sudo docker system df'
 alias dlogs='sudo docker logs -tf --tail="50" '
+alias dp600='sudo chown -R root:root /home/$BA_USERNAME/docker/secrets ; sudo chmod -R 600 /home/$BA_USERNAME/docker/secrets ; sudo chown -R root:root /home/$BA_USERNAME/docker/.env ; sudo chmod -R 600 /home/$BA_USERNAME/docker/.env'
+alias dp777='sudo chown -R $BA_USERNAME:$BA_USERNAME /home/$BA_USERNAME/docker/secrets ; sudo chmod -R 777 /home/$BA_USERNAME/docker/secrets ; sudo chown -R $BA_USERNAME:$BA_USERNAME /home/$BA_USERNAME/docker/.env ; sudo chmod -R 777 /home/$BA_USERNAME/docker/.env'
 # depends on having jq installed, but makes it so much easier. https://github.com/htpcBeginner/docker-traefik/commit/d827c85565767c761e100a133088135cba5c3ffa
 alias dips="sudo docker ps -q | xargs -n 1 docker inspect --format '{{json .}}' | jq -rs 'map(.Name,.NetworkSettings.Networks[].IPAddress) | .[]'"
 dip() {
@@ -49,6 +51,10 @@ alias dcrec2='dcrun2 up -d --force-recreate'
 alias dcstop2='dcrun2 stop'
 alias dcrestart2='dcrun2 restart '
 alias dcpull2='dcrun2 pull'
+alias startbasic='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/basic-services.txt)'
+alias stopbasic='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/basic-services.txt)'
+alias stopmedia='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/media-services.txt)'
+alias startmedia='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/media-services.txt)'
 
 # DOCKER TRAEFIK 1 SWARM
 alias dslogs='sudo docker service logs -tf --tail="50"'
@@ -76,9 +82,11 @@ alias vnckill1='vncserver -kill :1'
 
 # COMPRESSION
 alias untargz='tar -zxvf'
-alias untarbz='tar -jzvf'
-alias lstar='tar -ztvf'
-alias untar='tar -zxvf'
+alias untarbz='tar -xjvf'
+alias lstargz='tar -ztvf'
+alias lstarbz='tar -jtvf'
+alias targz='tar -zcvf'
+alias tarbz='tar -cjvf'
 
 # NAVIGATION
 alias cd..='cd ..'
@@ -90,8 +98,8 @@ alias .5='cd ../../../../..'
 
 # SYNC AND COPY
 alias scp='scp -r'
-alias rsyncr='sudo rsync -avz --human-readable --no-links --progress --force --delete --exclude-from /home/$BA_USERNAME/docker/shared/config/rsync-exclude'
-alias rsyncs='sudo rsync -avz --human-readable --no-links --progress --force --delete --exclude-from /home/$BA_USERNAME/docker/shared/config/rsync-exclude -e ssh'
+alias rsynce='sudo rsync -avz --human-readable --no-links --progress --force --delete --exclude-from /home/$BA_USERNAME/docker/shared/config/rsync-exclude'
+alias rsyncne='sudo rsync -avz --human-readable --no-links --progress --force --delete'
 alias cp='cp --verbose'
 alias cpv='rsync -ah --info=progress2'
 alias mv='mv --verbose'
@@ -108,7 +116,7 @@ alias rm='trash-put'
 alias tput='trash-put'
 alias tempty='trash-empty ; sudo trash-empty ; sudo -H trash-empty'
 alias tlist='trash-list'
-alias rd='sudo rm -R'
+alias srm='sudo trash-put'
 
 # FILE SIZE AND STORAGE
 alias fdisk='sudo fdisk -l'
@@ -131,7 +139,7 @@ alias bacopy='sudo cp /home/$BA_USERNAME/.bash_aliases* /root/'
 alias badomain='echo $BA_DOMAINNAME' # for troubleshooting
 
 # GIT AND SITE MANAGEMENT
-alias gcommit='cd /home/$BA_USERNAME/docker ; bash scripts/homeserver/doccheck.sh'
+alias gcommit='cd /home/$BA_USERNAME/docker ; bash scripts/doccheck.sh'
 alias gpush='cd /home/$BA_USERNAME/docker ; git push'
 alias ggraph='git log --all --decorate --oneline --graph'
 
@@ -159,6 +167,7 @@ alias ctlrestart='sudo systemctl restart'
 alias ctlstatus='sudo systemctl status'
 alias ctlenable='sudo systemctl enable'
 alias ctldisable='sudo systemctl disable'
+alias ctlactive='sudo systemctl is-active'
 
 alias shellstart='ctlstart shellinabox'
 alias shellstop='ctlstop shellinabox'
@@ -235,6 +244,7 @@ alias restartdocker='sudo synoservice --restart pkgctl-Docker'
 # MISCELLANEOUS
 alias wget='wget -c'
 alias nano='sudo nano -iSw$'
+alias scxterm='bash /home/$BA_USERNAME/docker/scripts/xterm.sh'
 
 # SYSTEM MONITORING
 alias meminfo='free -m -l -t' # memory usage
@@ -245,3 +255,15 @@ alias pscpu10='ps auxf | sort -nr -k 3 | head -10' # get top process eating cpu
 alias cpuinfo='lscpu' # Get server cpu info
 alias gpumeminfo='grep -i --color memory /var/log/Xorg.0.log' # get GPU ram on desktop / laptop
 alias free='free -h'
+
+# RCLONE
+alias rcdlogs='tail -f /home/$BA_USERNAME/docker/logs/homeserver/rclone-drive.log'
+alias rcclogs='tail -f /home/$BA_USERNAME/docker/logs/homeserver/rclone-crypt.log'
+alias rcupmedia='bash /home/$BA_USERNAME/docker/scripts/homeserver/upload-media-now.sh'
+alias rcupmedialogs='tail -f /home/$BA_USERNAME/docker/logs/homeserver/upload-media-now.log'
+alias rcupdump='bash /home/$BA_USERNAME/docker/scripts/homeserver/upload-dump.sh'
+alias rcupdumplogs='tail -f /home/$BA_USERNAME/docker/logs/homeserver/upload-dump.log'
+alias rcrestart='sudo bash /home/$BA_USERNAME/docker/scripts/rclone-restart.sh'
+alias rcstop='sudo bash /home/$BA_USERNAME/docker/scripts/rclone-stop.sh'
+alias rcstart='sudo bash /home/$BA_USERNAME/docker/scripts/rclone-start.sh'
+alias rcstatus='sudo bash /home/$BA_USERNAME/docker/scripts/rclone-status.sh'

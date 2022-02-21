@@ -1,0 +1,29 @@
+#!/bin/bash
+
+echo "Stopping Media Services..."
+sudo docker stop $(cat /home/$USER/docker/scripts/homeserver/media-services.txt)
+
+echo
+echo "Stopping MergerFS..."
+sudo systemctl stop merge-media.service
+
+echo 
+echo "Restarting Rclone-Drive..."
+sudo systemctl restart rclone-drive.service
+
+echo
+echo "Restarting Rclone-Crypt..."
+sudo systemctl restart rclone-crypt.service
+
+echo
+echo "Starting MergerFS..."
+sudo systemctl start merge-media.service
+
+drive_status=$(systemctl is-active rclone-drive.service)
+crypt_status=$(systemctl is-active rclone-crypt.service)
+mergerfs_status=$(systemctl is-active merge-media.service)
+
+echo
+echo "Rclone Drive is: $drive_status"
+echo "Rclone Crypt is: $crypt_status"
+echo "Rclone MergerFS is: $mergerfs_status"

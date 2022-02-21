@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script is to convert my unexcrypted media on GDrive to Encrypted. It would run every day (cron job), encrypting the files in 300 to 500 GB batches.
+# This script is to convert my unencrypted media on GDrive to Encrypted. It would run every day (cron job), encrypting the files in 300 to 500 GB batches.
 
 #status=`ps -efww | grep -w "[d]rive-to-crypt.sh" | awk -vpid=$$ '$2 != pid { print $2 }'`
 #if [ ! -z "$status" ]; then
@@ -22,7 +22,7 @@ export RCLONE_USER_AGENT
 # Local Mount - Ensure this is set to your local disk only.
 #LOCAL=/media/shb-drive/media
 EXCLUDES=$DOCKERFOLDER/scripts/homeserver/upload-excludes.log
-LOGFILE=$DOCKERFOLDER/appdata/rclone/logs/drive-to-crypt.log
+LOGFILE=$DOCKERFOLDER/logs/homeserver/drive-to-crypt.log
 
 # Name of your Rclone Remote, likely cloud or cloudcrypt
 REMOTE_CRYPT=shb-crypt

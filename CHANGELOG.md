@@ -4,7 +4,7 @@
 
 ## Planned (notes for future):
 
-- Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, fail2ban, ofelia, scrutiny to NUC, Wireguard, traktarr, listrr, uptimerobot, subliminal, netdata
+- Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, fail2ban, ofelia, scrutiny to NUC, Wireguard, traktarr, listrr, uptimerobot, subliminal, netdata, FlareSolverr
 - Check Cloudbox/cloudbox - plex autoscan, cloudplow, plexdupefinder, plextraktsync
 - implement secrets and remove variables from .env
 - add prometheus, glances to influxdb, speedtest to influxdb

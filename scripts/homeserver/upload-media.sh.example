@@ -14,7 +14,7 @@ export RCLONE_USER_AGENT
 # Local Mount - Ensure this is set to your local disk only.
 LOCAL=/media/data/local/media
 EXCLUDES=$DOCKERFOLDER/scripts/homeserver/upload-excludes.log
-LOGFILE=$DOCKERFOLDER/appdata/rclone/logs/upload-media.log
+LOGFILE=$DOCKERFOLDER/logs/homeserver/upload-media.log
 
 # Name of your Rclone Remote, likely cloud or cloudcrypt
 REMOTE=shb-crypt
