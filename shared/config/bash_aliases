@@ -1,5 +1,5 @@
 # This is my current / up-to-date list of bash aliases.
-# This is the exact same file that is on all of my hosts.
+# This is the exact same file that is on all of my hosts - synced using Synthing.
 # Aliases will automatically adapt slightly based on the host. 
 
 # SOURCE ENVIRONMENTAL VARIABLES FOR BASH_ALIASES
@@ -139,7 +139,7 @@ alias bacopy='sudo cp /home/$BA_USERNAME/.bash_aliases* /root/'
 alias badomain='echo $BA_DOMAINNAME' # for troubleshooting
 
 # GIT AND SITE MANAGEMENT
-alias gcommit='cd /home/$BA_USERNAME/docker ; bash scripts/doccheck.sh'
+alias gcpush='echo "Usage: gcommit ../commits/date.txt" ; cd /home/$BA_USERNAME/docker ; bash scripts/doccheck.sh'
 alias gpush='cd /home/$BA_USERNAME/docker ; git push'
 alias ggraph='git log --all --decorate --oneline --graph'
 

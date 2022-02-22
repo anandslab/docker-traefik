@@ -452,10 +452,6 @@ services:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: phpmyadmin/phpmyadmin:latest
     container_name: phpmyadmin
-    # ports:
-    #   - "$PHPMYADMIN_PORT:80"
-    # volumes:
-    #   - $DOCKERDIR/appdata/phpmyadmin:/etc/phpmyadmin
     environment:
       - PMA_HOST=$MARIADB_HOST
       - PMA_PORT=$MARIADB_PORT

@@ -49,8 +49,10 @@ The following posts have been combined and updated for Traefik v2 (linked above)
 ## Docker, Docker Compose, and Traefik Versions (updated January 23, 2022)
 
 - Docker: 20.10.12
-- Docker Compose: 1.29.2
-- Traefik: 2.5
+- Docker Compose: 2.1.1
+- Traefik: 2.6
+
+<strong>Known Issue:</strong> Cloudflare Companion does not seem to work with Docker Compose v2.2 and above. I could not figure out why. If someone figures it out please share. So at this point v2.1.1 is the highest version I can go for Docker Compose.
 
 <strong>Update (September 13, 2021):</strong> I moved from TOML to YAML for Traefik 2 dynamic configurations. I have included example configuration files for both. However, since I do not use TOML anymore, there may be minor syntax errors or typos.
 
