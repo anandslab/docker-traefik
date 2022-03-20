@@ -5,3 +5,4 @@ readarr
 navidrome
 jellyfin
 bazarr
+airsonic-advanced

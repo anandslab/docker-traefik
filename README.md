@@ -88,7 +88,7 @@ The apps I use are scattered around in several different docker-compose files. S
 
 - Traefik - Reverse Proxy
 - Docker Socket Proxy - Secure Proxy for Docker API
-- Traefik Custom Error Pages (OBSOLETE)
+- Traefik Custom Error Pages
 - OAuth - Google OAuth 2 Forward Authentication
 - Authelia - Private Forward Authentication
 - Portainer - Container Management
@@ -99,20 +99,20 @@ The apps I use are scattered around in several different docker-compose files. S
 ### SMART HOME
 
 - Home Assistant Core - Home Automation
-- HA-Dockermon - Manage Docker containers in Home Assistant (OBSOLETE)
+- HA-Dockermon - Manage Docker containers in Home Assistant
 - Mosquitto - MQTT Broker
 - MotionEye - Video Surveillance
-- ZoneMinder - Video Surveillance (OBSOLETE)
-- MiFlora - MiFlora MQTT Daemon (MiFlora Plant Sensors) (OBSOLETE)
+- ZoneMinder - Video Surveillance
+- MiFlora - MiFlora MQTT Daemon (MiFlora Plant Sensors)
 
 ### DATABASE
 
 - MariaDB - MySQL Database
 - phpMyAdmin - Database management
 - InfluxDB - Database for sensor data
-- Postgres - Database (OBSOLETE)
+- Postgres - Database
 - Grafana - Graphical data visualization for InfluxDB data
-- Varken - Monitor Plex, Sonarr, Radarr, and Other Data (OBSOLETE)
+- Varken - Monitor Plex, Sonarr, Radarr, and Other Data
 - Redis - Key value store
 - Redis Commander - Redis management
 
@@ -120,9 +120,9 @@ The apps I use are scattered around in several different docker-compose files. S
 
 - jDownloader - Download management
 - TransmissionBT with VPN - Torrent Downloader with [IPVanish](https://www.smarthomebeginner.com/go/ipvanish) VPN.
-- SABnzbd - Binary newsgrabber, NZB downloader (OBSOLETE)
+- SABnzbd - Binary newsgrabber, NZB downloader
 - Nzbget - Binary newsgrabber, NZB downloader
-- qBittorrent with VPN - Torrent downloader (OBSOLETE)
+- qBittorrent with VPN - Torrent downloader
 
 ### INDEXERS
 
@@ -140,20 +140,20 @@ The apps I use are scattered around in several different docker-compose files. S
 
 ### MEDIA SERVER
 
-- AirSonic - Music Server (OBSOLETE)
+- AirSonic - Music Server
 - NaviDrome - Music Server
 - FunkWhale - Music Server
-- Calibre - Ebook/Audiobook Server (OBSOLETE)
-- Calibre-Web - Ebook/Audiobook Reader (OBSOLETE)
+- Calibre - Ebook/Audiobook Server
+- Calibre-Web - Ebook/Audiobook Reader
 - Plex - Media Server
-- Emby - Media Server (OBSOLETE)
+- Emby - Media Server
 - Jellyfin - Media Server
-- Ombi - Media Requests (OBSOLETE)
+- Ombi - Media Requests
 - Tautulli - Previously PlexPy. Plex statistics and monitoring
 - Plex-Sync - For Syncing watched status between plex servers
-- PhotoShow - Personal Photo Gallery and viewer (OBSOLETE)
-- TellyTv- IPTV proxy for Plex (OBSOLETE)
-- xTeve- IPTV proxy for Plex (OBSOLETE)
+- PhotoShow - Personal Photo Gallery and viewer
+- TellyTv- IPTV proxy for Plex
+- xTeve- IPTV proxy for Plex
 
 ### MEDIA FILE MANAGEMENT
 
@@ -175,16 +175,16 @@ The apps I use are scattered around in several different docker-compose files. S
 - Dozzle - Docker logs viewer
 - qDirStat - Directory Statistics
 - StatPing - Status Page & Monitoring Server
-- SmokePing - Network Latency Monitoring (OBSOLETE)
+- SmokePing - Network Latency Monitoring
 - VS Code Server - Code Editor
-- Logarr - Log Management (OBSOLETE)
-- Monitorr - Webfront to display the status of any webapp or service (OBSOLETE)
-- Cloud Commander - Web File Manager (OBSOLETE)
-- Cloud9 - Cloud IDE (OBSOLETE)
-- SMTP To Telegram - Sends all incoming Email messages to Telegram (OBSOLETE)
+- Logarr - Log Management
+- Monitorr - Webfront to display the status of any webapp or service
+- Cloud Commander - Web File Manager
+- Cloud9 - Cloud IDE
+- SMTP To Telegram - Sends all incoming Email messages to Telegram
 - UniFi Controller - Controller for Ubiquiti UniFi Network Gear
 - Rclone - Mount Cloud/Google Drive
-- MergerFS - Merge local and remote file systems (OBSOLETE)
+- MergerFS - Merge local and remote file systems
 
 ### WEB
 

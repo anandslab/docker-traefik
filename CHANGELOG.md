@@ -1,16 +1,17 @@
+###################### THIS CHANGELOG IS NO LONGER MAINTAINED. SEE DETAILED COMMIT LOGS. ##########################
+
 # Changelog
 
 - Only showing high-level changes. Smaller changes are too many to list. See commits.
 
 ## Planned (notes for future):
 
-- Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, fail2ban, ofelia, scrutiny to NUC, Wireguard, traktarr, listrr, uptimerobot, subliminal, netdata, FlareSolverr
+- Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, fail2ban, ofelia, scrutiny to NUC, Wireguard, traktarr, listrr, Subliminal, netdata
 - Check Cloudbox/cloudbox - plex autoscan, cloudplow, plexdupefinder, plextraktsync
 - implement secrets and remove variables from .env
 - add prometheus, glances to influxdb, speedtest to influxdb
 - Web GUI for rclone
 - Switch to Hotio.dev's cloudflareddns,
-- Remove lazylibrarian (added Readarr)
 - Check traefik buffering - to avoid http error 431 - header request size too large
 - Implement thelounge, privatebin
 

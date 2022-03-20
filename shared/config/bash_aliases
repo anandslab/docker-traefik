@@ -15,7 +15,7 @@ alias dprunevol='sudo docker volume prune'
 alias dprunesys='sudo docker system prune -a'
 alias ddelimages='sudo docker rmi $(docker images -q)'
 alias derase='dstopcont ; drmcont ; ddelimages ; dvolprune ; dsysprune'
-alias dprune='ddelimages ; dvolprune ; dsysprune'
+alias dprune='ddelimages ; dprunevol ; dprunesys'
 alias dexec='sudo docker exec -ti'
 alias dps='sudo docker ps -a'
 alias ddf='sudo docker system df'
@@ -98,11 +98,11 @@ alias .5='cd ../../../../..'
 
 # SYNC AND COPY
 alias scp='scp -r'
-alias rsynce='sudo rsync -avz --human-readable --no-links --progress --force --delete --exclude-from /home/$BA_USERNAME/docker/shared/config/rsync-exclude'
-alias rsyncne='sudo rsync -avz --human-readable --no-links --progress --force --delete'
-alias cp='cp --verbose'
-alias cpv='rsync -ah --info=progress2'
-alias mv='mv --verbose'
+alias rsynce='sudo rsync -avzh --progress --force --delete --exclude-from /home/$BA_USERNAME/docker/shared/config/rsync-exclude'
+alias rsyncne='sudo rsync -avzh --progress --force --delete'
+alias cpn='cp --verbose' # native copy
+alias cp='sudo rsync -azh --info=progress2' # copy files with rsync
+alias mv='mv --verbose' # native move
 
 # SEARCH AND FIND
 alias gh='history|grep' # search bash history
@@ -267,3 +267,13 @@ alias rcrestart='sudo bash /home/$BA_USERNAME/docker/scripts/rclone-restart.sh'
 alias rcstop='sudo bash /home/$BA_USERNAME/docker/scripts/rclone-stop.sh'
 alias rcstart='sudo bash /home/$BA_USERNAME/docker/scripts/rclone-start.sh'
 alias rcstatus='sudo bash /home/$BA_USERNAME/docker/scripts/rclone-status.sh'
+alias rcps="ps -ef | grep '/usr/bin/rclone sync\|/usr/bin/rclone copy\|/usr/bin/rclone move'" # see running rclone copy sync or move
+
+# YT-DLP
+alias ytupdate='yt-dlp -U'
+alias ytlist='yt-dlp --list-formats'
+alias ytdump='yt-dlp --dump-json'
+alias ytdv='yt-dlp --config-locations /home/$BA_USERNAME/docker/appdata/yt-dlp/yt-dlp-video.conf'
+alias ytdvc='yt-dlp --cookies "/home/$BA_USERNAME/docker/appdata/yt-dlp/cookies.txt" --config-locations /home/$BA_USERNAME/docker/appdata/yt-dlp/yt-dlp-video.conf'
+alias ytda='yt-dlp --config-locations /home/$BA_USERNAME/docker/appdata/yt-dlp/yt-dlp-audio.conf'
+alias ytdac='yt-dlp --cookies "/home/$BA_USERNAME/docker/appdata/yt-dlp/cookies.txt" --config-locations /home/$BA_USERNAME/docker/appdata/yt-dlp/yt-dlp-audio.conf'

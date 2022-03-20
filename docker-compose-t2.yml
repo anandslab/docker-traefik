@@ -530,35 +530,6 @@ services:
 
   ############################# INDEXERS
 
-  # Jackett - Torrent proxy
-  # Set url_base in Jackett settings if using PathPrefix
-  jackett:
-    <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: lscr.io/linuxserver/jackett:latest
-    container_name: jackett
-    # network_mode: container:transmission-vpn
-    networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.161
-    # ports:
-    #  - "$JACKETT_PORT:9117"
-    volumes:
-      - $DOCKERDIR/appdata/jackett:/config
-      - $DATADIR/downloads:/data/downloads
-      - "/etc/localtime:/etc/localtime:ro"
-    environment:
-      <<: *default-tz-puid-pgid
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.jackett-rtr.entrypoints=https"
-      - "traefik.http.routers.jackett-rtr.rule=Host(`jackett.$DOMAINNAME0`)"
-      ## Middlewares
-      - "traefik.http.routers.jackett-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
-      - "traefik.http.routers.jackett-rtr.service=jackett-svc"
-      - "traefik.http.services.jackett-svc.loadbalancer.server.port=9117"
-
   # Prowlarr - Torrent proxy
   prowlarr:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
@@ -585,28 +556,23 @@ services:
       - "traefik.http.routers.prowlarr-rtr.service=prowlarr-svc"
       - "traefik.http.services.prowlarr-svc.loadbalancer.server.port=9696"
 
-  # NZBHydra2 - NZB meta search
-  hydra:
+  # FlareSolverr - Proxy server to bypass Cloudflare protection
+  # Not sure if I need this or not. Just testing.
+  flaresolverr:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: linuxserver/nzbhydra2:latest
-    container_name: hydra
-    ports:
-      - "$NZBHYDRA_PORT:5076"
-    volumes:
-      - $DOCKERDIR/appdata/hydra2:/config
-      - $DATADIR/downloads:/data/downloads
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.160
     environment:
-      <<: *default-tz-puid-pgid
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.hydra-rtr.entrypoints=https"
-      - "traefik.http.routers.hydra-rtr.rule=Host(`hydra.$DOMAINNAME0`)"
-      ## Middlewares
-      - "traefik.http.routers.hydra-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
-      - "traefik.http.routers.hydra-rtr.service=hydra-svc"
-      - "traefik.http.services.hydra-svc.loadbalancer.server.port=5076"
+      LOG_LEVEL: info
+      LOG_HTML: false
+      CAPTCHA_SOLVER: none
+      TZ: $TZ
+    #ports:
+    #  - "8191:8191"
+    restart: unless-stopped
 
   ############################# PVRS
 
@@ -754,7 +720,7 @@ services:
 
   ############################# MEDIA
 
-  # Navidrome - Music Server
+  # Airsonic Advanced - Music Server
   airsonic:
     <<: *common-keys-media # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/airsonic-advanced
@@ -763,7 +729,7 @@ services:
       - $DOCKERDIR/appdata/airsonic/podcasts:/data/podcasts
       - $DOCKERDIR/appdata/airsonic/playlists:/data/playlists
       - $DOCKERDIR/appdata/airsonic/config:/config
-      - $DATADIR/media/music:/data/music
+      - $DATADIR/local/music:/data/music
     environment:
       - PUID=$PUID
       - PGID=$PGID
@@ -775,7 +741,7 @@ services:
       - "traefik.http.routers.airsonic-rtr.entrypoints=https"
       - "traefik.http.routers.airsonic-rtr.rule=Host(`proxair.$DOMAINNAME0`)"
       ## Middlewares
-      - "traefik.http.routers.airsonic-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.airsonic-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.airsonic-rtr.service=airsonic-svc"
       - "traefik.http.services.airsonic-svc.loadbalancer.server.port=4040"
@@ -850,7 +816,7 @@ services:
     # ports:
     #   - "$PICARD_PORT:5800"
     volumes:
-      - $DATADIR/downloads:/data/downloads:rw
+      - $DATADIR:/data:rw
       - $DOCKERDIR/appdata/picard:/config:rw
       - /dev/shm:/dev/shm
     environment:
@@ -1139,6 +1105,38 @@ services:
       - "traefik.http.routers.qdirstat-rtr.service=qdirstat-svc"
       - "traefik.http.services.qdirstat-svc.loadbalancer.server.port=5800"
 
+  # DupeGuru - Duplicate File/Folder Remover
+  dupeguru:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    image: jlesage/dupeguru:latest
+    container_name: dupeguru
+    # ports:
+    #   - "$dupeguru_PORT:5800"
+    volumes:
+      - $USERDIR:/data/home:ro
+      - $DOCKERDIR/appdata/dupeguru/config:/config:rw
+      - /media/data:/data/data:rw
+    environment:
+      USER_ID: $PUID
+      GROUP_ID: $PGID
+      UMASK: 002
+      TZ: $TZ
+      KEEP_APP_RUNNING: 1
+      CLEAN_TMP_DIR: 1
+      DISPLAY_WIDTH: 1600
+      DISPLAY_HEIGHT: 960
+      VNC_PASSWORD: $DUPEGURU_VNC_PASSWD
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.dupeguru-rtr.entrypoints=https"
+      - "traefik.http.routers.dupeguru-rtr.rule=Host(`dupe.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.dupeguru-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.dupeguru-rtr.service=dupeguru-svc"
+      - "traefik.http.services.dupeguru-svc.loadbalancer.server.port=5800"
+
   # Dozzle - Real-time Docker Log Viewer
   dozzle:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
@@ -1222,41 +1220,26 @@ services:
       - "traefik.http.routers.filebrowser-rtr.service=filebrowser-svc"
       - "traefik.http.services.filebrowser-svc.loadbalancer.server.port=80"
 
-  # StatPing - Status Page & Monitoring Server
-  # Not adding $TZ to linuxserver/mariadb resulted in a blank page
-  # Had to change default username admin in MariaDB
-  # dexec into mariadb and run mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql -p
-  statping:
+  # Uptime Kuma - Status Page & Monitoring Server
+  uptime-kuma:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
-    image: statping/statping:latest
-    container_name: statping
+    image: louislam/uptime-kuma
+    container_name: uptime-kuma
     networks:
       - t2_proxy
       - default
     volumes:
-      - $DOCKERDIR/appdata/statping:/app
-    environment:
-      <<: *default-tz-puid-pgid
-      DB_CONN: mysql
-      DB_HOST: $MARIADB_HOST
-      DB_PORT: $MARIADB_PORT
-      DB_USER: $STATPING_DB_USER
-      DB_PASS: $STATPING_DB_PASS
-      DB_DATABASE: $STATPING_DB
-      IS_DOCKER: "true"
-      DISABLE_LOGS: "false"
-      NAME: StatPing
-      DESCRIPTION: Monitor web services
+      - $DOCKERDIR/appdata/uptime-kuma:/app/data
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
-      - "traefik.http.routers.statping-rtr.entrypoints=https"
-      - "traefik.http.routers.statping-rtr.rule=Host(`sp.$DOMAINNAME0`)"
+      - "traefik.http.routers.uptime-kuma-rtr.entrypoints=https"
+      - "traefik.http.routers.uptime-kuma-rtr.rule=Host(`kuma.$DOMAINNAME0`)"
       ## Middlewares
-      - "traefik.http.routers.statping-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.uptime-kuma-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
-      - "traefik.http.routers.statping-rtr.service=statping-svc"
-      - "traefik.http.services.statping-svc.loadbalancer.server.port=8080"
+      - "traefik.http.routers.uptime-kuma-rtr.service=uptime-kuma-svc"
+      - "traefik.http.services.uptime-kuma-svc.loadbalancer.server.port=3001"
 
   ############################# MAINTENANCE
 
