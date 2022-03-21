@@ -14,6 +14,10 @@
 !docker-compose-t2-web.yml
 !docker-compose-t2-nuc.yml
 
+!.github
+.github/*
+!.github/FUNDING.yml
+
 !custom
 custom/*
 !custom/*.example
@@ -36,6 +40,7 @@ scripts/*
 scripts/homeserver/*
 !scripts/homeserver/*.example
 !scripts/homeserver/media-services.txt
+!scripts/homeserver/basic-services.txt
 !scripts/systemd
 scripts/systemd/*
 !scripts/systemd/*.example

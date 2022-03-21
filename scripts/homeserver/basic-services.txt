@@ -1,0 +1,7 @@
+socket-proxy
+traefik
+oauth
+vscode
+portainer
+autoindex
+cf-companion
