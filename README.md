@@ -225,11 +225,14 @@ I use bash_aliases to simplify starting and stopping containers/stack. Included 
 ## Join our Community
 - Do you need support or just want to chat with like-minded people. Join our discord. 
 - The authors will try our best to help but support is not guaranteed. But you will find others who might have went through what you are going through and may be willing to pay it forward and help. 
-<a href="https://www.smarthomebeginner.com/discord-github" target="_blank" rel="nofollow noopener noreferrer"><img src="https://www.smarthomebeginner.com/images/2022/05/join-discord-300x75.png" alt="" width="300" height="75" /></a>
+
+<div style="text-align:center;margin:20px"><a href="https://www.smarthomebeginner.com/discord-github" target="_blank" rel="nofollow noopener noreferrer"><img src="https://www.smarthomebeginner.com/images/2022/05/join-discord-300x75.png" alt="" width="300" height="75" /></a></div>
 
 # Did this Repo help you?
 - Become a patron and show us your strongest support. 
-<a href="https://www.patreon.com/smarthomebeginner" target="_blank" rel="nofollow noopener noreferrer"><img src="https://www.smarthomebeginner.com/images/2022/05/become-a-patreon.jpg" alt="" width="434" height="102" /></a>
+
+<div style="text-align:center;margin:20px"><a href="https://www.patreon.com/smarthomebeginner" target="_blank" rel="nofollow noopener noreferrer"><img src="https://www.smarthomebeginner.com/images/2022/05/become-a-patreon.jpg" alt="" width="434" height="102" /></a></div>
 
 - Please consider buying us a coffee (or two) as a token of appreciation.
-<a href="https://www.buymeacoffee.com/smarthomebeginr" target="_blank" rel="nofollow noopener noreferrer"><img src="https://www.smarthomebeginner.com/images/2020/04/coffee.png" alt="" width="340" height="77" /></a>
+
+<div style="text-align:center;margin:20px"><a href="https://www.buymeacoffee.com/smarthomebeginr" target="_blank" rel="nofollow noopener noreferrer"><img src="https://www.smarthomebeginner.com/images/2020/04/coffee.png" alt="" width="340" height="77" /></a></div>
