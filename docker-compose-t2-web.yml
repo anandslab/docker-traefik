@@ -7,9 +7,12 @@ version: "3.9"
 
 ########################### SYSTEM DESCRIPTION
 # DOCKER-COMPOSE FOR WORDPRESS / WEB SERVER
-# PROXMOX HOST: Dual Intel Xeon 5420, 16 GB RAM, 240 GB SSD, and 2 TB HDD
-# LXC CONTAINER: 4 CORES, 4 GB RAM, Ubuntu 20.04, and Docker
-# 32 GB SSD for /
+# PROXMOX HOST: Dual Intel Xeon E3-1240 V2, 16 GB RAM, 480 GB SSD, and 4 TB HDD
+# Virtual Machine: 4 CORES, 4 GB RAM, Ubuntu 22.04, and Docker
+# 64 GB SSD for /
+
+# Docker: 20.10.14
+# Docker Compose: 2.5.0
 
 ########################### NETWORKS
 # There is no need to create any networks outside this docker-compose file.
@@ -36,10 +39,12 @@ networks:
 secrets:
   htpasswd:
     file: $DOCKERDIR/secrets/htpasswd
-  cloudflare_email:
-    file: $SECRETSDIR/cloudflare_email
-  cloudflare_api_key:
-    file: $SECRETSDIR/cloudflare_api_key
+  cf_email:
+    file: $DOCKERDIR/secrets/cf_email
+  cf_api_key:
+    file: $DOCKERDIR/secrets/cf_api_key
+  cf_token:
+    file: $DOCKERDIR/secrets/cf_token
   traefik_forward_auth:
     file: $DOCKERDIR/secrets/traefik_forward_auth
   mysql_root_password:
@@ -79,6 +84,13 @@ x-common-keys-core: &common-keys-core
   # profiles:
   # - core
 
+# Keys common to some of the services in basic-services.txt
+x-common-keys-core: &common-keys-monitoring
+  <<: *network-and-security
+  restart: always
+  # profiles:
+  # - monitoring
+
 # Keys common to some of the dependent services/apps
 x-common-keys-apps: &common-keys-apps
   <<: *network-and-security
@@ -101,11 +113,11 @@ services:
   # Touch (create empty files) traefik.log and acme/acme.json. Set acme.json permissions to 600.
   # touch $DOCKERDIR/traefik2/acme/acme.json
   # chmod 600 $DOCKERDIR/traefik2/acme/acme.json
-  # touch $DOCKERDIR/traefik2/traefik.log
+  # touch $DOCKERDIR/logs/web/traefik.log # customize this
   traefik:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
-    image: traefik:2.5
+    image: traefik:2.6
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=true
@@ -119,11 +131,10 @@ services:
       # - --api.insecure=true
       - --api.dashboard=true
       #- --ping=true
-      #- --pilot.token=$TRAEFIK_PILOT_TOKEN
       # - --serversTransport.insecureSkipVerify=true
       - --log=true
       - --log.level=WARN # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
-      - --accessLog=false
+      - --accessLog=true
       - --accessLog.filePath=/traefik.log
       - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
       - --accessLog.filters.statusCodes=400-499
@@ -152,6 +163,8 @@ services:
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.delayBeforeCheck=90 # To delay DNS check and reduce LE hitrate
+      # - --metrics.prometheus=true
+      # - --metrics.prometheus.buckets=0.1,0.3,1.2,5.0
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
@@ -169,7 +182,7 @@ services:
         published: 443
         protocol: tcp
         mode: host
-      # - target: 8080
+      # - target: 8080 # insecure api wont work
       #   published: 8080
       #   protocol: tcp
       #   mode: host
@@ -177,14 +190,14 @@ services:
       - $DOCKERDIR/appdata/traefik2/rules/web:/rules # file provider directory
       # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/appdata/traefik2/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
-      - $DOCKERDIR/appdata/traefik2/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
+      - $DOCKERDIR/logs/web/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
     environment:
-      - CF_API_EMAIL_FILE=/run/secrets/cloudflare_email
-      - CF_API_KEY_FILE=/run/secrets/cloudflare_api_key
+      - CF_API_EMAIL_FILE=/run/secrets/cf_email
+      - CF_API_KEY_FILE=/run/secrets/cf_api_key
       - HTPASSWD_FILE=/run/secrets/htpasswd # HTPASSWD_FILE can be whatever as it is not used/called anywhere.
     secrets:
-      - cloudflare_email
-      - cloudflare_api_key
+      - cf_email
+      - cf_api_key
       - htpasswd
     labels:
       #- "autoheal=true"
@@ -214,7 +227,7 @@ services:
     networks:
       socket_proxy:
         ipv4_address: 192.168.91.254 # You can specify a static IP
-    #privileged: true
+    # privileged: true # true for VM. False for unprivileged LXC container.
     #ports:
     # - "127.0.0.1:2375:2375" # Port 2375 should only ever get exposed to the internal network. When possible use this line.
     # I use the next line instead, as I want portainer to manage multiple docker endpoints within my home network.
@@ -251,7 +264,7 @@ services:
       - SESSION=0
       - SWARM=0
       - SYSTEM=0
-      - TASKS=1 # Portaienr
+      - TASKS=1 # Portainer
       - VOLUMES=1 # Portainer
 
   # Google OAuth - Single Sign On using OAuth 2.0
@@ -290,46 +303,6 @@ services:
       ## HTTP Services
       - "traefik.http.routers.oauth-rtr.service=oauth-svc"
       - "traefik.http.services.oauth-svc.loadbalancer.server.port=4181"
-
-  # Authelia (Lite) - Self-Hosted Single Sign-On and Two-Factor Authentication
-  authelia:
-    container_name: authelia
-    # Check this before upgrading: https://github.com/authelia/authelia/blob/master/BREAKING.md
-    image: authelia/authelia:latest
-    restart: always
-    networks:
-      - t2_proxy
-      - default
-    # ports:
-    #   - "9091:9091"
-    volumes:
-      - $DOCKERDIR/appdata/authelia:/config
-    environment:
-      - TZ=$TZ
-      - AUTHELIA_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
-      - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
-      - AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE=/run/secrets/authelia_storage_mysql_password
-      - AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE=/run/secrets/authelia_notifier_smtp_password
-      - AUTHELIA_DUO_API_SECRET_KEY_FILE=/run/secrets/authelia_duo_api_secret_key
-      #- AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
-    secrets:
-      - authelia_jwt_secret
-      - authelia_session_secret
-      - authelia_storage_mysql_password
-      - authelia_notifier_smtp_password
-      - authelia_duo_api_secret_key
-      #- authelia_storage_encryption_key
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.authelia-rtr.entrypoints=https"
-      - "traefik.http.routers.authelia-rtr.rule=Host(`authelia.$DOMAINNAME0`)"
-      - "traefik.http.routers.authelia-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.authelia-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.authelia-rtr.service=authelia-svc"
-      - "traefik.http.services.authelia-svc.loadbalancer.server.port=9091"
 
   # Portainer - WebUI for Containers
   portainer:
@@ -391,26 +364,10 @@ services:
     volumes:
       - $DOCKERDIR/appdata/mariadb/data:/config
     environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-      - FILE__MYSQL_ROOT_PASSWORD=/run/secrets/mysql_root_password # Note FILE__ (double underscore) - Issue #127
+      <<: *default-tz-puid-pgid
+      FILE__MYSQL_ROOT_PASSWORD: /run/secrets/mysql_root_password # Note FILE__ (double underscore) - Issue #127
     secrets:
       - mysql_root_password
-
-  # InfluxDB - Database for sensor data
-  # Create influxdb.conf
-  influxdb:
-    <<: *common-keys-core # See EXTENSION FIELDS at the top
-    image: influxdb:latest
-    container_name: influxdb
-    ports:
-      - "$INFLUXDB_PORT:8086"
-      - "$INFLUXDB_PORT_PROXMOX:8087/udp"
-    volumes:
-      - $DOCKERDIR/appdata/influxdb/etc/influxdb.conf:/etc/influxdb/influxdb.conf:ro
-      - $DOCKERDIR/appdata/influxdb/db:/var/lib/influxdb
-    # command: -config /etc/influxdb/influxdb.conf
 
   # Redis - Key-value Store
   redis:
@@ -424,27 +381,6 @@ services:
       - $DOCKERDIR/appdata/redis/data:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-
-  # Redis Commander - Redis Management Tool
-  rediscommander:
-    <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    container_name: rediscommander
-    image: rediscommander/redis-commander:latest
-    # ports:
-    #   - "$REDISCOMMANDER_PORT:8081"
-    environment:
-      - REDIS_HOST=$REDIS_HOST
-      - REDIS_PASSWORD=$REDIS_PASSWORD
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.rediscommander-rtr.entrypoints=https"
-      - "traefik.http.routers.rediscommander-rtr.rule=Host(`rediscom.$DOMAINNAME1`)"
-      ## Middlewares
-      - "traefik.http.routers.rediscommander-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
-      - "traefik.http.routers.rediscommander-rtr.service=rediscommander-svc"
-      - "traefik.http.services.rediscommander-svc.loadbalancer.server.port=8081"
 
   # phpMyAdmin - Database management
   # Create a new user with admin privileges. Cannot login as MySQL root for some reason.
@@ -479,6 +415,7 @@ services:
     image: nginx:1.20 # 1.18 # Updated 8/9/2021
     depends_on:
       - php7
+      - redis
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
@@ -553,18 +490,22 @@ services:
   # VSCode - VSCode Editing
   vscode:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
-    image: codercom/code-server:latest
+    image: lscr.io/linuxserver/code-server:latest
     container_name: vscode
     volumes:
-      - $USERDIR/server:/home/coder/server
-      - $DOCKERDIR:/home/coder/docker
-      - $DOCKERDIR/appdata/vscode:/home/coder
+      - $DOCKERDIR:/data/docker
+      - $USERDIR/server:/data/server
+      - $DATADIR:/data/data
+      - $DOCKERDIR/appdata/vscode:/config
     environment:
-      PASSWORD: $VSCODE_PASSWORD
-      # Run as root first, create the directories, then change permissions to user:docker and 775. Disable run as root below.
-      user: $PUID:$PGID
-      #user: "0"
-      DOCKER_HOST: tcp://socket-proxy:2375
+      <<: *default-tz-puid-pgid
+      # DOCKER_HOST: tcp://socket-proxy:2375
+      # PASSWORD: $VSCODE_PASSWORD
+      # HASHED_PASSWORD: #optional
+      # SUDO_PASSWORD: password #optional
+      # SUDO_PASSWORD_HASH: #optional
+      # PROXY_DOMAIN: code-server.my.domain #optional
+      DEFAULT_WORKSPACE: /config/data/User/Workspaces/AZ.code-workspace #optional
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -574,7 +515,7 @@ services:
       - "traefik.http.routers.vscode-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.vscode-rtr.service=vscode-svc"
-      - "traefik.http.services.vscode-svc.loadbalancer.server.port=8080"
+      - "traefik.http.services.vscode-svc.loadbalancer.server.port=8443"
 
   ############################# MAINTENANCE
 

@@ -35,7 +35,7 @@ case $HOSTNAME in
     cDoc|zDoc) 
       alias dcrun2='sudo docker-compose -f /home/$BA_USERNAME/docker/docker-compose-t2.yml'
       ;;
-    cSHB|zSHB) 
+    cSHB|zSHB|cshb) 
       alias dcrun2='sudo docker-compose -f /home/$BA_USERNAME/docker/docker-compose-t2-web.yml'
       ;;
     zSyn) 
@@ -56,6 +56,11 @@ alias startbasic='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/basic
 alias stopbasic='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/basic-services.txt)'
 alias stopmedia='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/media-services.txt)'
 alias startmedia='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/media-services.txt)'
+
+# MONITORING STACK
+alias dcmlogs2='dcrun2 logs -tf --tail="50" $(cat /home/$BA_USERNAME/docker/scripts/monitoring-services.txt)'
+alias dcmrec2='dcrun2 up -d --force-recreate $(cat /home/$BA_USERNAME/docker/scripts/monitoring-services.txt)'
+alias dcmstop2='dcrun2 stop $(cat /home/$BA_USERNAME/docker/scripts/monitoring-services.txt)'
 
 # DOCKER TRAEFIK 1 SWARM
 alias dslogs='sudo docker service logs -tf --tail="50"'
@@ -136,7 +141,7 @@ alias usage10='du -hsx * | sort -rh | head -10' # Gives you what is using the mo
 # BASH
 alias baupdate='. ~/.bashrc'
 alias baedit='nano /home/$BA_USERNAME/.bash_aliases'
-alias bacopy='sudo cp /home/$BA_USERNAME/.bash_aliases* /root/'
+#alias bacopy='sudo cp /home/$BA_USERNAME/.bash_aliases* /root/'
 alias badomain='echo $BA_DOMAINNAME' # for troubleshooting
 
 # GIT AND SITE MANAGEMENT

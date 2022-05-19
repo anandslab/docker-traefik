@@ -6,4 +6,4 @@
 
 # echo "fs.inotify.max_user_watches=204800" | tee -a /etc/sysctl.conf
 
-echo 204800 | tee /proc/sys/fs/inotify/max_user_watches
+echo 524288 | tee /proc/sys/fs/inotify/max_user_watches

@@ -2,13 +2,16 @@
 
 This is the updated docker-compose repo of all the media, home, and web server apps described in the following guides on our website:
 
+- [Docker Media Server Ubuntu: Compose for 23 Awesome Apps](https://www.smarthomebeginner.com/docker-media-server-2022/)
 - [Docker Media Server with Traefik 2 Reverse Proxy](https://www.smarthomebeginner.com/traefik-2-docker-tutorial/)
 - [WordPress on Docker with Nginx, Traefik, LE SSL, Security, and Speed](https://www.smarthomebeginner.com/wordpress-on-docker-traefik/)
 - [Synology Docker Media Server with Traefik, Docker Compose, and Cloudflare](https://www.smarthomebeginner.com/synology-docker-media-server/)
 
 <div style="padding:20px;border: 3px solid red;">
 <h3>IMPORTANT</h3>
-If you are going to start from scratch using this repo, be prepared to be patient and start slow. There are so many details to pay attention to. I strongly suggest getting Traefik and Traefik dashboard up and running before adding any other app. Here is the order I would recommend:
+If you are going to start from scratch using this repo, be prepared to be patient and start slow. There are so many details to pay attention to. First start with the basic Docker Media Server guide linked above (with Nginx Proxy Manager instead of Traefik). 
+
+When you are ready to upgrade to Traefik or prefer Traefik over Nginx Proxy Manager, I strongly suggest getting Traefik and Traefik dashboard up and running before adding any other app. Here is the order I would recommend:
 
 <ol>
 <li>Traefik with HTTP Authentication. This requires:</li>
@@ -33,6 +36,8 @@ Go step-by-step. If you bite too big of a piece, I guarantee you will choke.
 
 <strong>Supporting Articles:</strong>
 
+- [How to Install Docker and Docker Compose on Ubuntu 22.04 LTS](https://www.smarthomebeginner.com/install-docker-on-ubuntu-22-04/)
+- [How to Install Docker and Docker Compose on Ubuntu 20.04 LTS](https://www.smarthomebeginner.com/install-docker-on-ubuntu-20-04/)
 - [Cloudflare Settings for Traefik Docker: DDNS, CNAMEs, & Tweaks](https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/)
 - [Google OAuth 2 MFA Protection for Docker](https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/)
 - [Authelia MFA Protection for Docker](https://www.smarthomebeginner.com/docker-authelia-tutorial/)
@@ -49,21 +54,20 @@ The following posts have been combined and updated for Traefik v2 (linked above)
 ## Docker, Docker Compose, and Traefik Versions (updated January 23, 2022)
 
 - Docker: 20.10.12
-- Docker Compose: 2.1.1
+- Docker Compose: v2.5.0
 - Traefik: 2.6
-
-<strong>Known Issue:</strong> Cloudflare Companion does not seem to work with Docker Compose v2.2 and above. I could not figure out why. If someone figures it out please share. So at this point v2.1.1 is the highest version I can go for Docker Compose.
 
 <strong>Update (September 13, 2021):</strong> I moved from TOML to YAML for Traefik 2 dynamic configurations. I have included example configuration files for both. However, since I do not use TOML anymore, there may be minor syntax errors or typos.
 
 ### Description of Compose Files in this Repo
 
-- docker-compose-t2.yml - this stack has the most apps/services
-- docker-compose-t2-web.yml - web server specific stack for WordPress and non-WordPress sites with Nginx
+- docker-compose.yml - this is the basic media server stack with Nginx Proxy Manager instead of Traefik
+- docker-compose-t2.yml - this is my main stack with most apps/services, including Traefik
+- docker-compose-t2-web.yml - web server specific stack for WordPress and non-WordPress sites with Nginx and Traefik
 - docker-compose-t2-synology.yml - apps/services that I run on Synology NAS using Docker Compose for Homelab use
 - docker-compose-t2-obsolete.yml - apps/services that I once tried/used but don't use anymore (future compatibility not guaranteed)
 
-Almost any app/service from the Traefik v2 docker-compose files listed above can be copy-pasted to any other compose file in this repo.
+Almost any app/service from the docker-compose files listed above can be copy-pasted to any other compose file in this repo.
 
 ### Compose Files Archive (NOT ACTIVELY MAINTAINED)
 
@@ -74,9 +78,9 @@ Almost any app/service from the Traefik v2 docker-compose files listed above can
 
 ## MY SETUP
 
-- MAIN - Ubuntu 20.04 Virtual Machine on Intel Xeon 5420 Proxmox Host
-- WEB - Ubuntu 20.04 LXC Container on Intel Xeon 5420 Proxmox Host
-- SYNOLOGY - Synology DS918+ NAS
+- MAIN - Ubuntu 22.04 Proxmox LXC Container on Intel Xeon E3-1240 V2.
+- WEB - Ubuntu 22.04 Proxmox VM on Intel Xeon E3-1240 V2.
+- SYNOLOGY - Synology DS918+ NAS.
 
 I use Syncthing to keep certain key files synched between various systems.
 
@@ -87,6 +91,7 @@ The apps I use are scattered around in several different docker-compose files. S
 ### FRONTENDS
 
 - Traefik - Reverse Proxy
+- Nginx Proxy Manager - Reverse Proxy 
 - Docker Socket Proxy - Secure Proxy for Docker API
 - Traefik Custom Error Pages
 - OAuth - Google OAuth 2 Forward Authentication
@@ -126,7 +131,7 @@ The apps I use are scattered around in several different docker-compose files. S
 
 ### INDEXERS
 
-- NZBHydra2 - NZB meta search
+- NZBHydra2 - NZB meta search 
 - Jackett - Torrent proxy
 - Prowlarr - Torrent proxy
 
@@ -199,32 +204,11 @@ The apps I use are scattered around in several different docker-compose files. S
 - Cloudflare DDNS - Dynamic IP Updater
 - Cloudflare Companion - Automatic CNAME creation for services
 
-# Usage
+# Installation and Usage
+
+Follow the guides linked at the beginning of this readme. 
 
 --------- ANYTHING THAT HAS "example" IN THE NAME WILL HAVE TO BE RENAMED APPROPRIATELY ---------
-
-## Installation
-
-First, install Docker and Docker Compose, as described in our <a href="https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/">Docker Media Server guide</a>.
-
-1. Clone the repo.
-2. Configure Traefik Docker-Compose snippet and CLI arguments.
-
-- Edit domain name.
-- DNS Challenge (for LetsEncrypt verification) is enabled by default for cloudflare. Use the [Traefik Reverse Proxy guide](https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/) for help with this.
-- For other providers other than cloudflare, [check here](https://docs.traefik.io/v2.0/https/acme/#providers).
-
-3. (Optional) Enable or use HTTP Basic Authentication by renaming the `secrets_example` folder to `secrets` adding username and hashed password to the `htpasswd` file.
-4. Configure environmental variables (`.env` file)
-
-- Rename the included `.env.example` to `.env`.
-- Edit variables in `.env` file.
-- All variables (ie. `${XXX}`) in docker-compose.yml come from `.env` file stored in the same place as docker-compose.yml.
-- Ensure good permissions for the `.env` file (recommended: 640).
-
-5. Edit `docker-compose-t2.yml` to include only the services you want or add additional services to it. Be sure to read the comments for each app and create any required files. You can copy snippets between any of the various docker-compose files in the repo.
-6. Start and stop your docker stack as described in our [Docker Media Server guide](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/).
-7. (Optional) Put non-docker apps behind Traefik proxy by creating traefik rules based on the examples provided.
 
 ## Starting and Stopping
 
@@ -238,8 +222,14 @@ I use bash_aliases to simplify starting and stopping containers/stack. Included 
 - <strong>dclogs2</strong> - See real-time logs for the corresponding stack or service
 - <strong>dcpull2</strong> - Pull new images for the corresponding stack or service
 
-## Did this Repo help you?
+## Join our Community
+- Do you need support or just want to chat with like-minded people. Join our discord. 
+- The authors will try our best to help but support is not guaranteed. But you will find others who might have went through what you are going through and may be willing to pay it forward and help. 
+<a href="https://www.smarthomebeginner.com/discord-github" target="_blank" rel="nofollow noopener noreferrer"><img src="https://www.smarthomebeginner.com/images/2022/05/join-discord-300x75.png" alt="" width="300" height="75" /></a>
 
-Please consider buying us a coffee (or two) as a token of appreciation.
+# Did this Repo help you?
+- Become a patron and show us your strongest support. 
+<a href="https://www.patreon.com/smarthomebeginner" target="_blank" rel="nofollow noopener noreferrer"><img src="https://www.smarthomebeginner.com/images/2022/05/become-a-patreon.jpg" alt="" width="434" height="102" /></a>
 
-<a href="https://www.buymeacoffee.com/smarthomebeginr" target="_blank" rel="nofollow noopener noreferrer"><img src="https://www.smarthomebeginner.com/images/2020/04/coffee.png" alt="" width="340" height="77" class="aligncenter size-full wp-image-41005" /></a>
+- Please consider buying us a coffee (or two) as a token of appreciation.
+<a href="https://www.buymeacoffee.com/smarthomebeginr" target="_blank" rel="nofollow noopener noreferrer"><img src="https://www.smarthomebeginner.com/images/2020/04/coffee.png" alt="" width="340" height="77" /></a>

@@ -12,7 +12,7 @@
 !docker-compose-t2-obsolete.yml
 !docker-compose-t2-synology.yml
 !docker-compose-t2-web.yml
-!docker-compose-t2-nuc.yml
+!docker-compose.yml
 
 !.github
 .github/*

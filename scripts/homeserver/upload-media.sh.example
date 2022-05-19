@@ -34,7 +34,7 @@ then
     ps -ef | grep "$pscheck"
     exit
 else
-    echo -e "\n### `date`: No currently running processes found. Starting rclone job.\n" >> $DOCKERFOLDER/logs/homeserver/upload-media.log
+    echo -e "\n\n### `date +'%Y-%m-%d %H:%M'`: No currently running processes found. Starting rclone job.\n" >> $DOCKERFOLDER/logs/homeserver/upload-media.log
 fi
 
 # Exclude File Check
