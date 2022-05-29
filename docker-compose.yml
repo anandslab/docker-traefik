@@ -100,7 +100,8 @@ services:
     image: lscr.io/linuxserver/heimdall
     container_name: heimdall
     ports:
-      - "3000:3000"
+      - "83:80" # 80 to 82 already taken by other services
+      # - "444:443" # 443 used by Nginx Proxy Manager. Disabled because we will put Heimdall behind proxy.
     volumes:
       - $DOCKERDIR/appdata/heimdall:/config
     environment:
@@ -182,7 +183,7 @@ services:
       - "8080:8080"
     volumes:
       - $DOCKERDIR/appdata/qbittorrent:/config
-      - $DATADIR/downloads:/downloads
+      - $DATADIR/downloads:/data/downloads # Ensure that downloads folder is set to /data/downloads in qBittorrent
     environment:
       <<: *default-tz-puid-pgid
       UMASK_SET: 002

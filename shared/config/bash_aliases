@@ -57,6 +57,9 @@ alias stopbasic='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/basi
 alias stopmedia='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/media-services.txt)'
 alias startmedia='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/media-services.txt)'
 
+# WEB STACK
+alias webrs='dcrec2 php7 redis nginx'
+
 # MONITORING STACK
 alias dcmlogs2='dcrun2 logs -tf --tail="50" $(cat /home/$BA_USERNAME/docker/scripts/monitoring-services.txt)'
 alias dcmrec2='dcrun2 up -d --force-recreate $(cat /home/$BA_USERNAME/docker/scripts/monitoring-services.txt)'
