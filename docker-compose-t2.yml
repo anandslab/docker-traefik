@@ -93,7 +93,7 @@ x-common-keys-core: &common-keys-core
   # - core
 
 # Keys common to some of the services in basic-services.txt
-x-common-keys-core: &common-keys-monitoring
+x-common-keys-monitoring: &common-keys-monitoring
   <<: *network-and-security
   restart: always
   # profiles:
