@@ -136,16 +136,16 @@ services:
       # - --providers.docker.endpoint=unix:///var/run/docker.sock # Use Docker Socket Proxy instead for improved security
       - --providers.docker.endpoint=tcp://socket-proxy:2375
       # Automatically set Host rule for services
-      # - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME3`)
+      # - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME_SHB`)
       - --providers.docker.exposedByDefault=false
       # - --entrypoints.https.http.middlewares=chain-oauth@file
       - --entrypoints.https.http.tls.options=tls-opts@file
       # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services
       - --entrypoints.https.http.tls.certresolver=dns-cloudflare
-      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME3
-      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME3
-      # - --entrypoints.https.http.tls.domains[1].main=$DOMAINNAME4 # Pulls main cert for second domain
-      # - --entrypoints.https.http.tls.domains[1].sans=*.$DOMAINNAME4 # Pulls wildcard cert for second domain
+      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME_SHB
+      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME_SHB
+      # - --entrypoints.https.http.tls.domains[1].main=$DOMAINNAME_KHUB # Pulls main cert for second domain
+      # - --entrypoints.https.http.tls.domains[1].sans=*.$DOMAINNAME_KHUB # Pulls wildcard cert for second domain
       - --providers.docker.network=t2_proxy
       - --providers.docker.swarmMode=false
       - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory
@@ -203,11 +203,11 @@ services:
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       # HTTP Routers
       - "traefik.http.routers.traefik-rtr.entrypoints=https"
-      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME3`)"
+      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME_SHB`)"
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## Healthcheck/ping
-      #- "traefik.http.routers.ping.rule=Host(`traefik.$DOMAINNAME3`) && Path(`/ping`)"
+      #- "traefik.http.routers.ping.rule=Host(`traefik.$DOMAINNAME_SHB`) && Path(`/ping`)"
       #- "traefik.http.routers.ping.tls=true"
       #- "traefik.http.routers.ping.service=ping@internal"
       ## Middlewares
@@ -274,9 +274,9 @@ services:
     # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
       - CONFIG=/config
-      - COOKIE_DOMAIN=$DOMAINNAME3
+      - COOKIE_DOMAIN=$DOMAINNAME_SHB
       - INSECURE_COOKIE=false
-      - AUTH_HOST=oauth.$DOMAINNAME3
+      - AUTH_HOST=oauth.$DOMAINNAME_SHB
       - URL_PATH=/_oauth
       - LOG_LEVEL=warn
       - LOG_FORMAT=text
@@ -291,7 +291,7 @@ services:
       ## HTTP Routers
       - "traefik.http.routers.oauth-rtr.tls=true"
       - "traefik.http.routers.oauth-rtr.entrypoints=https"
-      - "traefik.http.routers.oauth-rtr.rule=Host(`oauth.$DOMAINNAME3`)"
+      - "traefik.http.routers.oauth-rtr.rule=Host(`oauth.$DOMAINNAME_SHB`)"
       ## Middlewares
       - "traefik.http.routers.oauth-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -317,7 +317,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.portainer-rtr.entrypoints=https"
-      - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME3`)"
+      - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME_SHB`)"
       ## Middlewares
       - "traefik.http.routers.portainer-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -337,7 +337,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.autoindex-rtr.entrypoints=https"
-      - "traefik.http.routers.autoindex-rtr.rule=Host(`index.$DOMAINNAME3`)"
+      - "traefik.http.routers.autoindex-rtr.rule=Host(`index.$DOMAINNAME_SHB`)"
       ## Middlewares
       - "traefik.http.routers.autoindex-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -392,7 +392,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.phpmyadmin-rtr.entrypoints=https"
-      - "traefik.http.routers.phpmyadmin-rtr.rule=Host(`pma.$DOMAINNAME3`)"
+      - "traefik.http.routers.phpmyadmin-rtr.rule=Host(`pma.$DOMAINNAME_SHB`)"
       ## Middlewares
       - "traefik.http.routers.phpmyadmin-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -424,28 +424,28 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers SHB (WordPress) Auth
       - "traefik.http.routers.nginx-shb-auth-rtr.entrypoints=https"
-      - "traefik.http.routers.nginx-shb-auth-rtr.rule=Host(`www.$DOMAINNAME3`) && Path(`/wp-login.php`)"
+      - "traefik.http.routers.nginx-shb-auth-rtr.rule=Host(`www.$DOMAINNAME_SHB`) && Path(`/wp-login.php`)"
       - "traefik.http.routers.nginx-shb-auth-rtr.priority=100"
       ## HTTP Routers SHB (WordPress) Bypass
       - "traefik.http.routers.nginx-shb-rtr.entrypoints=https"
-      - "traefik.http.routers.nginx-shb-rtr.rule=Host(`$DOMAINNAME3`) || Host(`www.$DOMAINNAME3`)"
+      - "traefik.http.routers.nginx-shb-rtr.rule=Host(`$DOMAINNAME_SHB`) || Host(`www.$DOMAINNAME_SHB`)"
       - "traefik.http.routers.nginx-shb-rtr.priority=99"
       ## HTTP Routers SHB Beta (WordPress)
       #- "traefik.http.routers.nginx-shb-beta-rtr.entrypoints=https"
-      #- "traefik.http.routers.nginx-shb-beta-rtr.rule=Host(`beta.$DOMAINNAME3`)"
+      #- "traefik.http.routers.nginx-shb-beta-rtr.rule=Host(`beta.$DOMAINNAME_SHB`)"
       ## HTTP Routers DASH (non-WordPress)
       - "traefik.http.routers.nginx-dash-rtr.entrypoints=https"
-      - "traefik.http.routers.nginx-dash-rtr.rule=Host(`dash.$DOMAINNAME3`)"
+      - "traefik.http.routers.nginx-dash-rtr.rule=Host(`dash.$DOMAINNAME_SHB`)"
       ## HTTP Routers KHUB (non-WordPress)
       - "traefik.http.routers.nginx-khub-rtr.entrypoints=https"
-      - "traefik.http.routers.nginx-khub-rtr.rule=Host(`$DOMAINNAME4`) || Host(`www.$DOMAINNAME4`)"
+      - "traefik.http.routers.nginx-khub-rtr.rule=Host(`$DOMAINNAME_KHUB`) || Host(`www.$DOMAINNAME_KHUB`)"
       # Redirect shb non-www to www middleware
-      - "traefik.http.middlewares.shb-redirect.redirectregex.regex=^https?://$DOMAINNAME3/(.*)"
-      - "traefik.http.middlewares.shb-redirect.redirectregex.replacement=https://www.$DOMAINNAME3/$${1}"
+      - "traefik.http.middlewares.shb-redirect.redirectregex.regex=^https?://$DOMAINNAME_SHB/(.*)"
+      - "traefik.http.middlewares.shb-redirect.redirectregex.replacement=https://www.$DOMAINNAME_SHB/$${1}"
       - "traefik.http.middlewares.shb-redirect.redirectregex.permanent=true"
       # Redirect khub non-www to www middleware
-      - "traefik.http.middlewares.khub-redirect.redirectregex.regex=^https?://$DOMAINNAME4/(.*)"
-      - "traefik.http.middlewares.khub-redirect.redirectregex.replacement=https://www.$DOMAINNAME4/$${1}"
+      - "traefik.http.middlewares.khub-redirect.redirectregex.regex=^https?://$DOMAINNAME_KHUB/(.*)"
+      - "traefik.http.middlewares.khub-redirect.redirectregex.replacement=https://www.$DOMAINNAME_KHUB/$${1}"
       - "traefik.http.middlewares.khub-redirect.redirectregex.permanent=true"
       ## Middlewares
       - "traefik.http.routers.nginx-khub-rtr.middlewares=khub-redirect,chain-no-auth@file"
@@ -503,7 +503,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.vscode-rtr.entrypoints=https"
-      - "traefik.http.routers.vscode-rtr.rule=Host(`code.$DOMAINNAME3`)"
+      - "traefik.http.routers.vscode-rtr.rule=Host(`code.$DOMAINNAME_SHB`)"
       ## Middlewares
       - "traefik.http.routers.vscode-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
