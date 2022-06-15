@@ -13,7 +13,7 @@ version: "3.9"
 # Google Drive mounted using Rclone Docker Container for media
 
 # Docker: 20.10.3
-# Docker Compose: 1.29.2
+# Docker Compose: 2.6.0
 
 ########################### NETWORKS
 # There is no need to create any networks outside this docker-compose file.
@@ -63,37 +63,42 @@ x-environment: &default-tz-puid-pgid
   PUID: $PUID
   PGID: $PGID
 
-# Proxy Network and Security
-x-network-and-security: &network-and-security
+# Keys common to some of the services in basic-services.txt
+x-common-keys-core: &common-keys-core
   networks:
     - t2_proxy
   security_opt:
     - no-new-privileges:true
-
-# Keys common to some of the services in basic-services.txt
-x-common-keys-core: &common-keys-core
-  <<: *network-and-security
   restart: always
   # profiles:
   # - core
 
 # Keys common to some of the services in basic-services.txt
 x-common-keys-core: &common-keys-monitoring
-  <<: *network-and-security
+  networks:
+    - t2_proxy
+  security_opt:
+    - no-new-privileges:true
   restart: always
   # profiles:
   # - monitoring
 
 # Keys common to some of the dependent services/apps
 x-common-keys-apps: &common-keys-apps
-  <<: *network-and-security
+  networks:
+    - t2_proxy
+  security_opt:
+    - no-new-privileges:true
   restart: unless-stopped
   # profiles:
   # - apps
 
 # Keys common to some of the services in media-services.txt
 x-common-keys-media: &common-keys-media
-  <<: *network-and-security
+  networks:
+    - t2_proxy
+  security_opt:
+    - no-new-privileges:true
   restart: "no"
   # profiles:
   # - media
@@ -110,7 +115,7 @@ services:
   traefik:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
-    image: traefik:2.6
+    image: traefik:2.7
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=true
@@ -126,7 +131,7 @@ services:
       #- --ping=true
       # - --serversTransport.insecureSkipVerify=true
       - --log=true
-      - --log.level=DEBUG # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --log.level=WARN # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
       - --accessLog=true
       - --accessLog.filePath=/traefik.log
       - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
@@ -135,20 +140,14 @@ services:
       # - --providers.docker.endpoint=unix:///var/run/docker.sock # Use Docker Socket Proxy instead for improved security
       - --providers.docker.endpoint=tcp://socket-proxy:2375
       # Automatically set Host rule for services
-      # - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME0`)
+      # - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME2`)
       - --providers.docker.exposedByDefault=false
       # - --entrypoints.https.http.middlewares=chain-oauth@file
       - --entrypoints.https.http.tls.options=tls-opts@file
       # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services
       - --entrypoints.https.http.tls.certresolver=dns-cloudflare
-      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME0
-      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME0
-      - --entrypoints.https.http.tls.domains[1].main=$DOMAINNAME1 # Pulls main cert for second domain
-      - --entrypoints.https.http.tls.domains[1].sans=*.$DOMAINNAME1 # Pulls wildcard cert for second domain
-      #- --entrypoints.https.http.tls.domains[2].main=$DOMAINNAME2
-      #- --entrypoints.https.http.tls.domains[2].sans=*.$DOMAINNAME2
-      #- --entrypoints.https.http.tls.domains[3].main=$DOMAINNAME3
-      #- --entrypoints.https.http.tls.domains[3].sans=*.$DOMAINNAME3
+      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME2
+      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME2
       - --providers.docker.network=t2_proxy
       - --providers.docker.swarmMode=false
       - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory
@@ -206,11 +205,11 @@ services:
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       # HTTP Routers
       - "traefik.http.routers.traefik-rtr.entrypoints=https"
-      - "traefik.http.routers.traefik-rtr.rule=Host(`traefikh.$DOMAINNAME0` )"
+      - "traefik.http.routers.traefik-rtr.rule=Host(`$DOMAINNAME2`,`traefik.$DOMAINNAME2` )"
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## Healthcheck/ping
-      #- "traefik.http.routers.ping.rule=Host(`traefik.$DOMAINNAME0`) && Path(`/ping`)"
+      #- "traefik.http.routers.ping.rule=Host(`traefik.$DOMAINNAME2`) && Path(`/ping`)"
       #- "traefik.http.routers.ping.tls=true"
       #- "traefik.http.routers.ping.service=ping@internal"
       ## Middlewares
@@ -279,9 +278,9 @@ services:
     # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
       - CONFIG=/config
-      - COOKIE_DOMAIN=$DOMAINNAME0
+      - COOKIE_DOMAIN=$DOMAINNAME2
       - INSECURE_COOKIE=false
-      - AUTH_HOST=oauthh.$DOMAINNAME0
+      - AUTH_HOST=oauth.$DOMAINNAME2
       - URL_PATH=/_oauth
       - LOG_LEVEL=warn
       - LOG_FORMAT=text
@@ -296,7 +295,7 @@ services:
       ## HTTP Routers
       - "traefik.http.routers.oauth-rtr.tls=true"
       - "traefik.http.routers.oauth-rtr.entrypoints=https"
-      - "traefik.http.routers.oauth-rtr.rule=Host(`oauthh.$DOMAINNAME0`)"
+      - "traefik.http.routers.oauth-rtr.rule=Host(`oauth.$DOMAINNAME2`)"
       ## Middlewares
       - "traefik.http.routers.oauth-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -324,7 +323,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.portainer-rtr.entrypoints=https"
-      - "traefik.http.routers.portainer-rtr.rule=Host(`portainerh.$DOMAINNAME0`)"
+      - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME2`)"
       ## Middlewares
       - "traefik.http.routers.portainer-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -344,7 +343,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.autoindex-rtr.entrypoints=https"
-      - "traefik.http.routers.autoindex-rtr.rule=Host(`indexh.$DOMAINNAME0`)"
+      - "traefik.http.routers.autoindex-rtr.rule=Host(`index.$DOMAINNAME2`)"
       ## Middlewares
       - "traefik.http.routers.autoindex-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -371,82 +370,6 @@ services:
     environment:
       <<: *default-tz-puid-pgid
 
-  ############################# DATABASE
-
-  # MariaDB - MySQL Database
-  # After starting container for first time dexec and mysqladmin -u root password <password>
-  mariadb:
-    <<: *common-keys-core # See EXTENSION FIELDS at the top
-    container_name: mariadb
-    image: lscr.io/linuxserver/mariadb
-    ports:
-      - "$MARIADB_PORT:3306"
-    volumes:
-      - $DOCKERDIR/appdata/mariadb/data:/config
-    environment:
-      <<: *default-tz-puid-pgid
-      FILE__MYSQL_ROOT_PASSWORD: /run/secrets/mysql_root_password # Note FILE__ (double underscore) - Issue #127
-    secrets:
-      - mysql_root_password
-
-  # phpMyAdmin - Database management
-  # Create a new user with admin privileges. Cannot login as MySQL root for some reason.
-  phpmyadmin:
-    <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: phpmyadmin/phpmyadmin:latest
-    container_name: phpmyadmin
-    environment:
-      - PMA_HOST=$MARIADB_HOST
-      - PMA_PORT=$MARIADB_PORT
-      - PMA_ARBITRARY=1
-      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
-    secrets:
-      - mysql_root_password
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.phpmyadmin-rtr.entrypoints=https"
-      - "traefik.http.routers.phpmyadmin-rtr.rule=Host(`pmah.$DOMAINNAME0`)"
-      ## Middlewares
-      - "traefik.http.routers.phpmyadmin-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
-      - "traefik.http.routers.phpmyadmin-rtr.service=phpmyadmin-svc"
-      - "traefik.http.services.phpmyadmin-svc.loadbalancer.server.port=80"
-
-  # Redis - Key-value Store
-  redis:
-    <<: *common-keys-core # See EXTENSION FIELDS at the top
-    container_name: redis
-    image: redis:latest
-    entrypoint: redis-server --appendonly yes --requirepass $REDIS_PASSWORD --maxmemory 512mb --maxmemory-policy allkeys-lru
-    ports:
-      - "$REDIS_PORT:6379"
-    volumes:
-      - $DOCKERDIR/appdata/redis/data:/data
-      - /etc/TZ:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-
-  # Redis Commander - Redis Management Tool
-  rediscommander:
-    <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    container_name: rediscommander
-    image: rediscommander/redis-commander:latest
-    # ports:
-    #   - "$REDISCOMMANDER_PORT:8081"
-    environment:
-      - REDIS_HOST=$REDIS_HOST
-      - REDIS_PASSWORD=$REDIS_PASSWORD
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.rediscommander-rtr.entrypoints=https"
-      - "traefik.http.routers.rediscommander-rtr.rule=Host(`rediscomh.$DOMAINNAME1`)"
-      ## Middlewares
-      - "traefik.http.routers.rediscommander-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
-      - "traefik.http.routers.rediscommander-rtr.service=rediscommander-svc"
-      - "traefik.http.services.rediscommander-svc.loadbalancer.server.port=8081"
-
   ############################# DOWNLOADERS
 
   # qBittorrent - Torrent downloader
@@ -469,7 +392,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.qbittorrent-rtr.entrypoints=https"
-      - "traefik.http.routers.qbittorrent-rtr.rule=Host(`qbith.$DOMAINNAME0`)"
+      - "traefik.http.routers.qbittorrent-rtr.rule=Host(`qbit.$DOMAINNAME2`)"
       - "traefik.http.routers.qbittorrent-rtr.tls=true"
       ## Middlewares
       - "traefik.http.routers.qbittorrent-rtr.middlewares=chain-oauth@file"
@@ -515,7 +438,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.plexms-rtr.entrypoints=https"
-      - "traefik.http.routers.plexms-rtr.rule=Host(`synplex.$DOMAINNAME0`)"
+      - "traefik.http.routers.plexms-rtr.rule=Host(`synplex.$DOMAINNAME2`)"
       ## Middlewares
       - "traefik.http.routers.plexms-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
@@ -550,7 +473,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.tdarr-rtr.entrypoints=https"
-      - "traefik.http.routers.tdarr-rtr.rule=Host(`tdarr.$DOMAINNAME0`)"
+      - "traefik.http.routers.tdarr-rtr.rule=Host(`tdarr.$DOMAINNAME2`)"
       ## Middlewares
       - "traefik.http.routers.tdarr-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -637,7 +560,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.rclone-drive-rtr.entrypoints=https"
-      - "traefik.http.routers.rclone-drive-rtr.rule=Host(`rcloneh.$DOMAINNAME0`)"
+      - "traefik.http.routers.rclone-drive-rtr.rule=Host(`rclone.$DOMAINNAME2`)"
       ## Middlewares
       - "traefik.http.routers.rclone-drive-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -721,7 +644,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.firefox-rtr.entrypoints=https"
-      - "traefik.http.routers.firefox-rtr.rule=Host(`firefoxh.$DOMAINNAME0`)"
+      - "traefik.http.routers.firefox-rtr.rule=Host(`firefox.$DOMAINNAME2`)"
       ## Middlewares
       - "traefik.http.routers.firefox-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -752,7 +675,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.qdirstat-rtr.entrypoints=https"
-      - "traefik.http.routers.qdirstat-rtr.rule=Host(`qdirh.$DOMAINNAME0`)"
+      - "traefik.http.routers.qdirstat-rtr.rule=Host(`qdir.$DOMAINNAME2`)"
       ## Middlewares
       - "traefik.http.routers.qdirstat-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -778,7 +701,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.syncthing-rtr.entrypoints=https"
-      - "traefik.http.routers.syncthing-rtr.rule=Host(`stnas.$DOMAINNAME0`)"
+      - "traefik.http.routers.syncthing-rtr.rule=Host(`stnas.$DOMAINNAME2`)"
       ## Middlewares
       - "traefik.http.routers.syncthing-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -809,7 +732,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.vscode-rtr.entrypoints=https"
-      - "traefik.http.routers.vscode-rtr.rule=Host(`codeh.$DOMAINNAME0`)"
+      - "traefik.http.routers.vscode-rtr.rule=Host(`code.$DOMAINNAME2`)"
       ## Middlewares
       - "traefik.http.routers.vscode-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
@@ -846,36 +769,12 @@ services:
     container_name: cf-ddns
     image: oznu/cloudflare-ddns:latest
     environment:
-      API_KEY: $CLOUDFLARE_API_TOKEN
-      ZONE: $DOMAINNAME0
-      SUBDOMAIN: home
+      API_KEY_FILE: /run/secrets/cf_token
+      ZONE: $DOMAINNAME2
+      #SUBDOMAIN: home
       PROXIED: "true"
       RRTYPE: A
       DELETE_ON_STOP: "false"
       DNS_SERVER: 1.1.1.1
-    #secrets: # not working
-    #  - cloudflare_api_token
-
-  # Cloudflare-Companion - Automatic CNAME DNS Creation
-  # Docker Compose v2.1.1 maximum - see README
-  cf-companion:
-    <<: *common-keys-core # See EXTENSION FIELDS at the top
-    container_name: cf-companion
-    image: tiredofit/traefik-cloudflare-companion:latest
-    networks:
-      - socket_proxy
-    environment:
-      - TIMEZONE=$TZ
-      - TRAEFIK_VERSION=2
-      - CF_TOKEN__FILE=/run/secrets/cf_token
-      - TARGET_DOMAIN=home.$DOMAINNAME0 # Edit this. Either a subdomain or just $DOMAINNAME0 pointing to the IP will work. See: https://github.com/htpcBeginner/docker-traefik/issues/244.
-      - DOMAIN1=$DOMAINNAME0
-      - DOMAIN1_ZONE_ID=$CLOUDFLARE_ZONEID # Copy from Cloudflare Overview page
-      - DOMAIN1_PROXIED=TRUE
-      - DOCKER_HOST=tcp://socket-proxy:2375
-    secrets: 
+    secrets: # not working
       - cf_token
-    labels:
-      # Add hosts specified in rules here to force cf-companion to create the CNAMEs
-      # Since cf-companion creates CNAMEs based on host rules, this a workaround for non-docker/external apps
-      - "traefik.http.routers.cf-companion-rtr.rule=Host(`webminh.$DOMAINNAME0`) || Host(`shellh.$DOMAINNAME0`) || Host(`syno.$DOMAINNAME0`) || Host(`ibox.$DOMAINNAME0`) || Host(`synplex.$DOMAINNAME0`) || Host(`pirpi.$DOMAINNAME0`) || Host(`pidoc.$DOMAINNAME0` || Host(`stpc.$DOMAINNAME0`)"

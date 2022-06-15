@@ -32,11 +32,11 @@ dip() {
 # DOCKER COMPOSE FILE BY HOSTNAME
 # I am sure there is a better way than using $HOSTNAME - if you do, feel free to share/contribute
 case $HOSTNAME in
-    cDoc|zDoc) 
-      alias dcrun2='sudo docker-compose -f /home/$BA_USERNAME/docker/docker-compose-t2.yml'
+    cDoc)
+      alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose-t2.yml'
       ;;
-    cSHB|zSHB|cshb) 
-      alias dcrun2='sudo docker-compose -f /home/$BA_USERNAME/docker/docker-compose-t2-web.yml'
+    DSHB)
+      alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose-t2-web.yml'
       ;;
     zSyn) 
       alias dcrun2='sudo docker-compose -f /volume1/docker/docker-compose-t2-synology.yml'
@@ -90,8 +90,8 @@ alias vnc1='vncserver -geometry 1270x720 -depth 24'
 alias vnckill1='vncserver -kill :1'
 
 # COMPRESSION
-alias untargz='tar -zxvf'
-alias untarbz='tar -xjvf'
+alias untargz='tar --same-owner -zxvf'
+alias untarbz='tar --same-owner -xjvf'
 alias lstargz='tar -ztvf'
 alias lstarbz='tar -jtvf'
 alias targz='tar -zcvf'

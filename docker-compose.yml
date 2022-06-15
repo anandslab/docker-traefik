@@ -25,26 +25,28 @@ x-environment: &default-tz-puid-pgid
   PUID: $PUID
   PGID: $PGID
 
-# Network and Security
-x-network-and-security: &network-and-security
+# Keys common to some of the core services that we always to automatically restart on failure
+x-common-keys-core: &common-keys-core
   networks:
     - npm_proxy
   security_opt:
     - no-new-privileges:true
-
-# Keys common to some of the core services that we always to automatically restart on failure
-x-common-keys-core: &common-keys-core
-  <<: *network-and-security
   restart: always
 
 # Keys common to some of the dependent services/apps
 x-common-keys-apps: &common-keys-apps
-  <<: *network-and-security
+  networks:
+    - npm_proxy
+  security_opt:
+    - no-new-privileges:true
   restart: unless-stopped
 
 # Keys common to some of the services in media-services.txt
 x-common-keys-media: &common-keys-media
-  <<: *network-and-security
+  networks:
+    - npm_proxy
+  security_opt:
+    - no-new-privileges:true
   restart: "no"
 
 ########################### SERVICES
