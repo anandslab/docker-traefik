@@ -32,15 +32,15 @@ http:
         stsPreload: true
         forceSTSHeader: true
         # frameDeny: true #overwritten by customFrameOptionsValue
-        customFrameOptionsValue: "allow-from https:example.com" #CSP takes care of this but may be needed for organizr.
+        customFrameOptionsValue: "allow-from https:{{env "DOMAINNAME_SHB"}}" #CSP takes care of this but may be needed for organizr.
         contentTypeNosniff: true
         browserXssFilter: true
         # sslForceHost: true # add sslHost to all of the services
-        # sslHost: "example.com"
+        # sslHost: "{{env "DOMAINNAME_SHB"}}"
         referrerPolicy: "same-origin"
         # Setting contentSecurityPolicy is more secure but it can break things. Proper auth will reduce the risk.
         # the below line also breaks some apps due to 'none' - sonarr, radarr, etc.
-        # contentSecurityPolicy: "frame-ancestors '*.example.com:*';object-src 'none';script-src 'none';"
+        # contentSecurityPolicy: "frame-ancestors '*.{{env "DOMAINNAME_SHB"}}:*';object-src 'none';script-src 'none';"
         # Line below, featurePolicy, was deprecated in v2.5.x in favor permissionPolicy
         # featurePolicy: "camera 'none'; geolocation 'none'; microphone 'none'; payment 'none'; usb 'none'; vr 'none';"
         permissionsPolicy: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), vr=()"
@@ -70,7 +70,7 @@ http:
 
     middlewares-authelia:
       forwardAuth:
-        address: "http://authelia:9091/api/verify?rd=https://authelia.example.com"
+        address: "http://authelia:9091/api/verify?rd=https://authelia.{{env "DOMAINNAME_SHB"}}"
         trustForwardHeader: true
         authResponseHeaders:
           - "Remote-User"

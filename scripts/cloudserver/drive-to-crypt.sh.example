@@ -21,8 +21,8 @@ export RCLONE_USER_AGENT
 
 # Local Mount - Ensure this is set to your local disk only.
 #LOCAL=/media/shb-drive/media
-EXCLUDES=$DOCKERFOLDER/scripts/homeserver/upload-excludes.log
-LOGFILE=$DOCKERFOLDER/logs/homeserver/drive-to-crypt.log
+EXCLUDES=$DOCKERFOLDER/scripts/cloudserver/upload-excludes.log
+LOGFILE=$DOCKERFOLDER/logs/cloudserver/drive-to-crypt.log
 
 # Name of your Rclone Remote, likely cloud or cloudcrypt
 REMOTE_CRYPT=shb-crypt

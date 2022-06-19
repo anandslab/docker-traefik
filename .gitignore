@@ -36,11 +36,11 @@ shared/config/*
 !scripts
 scripts/*
 !scripts/*.example
-!scripts/homeserver
-scripts/homeserver/*
-!scripts/homeserver/*.example
-!scripts/homeserver/media-services.txt
-!scripts/homeserver/basic-services.txt
+!scripts/cloudserver
+scripts/cloudserver/*
+!scripts/cloudserver/*.example
+!scripts/cloudserver/media-services.txt
+!scripts/cloudserver/basic-services.txt
 !scripts/systemd
 scripts/systemd/*
 !scripts/systemd/*.example
@@ -88,9 +88,9 @@ appdata/traefik2/rules/toml/*
 !appdata/traefik2/rules/synology
 appdata/traefik2/rules/synology/*
 !appdata/traefik2/rules/synology/*.example
-!appdata/traefik2/rules/homeserver
-appdata/traefik2/rules/homeserver/*
-!appdata/traefik2/rules/homeserver/*.example
+!appdata/traefik2/rules/cloudserver
+appdata/traefik2/rules/cloudserver/*
+!appdata/traefik2/rules/cloudserver/*.example
 
 !appdata/authelia
 appdata/authelia/*

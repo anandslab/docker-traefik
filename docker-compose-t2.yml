@@ -126,7 +126,7 @@ services:
   # Touch (create empty files) traefik.log and acme/acme.json. Set acme.json permissions to 600.
   # touch $DOCKERDIR/traefik2/acme/acme.json
   # chmod 600 $DOCKERDIR/traefik2/acme/acme.json
-  # touch $DOCKERDIR/logs/homeserver/traefik.log # customize this
+  # touch $DOCKERDIR/logs/cloudserver/traefik.log # customize this
   traefik:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
@@ -200,14 +200,15 @@ services:
       #   protocol: tcp
       #   mode: host
     volumes:
-      - $DOCKERDIR/appdata/traefik2/rules/homeserver:/rules # file provider directory
+      - $DOCKERDIR/appdata/traefik2/rules/cloudserver:/rules # file provider directory
       # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/appdata/traefik2/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
-      - $DOCKERDIR/logs/homeserver/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
+      - $DOCKERDIR/logs/cloudserver/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
     environment:
       - CF_API_EMAIL_FILE=/run/secrets/cf_email
       - CF_API_KEY_FILE=/run/secrets/cf_api_key
       - HTPASSWD_FILE=/run/secrets/htpasswd # HTPASSWD_FILE can be whatever as it is not used/called anywhere.
+      - DOMAINNAME_CLOUD_SERVER # Passing the domain name to traefik container to be able to use the variable in rules. 
     secrets:
       - cf_email
       - cf_api_key

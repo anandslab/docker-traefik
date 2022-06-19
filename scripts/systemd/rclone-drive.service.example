@@ -7,7 +7,7 @@ After=network-online.target
 Type=notify
 ExecStart=/usr/bin/rclone mount shb-drive: /media/drive \
 --config /home/USER/docker/appdata/rclone/rclone.conf \
---log-file=/home/USER/docker/logs/homeserver/rclone-drive.log \
+--log-file=/home/USER/docker/logs/systemd/rclone-drive.log \
 --log-level NOTICE \
 --allow-other \
 --no-modtime \

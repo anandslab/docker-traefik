@@ -1,7 +1,7 @@
 http:
   routers:
     unifi-rtr:
-      rule: "Host(`unifi.example.com`)" # will only work with cloudflare Full SSL (not Strict)
+      rule: "Host(`unifi.{{env "DOMAINNAME_CLOUD_SERVER"}}`)" # will only work with cloudflare Full SSL (not Strict)
       entryPoints:
         - https
       middlewares:

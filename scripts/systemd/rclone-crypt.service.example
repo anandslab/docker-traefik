@@ -8,7 +8,7 @@ Type=notify
 ExecStart=/usr/bin/rclone mount shb-crypt: /media/crypt \
 #--read-only \
 --config /home/USER/docker/appdata/rclone/rclone.conf \
---log-file=/home/USER/docker/logs/homeserver/rclone-crypt.log \
+--log-file=/home/USER/docker/logs/systemd/rclone-crypt.log \
 --log-level NOTICE \
 --allow-other \
 --no-modtime \

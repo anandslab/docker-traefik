@@ -14,8 +14,8 @@ export RCLONE_USER_AGENT
 
 # Local Mount - Ensure this is set to your local disk only.
 LOCAL=/media/data/local/media
-EXCLUDES=$DOCKERFOLDER/scripts/homeserver/upload-excludes.log
-LOGFILE=$DOCKERFOLDER/logs/homeserver/upload-media.log
+EXCLUDES=$DOCKERFOLDER/scripts/cloudserver/upload-excludes.log
+LOGFILE=$DOCKERFOLDER/logs/cloudserver/upload-media.log
 
 # Name of your Rclone Remote, likely cloud or cloudcrypt
 REMOTE=shb-crypt
@@ -34,7 +34,7 @@ then
     ps -ef | grep "$pscheck"
     exit
 else
-    echo -e "\n\n### `date +'%Y-%m-%d %H:%M'`: No currently running processes found. Starting rclone job.\n" >> $DOCKERFOLDER/logs/homeserver/upload-media.log
+    echo -e "\n\n### `date +'%Y-%m-%d %H:%M'`: No currently running processes found. Starting rclone job.\n" >> $DOCKERFOLDER/logs/cloudserver/upload-media.log
 fi
 
 # Exclude File Check
