@@ -202,8 +202,8 @@ services:
     volumes:
       - $DOCKERDIR/appdata/traefik2/rules/cloudserver:/rules # file provider directory
       # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
-      - $DOCKERDIR/appdata/traefik2/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
-      - $DOCKERDIR/logs/cloudserver/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
+      - $DOCKERDIR/appdata/traefik2/acme/acme.json:/acme.json # cert location - you must create this emtpy file and change permissions to 600
+      - $DOCKERDIR/logs/cloudserver/traefik.log:/traefik.log # for fail2ban - make sure to create empty file before starting container
     environment:
       - CF_API_EMAIL_FILE=/run/secrets/cf_email
       - CF_API_KEY_FILE=/run/secrets/cf_api_key
@@ -222,9 +222,14 @@ services:
       - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       # HTTP Routers
-      - "traefik.http.routers.traefik-rtr.tls=true" # Some people had 404s without this
       - "traefik.http.routers.traefik-rtr.entrypoints=https"
       - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.traefik-rtr.tls=true" # Some people had 404s without this
+      - "traefik.http.routers.traefik-rtr.tls.certresolver=dns-cloudflare" # Comment out this line after first run of traefik to force the use of wildcard certs
+      - "traefik.http.routers.traefik-rtr.tls.domains[0].main=$DOMAINNAME_CLOUD_SERVER"
+      - "traefik.http.routers.traefik-rtr.tls.domains[0].sans=*.$DOMAINNAME_CLOUD_SERVER"
+      # - "traefik.http.routers.traefik-rtr.tls.domains[1].main=$DOMAINNAME2" # Pulls main cert for second domain
+      # - "traefik.http.routers.traefik-rtr.tls.domains[1].sans=*.$DOMAINNAME2" # Pulls wildcard cert for second domain
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## Healthcheck/ping
@@ -232,7 +237,10 @@ services:
       #- "traefik.http.routers.ping.tls=true"
       #- "traefik.http.routers.ping.service=ping@internal"
       ## Middlewares
+      #- "traefik.http.routers.traefik-rtr.middlewares=chain-no-auth@file" # For No Authentication
+      #- "traefik.http.routers.traefik-rtr.middlewares=chain-auth-basic@file" # For Basic HTTP Authentication
       - "traefik.http.routers.traefik-rtr.middlewares=chain-oauth@file"
+      #- "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file" # For Authelia Authentication
 
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
@@ -371,8 +379,9 @@ services:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/heimdall
     container_name: heimdall
-    #ports:
-    #  - "$HEIMDALL_PORT:3000"
+    # ports:
+    #  - "$HEIMDALL_PORT:80" # 80 to 82 already taken by other services
+      # - "444:443" # 443 used by Traefik/Nginx Proxy Manager. Disabled because we will put Heimdall behind proxy.
     volumes:
       - $DOCKERDIR/appdata/heimdall:/config
     environment:
@@ -386,7 +395,7 @@ services:
       - "traefik.http.routers.heimdall-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.heimdall-rtr.service=heimdall-svc"
-      - "traefik.http.services.heimdall-svc.loadbalancer.server.port=3000"
+      - "traefik.http.services.heimdall-svc.loadbalancer.server.port=80"
 
   ############################# DATABASE
 

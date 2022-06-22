@@ -3,7 +3,7 @@
 This is the updated docker-compose repo of all the media, home, and web server apps described in the following guides on our website:
 
 - [Docker Media Server Ubuntu: Compose for 23 Awesome Apps](https://www.smarthomebeginner.com/docker-media-server-2022/)
-- [Docker Media Server with Traefik 2 Reverse Proxy](https://www.smarthomebeginner.com/traefik-2-docker-tutorial/)
+- [Ultimate Traefik Docker Compose Guide [2022] with LetsEncrypt](https://www.smarthomebeginner.com/traefik-docker-compose-guide-2022/)
 - [WordPress on Docker with Nginx, Traefik, LE SSL, Security, and Speed](https://www.smarthomebeginner.com/wordpress-on-docker-traefik/)
 - [Synology Docker Media Server with Traefik, Docker Compose, and Cloudflare](https://www.smarthomebeginner.com/synology-docker-media-server/)
 
@@ -46,16 +46,17 @@ Go step-by-step. If you bite too big of a piece, I guarantee you will choke.
 
 ### Obsolete Posts (for educational purposes):
 
-The following posts have been combined and updated for Traefik v2 (linked above):
+The following posts have been updated/replaced by the posts linked above:
 
+- [Docker Media Server with Traefik 2 Reverse Proxy](https://www.smarthomebeginner.com/traefik-2-docker-tutorial/)
 - [Docker Media Server without Reverse Proxy ](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/)
 - [Docker Media Server with Traefik 1 Reverse Proxy](https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/)
 
 ## Docker, Docker Compose, and Traefik Versions (updated January 23, 2022)
 
-- Docker: 20.10.12
+- Docker: 20.10.13
 - Docker Compose: v2.5.0
-- Traefik: 2.6
+- Traefik: 2.7
 
 <strong>Update (September 13, 2021):</strong> I moved from TOML to YAML for Traefik 2 dynamic configurations. I have included example configuration files for both. However, since I do not use TOML anymore, there may be minor syntax errors or typos.
 

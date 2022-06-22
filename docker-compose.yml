@@ -88,7 +88,7 @@ services:
     # command: -H tcp://socket-proxy:2375 # Use this instead, if you have Socket Proxy enabled.
     networks:
       - npm_proxy
-    ports: # Commented out because we are going to use Nginx Proxy Manager to access portainer WebUI.
+    ports: 
       - "9000:9000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy and comment this line out, for improved security.
