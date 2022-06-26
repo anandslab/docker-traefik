@@ -20,7 +20,7 @@
 
 !custom
 custom/*
-!custom/*.example
+!custom/Dockerfile-*
 
 !shared
 shared/*
