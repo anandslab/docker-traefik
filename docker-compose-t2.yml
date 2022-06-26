@@ -601,7 +601,7 @@ services:
     #   - "$QBITTORRENT_PORT:8080"
     volumes:
       - $DOCKERDIR/appdata/qbittorrent:/config
-      - $DATADIR/downloads:/downloads
+      - $DATADIR/downloads:/data/downloads # Ensure that downloads folder is set to /data/downloads in qBittorrent
     environment:
       <<: *default-tz-puid-pgid
       UMASK_SET: 002
@@ -778,8 +778,7 @@ services:
       - $DOCKERDIR/appdata/radarr:/config
       # Optional. See why MediaCover is mounted as volume https://github.com/htpcBeginner/docker-traefik/discussions/147
       - $DATADIR/temp/appdata/radarr/MediaCover:/config/MediaCover
-      - $DATADIR/downloads:/data/downloads
-      - $DATADIR/media:/data/media
+      - $DATADIR:/data
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       <<: *default-tz-puid-pgid
@@ -816,8 +815,7 @@ services:
       - $DOCKERDIR/appdata/sonarr:/config
       # Optional. See why MediaCover is mounted as volume https://github.com/htpcBeginner/docker-traefik/discussions/147
       - $DATADIR/temp/appdata/sonarr/MediaCover:/config/MediaCover
-      - $DATADIR/downloads:/data/downloads
-      - $DATADIR/media:/data/media
+      - $DATADIR:/data
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       <<: *default-tz-puid-pgid
@@ -849,8 +847,7 @@ services:
     #  - "$READARR_PORT:8787"
     volumes:
       - $DOCKERDIR/appdata/readarr:/config
-      - $DATADIR/downloads:/data/downloads
-      - $DATADIR/media/books:/data/media/books
+      - $DATADIR:/data
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       <<: *default-tz-puid-pgid
