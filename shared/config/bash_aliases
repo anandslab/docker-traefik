@@ -57,6 +57,19 @@ alias stopbasic='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/basi
 alias stopmedia='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/media-services.txt)'
 alias startmedia='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/media-services.txt)'
 
+# CROWDSEC
+alias cscli='dcrun2 exec -t crowdsec cscli'
+alias csdecisions='cscli decisions list'
+alias csalerts='cscli alerts list'
+alias csinspect='cscli alerts inspect -d'
+alias cshubs='cscli hub list'
+alias csparsers='cscli parsers list'
+alias cscollections='cscli collections list'
+alias cshubupdate='cscli hub update'
+alias cshubupgrade='cscli hub update'
+alias csmetrics='cscli metrics'
+alias csmachines='cscli machines list'
+
 # WEB STACK
 alias webrs='dcrec2 php7 redis nginx'
 

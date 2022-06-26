@@ -91,6 +91,9 @@ appdata/traefik2/rules/synology/*
 !appdata/traefik2/rules/cloudserver
 appdata/traefik2/rules/cloudserver/*
 !appdata/traefik2/rules/cloudserver/*.example
+!appdata/traefik2/rules/cloudserver/tls-opts.yml
+!appdata/traefik2/rules/cloudserver/middlewares.yml
+!appdata/traefik2/rules/cloudserver/middlewares-chains.yml
 
 !appdata/authelia
 appdata/authelia/*

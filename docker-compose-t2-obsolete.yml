@@ -1440,21 +1440,6 @@ services:
       - "traefik.http.routers.traefik-error-pages-rtr.service=traefik-error-pages-svc"
       - "traefik.http.services.traefik-error-pages-svc.loadbalancer.server.port=80"
 
-  # Traefik Certs Dumper - Extract LetsEncrypt Certificates - Traefik2 Compatible
-  certdumper:
-    container_name: traefik_certdumper
-    image: humenius/traefik-certs-dumper:latest
-    network_mode: none
-    security_opt:
-      - no-new-privileges:true
-    # command: --restart-containers container1,container2,container3
-    volumes:
-      - $DOCKERDIR/traefik2/acme:/traefik:ro
-      - $DOCKERDIR/shared/certs:/output:rw
-      # - /var/run/docker.sock:/var/run/docker.sock:ro # Only needed if restarting containers (use Docker Socket Proxy instead)
-    environment:
-      DOMAIN: $DOMAINNAME
-
   # Dozzle - Real-time Docker Log Viewer
   dozzle:
     image: amir20/dozzle:latest
@@ -1918,3 +1903,16 @@ services:
       # Add hosts specified in rules here to force cf-companion to create the CNAMEs
       # Since cf-companion creates CNAMEs based on host rules, this a workaround for non-docker/external apps
       - "traefik.http.routers.cf-companion-rtr.rule=Host(`webmin.$DOMAINNAME2`) || Host(`shellh.$DOMAINNAME2`) || Host(`syno.$DOMAINNAME2`) || Host(`ibox.$DOMAINNAME2`) || Host(`synplex.$DOMAINNAME2`) || Host(`pirpi.$DOMAINNAME2`) || Host(`pidoc.$DOMAINNAME2` || Host(`stpc.$DOMAINNAME2`)"
+
+  # Traefik Certs Dumper - Extract LetsEncrypt Certificates - Traefik2 Compatible
+  certdumper:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    container_name: traefik_certdumper
+    image: humenius/traefik-certs-dumper:latest
+    # command: --restart-containers container1,container2,container3
+    volumes:
+      - $DOCKERDIR/appdata/traefik2/acme:/traefik:ro
+      - $DOCKERDIR/shared/certs/$DOMAINNAME_CLOUD_SERVER:/output:rw
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Only needed if restarting containers (use Docker Socket Proxy instead)
+    environment:
+      DOMAIN: $DOMAINNAME_CLOUD_SERVER
