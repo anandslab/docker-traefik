@@ -238,8 +238,7 @@ services:
       - "7878:7878"
     volumes:
       - $DOCKERDIR/appdata/radarr:/config
-      - $DATADIR/downloads:/data/downloads
-      - $DATADIR/media:/data/media
+      - $DATADIR:/data
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       <<: *default-tz-puid-pgid
@@ -256,8 +255,7 @@ services:
       - "8989:8989"
     volumes:
       - $DOCKERDIR/appdata/sonarr:/config
-      - $DATADIR/downloads:/data/downloads
-      - $DATADIR/media:/data/media
+      - $DATADIR:/data
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       <<: *default-tz-puid-pgid
@@ -271,8 +269,7 @@ services:
       - "8987:8987"
     volumes:
       - $DOCKERDIR/appdata/readarr:/config
-      - $DATADIR/downloads:/data/downloads
-      - $DATADIR/media/books:/data/media/books
+      - $DATADIR:/data
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       <<: *default-tz-puid-pgid
