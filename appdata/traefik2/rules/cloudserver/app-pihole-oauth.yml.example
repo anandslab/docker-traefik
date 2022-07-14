@@ -5,7 +5,7 @@ http:
       entryPoints:
         - https
       middlewares:
-        - chain-authelia
+        - chain-oauth
         - pihole-add-admin
       service: pihole-svc
       tls:

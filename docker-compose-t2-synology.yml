@@ -35,6 +35,16 @@ networks:
     ipam:
       config:
         - subnet: 192.168.91.0/24
+  dockervlan:
+    name: dockervlan
+    driver: macvlan
+    driver_opts:
+      parent: eth1 # using ifconfig
+    ipam:
+      config:
+        - subnet: "192.168.1.0/24"
+          ip_range: "192.168.1.25/32"
+          gateway: "192.168.1.1"
 
 ########################### SECRETS
 secrets:
@@ -206,7 +216,7 @@ services:
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       # HTTP Routers
       - "traefik.http.routers.traefik-rtr.entrypoints=https"
-      - "traefik.http.routers.traefik-rtr.rule=Host(`$DOMAINNAME_HOME_SYNOLOGY`,`traefik.$DOMAINNAME_HOME_SYNOLOGY` )"
+      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME_HOME_SYNOLOGY` )"
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## Healthcheck/ping
@@ -350,6 +360,37 @@ services:
       ## HTTP Services
       - "traefik.http.routers.autoindex-rtr.service=autoindex-svc"
       - "traefik.http.services.autoindex-svc.loadbalancer.server.port=80"
+
+  # Dashy - Application Dashboard
+  dashy:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    container_name: dashy
+    image: lissy93/dashy
+    healthcheck:
+      test: ['CMD', 'node', '/app/services/healthcheck']
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    ports:
+      - 4000:80
+    volumes:
+      - $DOCKERDIR/appdata/dashy/conf.yml:/app/public/conf.yml
+      - $DOCKERDIR/appdata/dashy:/app/public/item-icons
+    environment:
+      - NODE_ENV=production
+      - UID=$PUID
+      - GID=$PGID
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.dashy-rtr.entrypoints=https"
+      - "traefik.http.routers.dashy-rtr.rule=Host(`$DOMAINNAME_HOME_SYNOLOGY`,`www.$DOMAINNAME_HOME_SYNOLOGY`)"
+      ## Middlewares
+      - "traefik.http.routers.dashy-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.dashy-rtr.service=dashy-svc"
+      - "traefik.http.services.dashy-svc.loadbalancer.server.port=80"
 
   ############################# SMART HOME
 
@@ -740,6 +781,28 @@ services:
       - "traefik.http.routers.vscode-rtr.service=vscode-svc"
       - "traefik.http.services.vscode-svc.loadbalancer.server.port=8443"
 
+  # AdGuard Home - DNS AdBlocking
+  adguardhome:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    container_name: adguardhome
+    image: adguard/adguardhome
+    networks:
+      dockervlan:
+        ipv4_address: 192.168.1.25 # IP address inside defined range
+    ports:
+      - 53/udp 
+      - 67/udp 
+      - 68/tcp 
+      - 68/udp 
+      - 80/tcp 
+      - 443/tcp 
+      - 853/tcp 
+      - 3000/tcp 
+    volumes:
+      - $DOCKERDIR/appdata/adguard/conf:/opt/adguardhome/conf 
+      - $DOCKERDIR/appdata/adguard/work:/opt/adguardhome/work 
+      - $DOCKERDIR/shared/certs/$DOMAINNAME_HOME_SYNOLOGY:/certs
+
   ############################# MAINTENANCE
 
   # Docker-GC - Automatic Docker Garbage Collection
@@ -764,18 +827,40 @@ services:
       TZ: $TZ
       DOCKER_HOST: tcp://socket-proxy:2375
 
-  # Cloudflare DDNS - Dynamic DNS Updater
-  cf-ddns:
-    <<: *common-keys-core # See EXTENSION FIELDS at the top
-    container_name: cf-ddns
-    image: oznu/cloudflare-ddns:latest
+  # Traefik Certs Dumper - Extract LetsEncrypt Certificates - Traefik2 Compatible
+  certdumper:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    container_name: traefik_certdumper
+    image: humenius/traefik-certs-dumper:latest
+    # command: --restart-containers container1,container2,container3
+    volumes:
+      - $DOCKERDIR/appdata/traefik2/acme:/traefik:ro
+      - $DOCKERDIR/shared/certs/$DOMAINNAME_HOME_SYNOLOGY:/output:rw
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Only needed if restarting containers (use Docker Socket Proxy instead)
     environment:
-      API_KEY_FILE: /run/secrets/cf_token
-      ZONE: $DOMAINNAME_HOME_SYNOLOGY
-      #SUBDOMAIN: home
-      PROXIED: "true"
-      RRTYPE: A
-      DELETE_ON_STOP: "false"
-      DNS_SERVER: 1.1.1.1
-    secrets: # not working
-      - cf_token
+      DOMAIN: $DOMAINNAME_HOME_SYNOLOGY
+
+  # Cloudflare DDNS - Dynamic DNS Updater
+  ddns-updater:
+    image: qmcgaw/ddns-updater
+    container_name: ddns-updater
+    restart: always
+    network_mode: bridge
+    ports:
+      - 8000:8000/tcp
+    volumes:
+      - $DOCKERDIR/appdata/ddns-updater:/updater/data # Owned by UID 1000
+    environment:
+      <<: *default-tz-puid-pgid
+      PERIOD: 1h
+      UPDATE_COOLDOWN_PERIOD: 5m
+      PUBLICIP_DNS_TIMEOUT: 3s
+      HTTP_TIMEOUT: 10s
+      # Web UI
+      LISTENING_PORT: 8000
+      # Backup
+      BACKUP_PERIOD: 72h15m # 0 to disable
+      BACKUP_DIRECTORY: /updater/data/backups
+      # Other
+      LOG_LEVEL: info
+      SHOUTRRR_ADDRESSES: $DISCORD_SHOUTRRR_ADDRESS

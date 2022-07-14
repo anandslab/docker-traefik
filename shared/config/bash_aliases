@@ -38,7 +38,10 @@ case $HOSTNAME in
     DSHB)
       alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose-t2-web.yml'
       ;;
-    zSyn) 
+    DMS)
+      alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose.yml'
+      ;;
+    zSyn|zsyn) 
       alias dcrun2='sudo docker-compose -f /volume1/docker/docker-compose-t2-synology.yml'
       ;;
     *)
@@ -253,15 +256,14 @@ alias ipi='ipconfig getifaddr en0' # internal ip
 alias header='curl -I' # get web server headers 
 
 # SYNOLOGY DSM COMMANDS
-alias servicelist='sudo synoservicecfg --list'
-alias servicestatus='sudo synoservice --status'
-alias servicestop='sudo synoservicecfg --stop'
-alias servicehstop='sudo synoservicecfg --hard-stop'
-alias servicestart='sudo synoservicecfg --start'
-alias servicehstart='sudo synoservicecfg --hard-start'
-alias servicerestart='sudo synoservice --restart'
-alias servicerestart2='sudo synoservicectl --restart'
-alias restartdocker='sudo synoservice --restart pkgctl-Docker'
+alias servicelist='sudo synoservicecfg --list' # does not work in DSM 7
+alias servicestatus='sudo synosystemctl status'
+alias servicestop='sudo synosystemctl stop'
+alias servicehstop='sudo synoservicecfg --hard-stop' # does not work in DSM 7
+alias servicestart='sudo synosystemctl start'
+alias servicehstart='sudo synoservicecfg --hard-start' # does not work in DSM 7
+alias servicerestart='sudo synosystemctl restart'
+alias restartdocker='sudo synosystemctl restart pkgctl-Docker'
 
 # MISCELLANEOUS
 alias wget='wget -c'

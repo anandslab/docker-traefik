@@ -4,6 +4,6 @@
 
 providers.google.client-id=yourGOOGLEclientID
 providers.google.client-secret=yourCLIENTsecret
-secret=RANDOMcharacters
-whitelist=yourEMAILaddress
+secret=yourOAUTHsecret
+whitelist=yourEMAILaddress1
 whitelist=yourEMAILaddress2

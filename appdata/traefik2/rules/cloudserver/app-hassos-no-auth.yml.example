@@ -1,16 +1,16 @@
 http:
   routers:
-    hass-core-rtr:
-      rule: "Host(`hass.{{env "DOMAINNAME_CLOUD_SERVER"}}`)" 
+    hassos-rtr:
+      rule: "Host(`hassos.{{env "DOMAINNAME_CLOUD_SERVER"}}`)" 
       entryPoints:
         - https
       middlewares:
         - chain-no-auth
-      service: hass-core-svc
+      service: hassos-svc
       tls:
         certResolver: dns-cloudflare
   services:
-    hass-core-svc:
+    hassos-svc:
       loadBalancer:
         servers:
           - url: "http://192.168.5.90:8123"  # or whatever your external host's IP:port is 

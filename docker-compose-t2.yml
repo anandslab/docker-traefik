@@ -302,7 +302,7 @@ services:
     image: thomseddon/traefik-forward-auth:latest
     # image: thomseddon/traefik-forward-auth:2.1-arm # Use this image with Raspberry Pi
     # Allow apps to bypass OAuth. Radarr example below will bypass OAuth if API key is present in the request (eg. from NZB360 mobile app).
-    # While this is one way, the recommended way is to bypass authentication using Traefik labels shown in some of the apps later.
+    # While this is one way, the recommended way is to bypass authentication using Traefik labels shown in some of the -Arr apps in this file.
     # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
     # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
@@ -311,7 +311,7 @@ services:
       - INSECURE_COOKIE=false
       - AUTH_HOST=oauth.$DOMAINNAME_CLOUD_SERVER
       - URL_PATH=/_oauth
-      - LOG_LEVEL=warn
+      - LOG_LEVEL=warn # set to trace while testing bypass rules
       - LOG_FORMAT=text
       - LIFETIME=86400 # 1 day
       - DEFAULT_ACTION=auth
@@ -614,7 +614,7 @@ services:
       - "traefik.http.routers.qbittorrent-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.qbittorrent-rtr.service=qbittorrent-svc"
-      - "traefik.http.services.qbittorrent-svc.loadbalancer.server.port=8168"
+      - "traefik.http.services.qbittorrent-svc.loadbalancer.server.port=8080"
 
   # nzbget - Binary newsgrabber (NZB downloader)
   nzbget:
@@ -740,8 +740,7 @@ services:
       - $DOCKERDIR/appdata/lidarr:/config
       # Optional. See why MediaCover is mounted as volume https://github.com/htpcBeginner/docker-traefik/discussions/147
       - $DATADIR/temp/appdata/lidarr/MediaCover:/config/MediaCover
-      - $DATADIR/downloads:/data/downloads
-      - $DATADIR/local/music:/data/media/music
+      - $DATADIR:/data
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       <<: *default-tz-puid-pgid
@@ -919,6 +918,52 @@ services:
       ## HTTP Services
       - "traefik.http.routers.jellyfin-rtr.service=jellyfin-svc"
       - "traefik.http.services.jellyfin-svc.loadbalancer.server.port=8096"
+
+  # Plex - Media Server
+  plexms:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
+    image: plexinc/pms-docker:plexpass
+    container_name: plexms
+    #devices:
+    #  - /dev/dri:/dev/dri # for harware transcoding
+    ports:
+      - "$PLEX_PORT:32400/tcp"
+      - "3005:3005/tcp"
+      - "8324:8324/tcp"
+      - "32469:32469/tcp"
+      - "1900:1900/udp" # conflicts with xTeVe
+      - "32410:32410/udp"
+      - "32412:32412/udp"
+      - "32413:32413/udp"
+      - "32414:32414/udp"
+      - "$PLEX_WEB_TOOLS_PORT:33400"
+    volumes:
+      - $DOCKERDIR/appdata/plexms:/config
+      - $DATADIR/downloads:/data/downloads
+      - $DATADIR/media:/data/media
+      - /dev/shm:/data/transcode # Offload transcoding to RAM if you have enough RAM
+      # Optional. See why the folders below are mounted as volumes https://github.com/htpcBeginner/docker-traefik/discussions/147
+      - $DATADIR/temp/appdata/plexms/Cache:/config/Library/Application Support/Plex Media Server/Cache
+      - $DATADIR/temp/appdata/plexms/Metadata:/config/Library/Application Support/Plex Media Server/Metadata
+      - $DATADIR/temp/appdata/plexms/Media:/config/Library/Application Support/Plex Media Server/Media
+    environment:
+      TZ: $TZ
+      HOSTNAME: "zPlex"
+      PLEX_CLAIM_FILE: /run/secrets/plex_claim
+      PLEX_UID: $PUID
+      PLEX_GID: $PGID
+    secrets:
+      - plex_claim
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.plexms-rtr.entrypoints=https"
+      - "traefik.http.routers.plexms-rtr.rule=Host(`proxplex.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.plexms-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Servicesnoauth
+      - "traefik.http.routers.plexms-rtr.service=plexms-svc"
+      - "traefik.http.services.plexms-svc.loadbalancer.server.port=32400"
 
   ############################# MEDIA FILE MANAGEMENT
 
