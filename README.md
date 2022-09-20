@@ -54,8 +54,8 @@ The following posts have been updated/replaced by the posts linked above:
 
 ## Docker, Docker Compose, and Traefik Versions (updated January 23, 2022)
 
-- Docker: 20.10.13
-- Docker Compose: v2.5.0
+- Docker: 20.10.17
+- Docker Compose: v2.6.0
 - Traefik: 2.7
 
 <strong>Update (September 13, 2021):</strong> I moved from TOML to YAML for Traefik 2 dynamic configurations. I have included example configuration files for both. However, since I do not use TOML anymore, there may be minor syntax errors or typos.
@@ -84,6 +84,8 @@ Almost any app/service from the docker-compose files listed above can be copy-pa
 - SYNOLOGY - Synology DS918+ NAS.
 
 I use Syncthing to keep certain key files synched between various systems.
+
+For security, I implemented CrowdSec multi-server setup recently. From the stats, it is blocking/mitigating well over 600 intrusion attempts per day on my servers. I will cover this in a separate guide later but you will find the docker-compose CrowdSec, Traefik Bouncer, and Cloudflare Bouncer Bouncers in my repo already.
 
 ## What apps are included in this stack?
 

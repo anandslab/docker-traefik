@@ -2,7 +2,7 @@ lidarr
 radarr
 sonarr
 readarr
-navidrome
 jellyfin
+plexms
 bazarr
 airsonic-advanced

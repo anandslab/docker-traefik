@@ -50,9 +50,9 @@ http:
         authResponseHeaders:
           - "X-Forwarded-User"
 
-    middlewares-crowdsec-bouncer-traefik:
+    middlewares-traefik-bouncer:
       forwardAuth:
-        address: "http://crowdsec-bouncer:8080/api/v1/forwardAuth" # Make sure you have the crowdsec-bouncer service in docker-compose.yml
+        address: "http://traefik-bouncer:8080/api/v1/forwardAuth" # Make sure you have the traefik-bouncer service in docker-compose.yml
         trustForwardHeader: true
 
     middlewares-oauth-external:
@@ -79,6 +79,5 @@ http:
         maxResponseBodyBytes: 2000000
         maxRequestBodyBytes: 10485760  
         memRequestBodyBytes: 2097152  
-        maxResponseBodyBytes: 10485760
         memResponseBodyBytes: 2097152
         retryExpression: "IsNetworkError() && Attempts() <= 2"

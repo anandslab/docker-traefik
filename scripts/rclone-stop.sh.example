@@ -2,7 +2,7 @@
 
 echo "Stopping Media Services..."
 
-sudo docker stop $(cat /home/$USER/docker/scripts/homeserver/media-services.txt)
+sudo docker stop $(cat /home/$USER/docker/scripts/cloudserver/media-services.txt)
 
 echo
 echo "Stopping MergerFS..."

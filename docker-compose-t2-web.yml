@@ -107,7 +107,9 @@ services:
   # Touch (create empty files) traefik.log and acme/acme.json. Set acme.json permissions to 600.
   # touch $DOCKERDIR/traefik2/acme/acme.json
   # chmod 600 $DOCKERDIR/traefik2/acme/acme.json
-  # touch $DOCKERDIR/logs/web/traefik.log # customize this
+  # touch $DOCKERDIR/logs/web/traefik/traefik.log
+  # touch $DOCKERDIR/logs/web/traefik/access.log
+
   traefik:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
@@ -118,7 +120,7 @@ services:
       - --entryPoints.http.address=:80
       - --entryPoints.https.address=:443
       # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
-      - --entrypoints.https.forwardedHeaders.trustedIPs=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/13,104.24.0.0/14,172.64.0.0/13,131.0.72.0/22
+      - --entrypoints.https.forwardedHeaders.trustedIPs=$CLOUDFLARE_IPS,$LOCAL_IPS
       - --entryPoints.traefik.address=:8080
       # - --entryPoints.ping.address=:8081
       - --api=true
@@ -127,11 +129,12 @@ services:
       #- --ping=true
       # - --serversTransport.insecureSkipVerify=true
       - --log=true
-      - --log.level=WARN # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --log.filePath=/logs/traefik.log
+      - --log.level=INFO # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
       - --accessLog=true
-      - --accessLog.filePath=/traefik.log
+      - --accessLog.filePath=/logs/access.log
       - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
-      - --accessLog.filters.statusCodes=400-499
+      - --accessLog.filters.statusCodes=204-299,400-499,500-599
       - --providers.docker=true
       # - --providers.docker.endpoint=unix:///var/run/docker.sock # Use Docker Socket Proxy instead for improved security
       - --providers.docker.endpoint=tcp://socket-proxy:2375
@@ -184,8 +187,9 @@ services:
       - $DOCKERDIR/appdata/traefik2/rules/web:/rules # file provider directory
       # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/appdata/traefik2/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
-      - $DOCKERDIR/logs/web/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
+      - $DOCKERDIR/logs/web/traefik:/logs # for fail2ban or crowdsec
     environment:
+      - TZ=$TZ
       - CF_API_EMAIL_FILE=/run/secrets/cf_email
       - CF_API_KEY_FILE=/run/secrets/cf_api_key
       - HTPASSWD_FILE=/run/secrets/htpasswd # HTPASSWD_FILE can be whatever as it is not used/called anywhere.
@@ -345,6 +349,50 @@ services:
       - "traefik.http.routers.autoindex-rtr.service=autoindex-svc"
       - "traefik.http.services.autoindex-svc.loadbalancer.server.port=80"
 
+  # CrowdSec - Open-source & collaborative security IPS
+  crowdsec:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    image: crowdsecurity/crowdsec
+    container_name: crowdsec
+    ports:
+      - "$CROWDSEC_API_PORT:8080"
+      - "$ZEROTIER_IP_WEBSERVER:$CROWDSEC_PROMETHEUS_EXPORT:6060" # If you don't use ZeroTier remove use just $CROWDSEC_PROMETHEUS_EXPORT:6060
+    environment:
+      COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/iptables crowdsecurity/linux crowdsecurity/nginx crowdsecurity/sshd"
+      GID: "${GID-1000}"
+      CUSTOM_HOSTNAME: dSHB
+    volumes:
+      - $DOCKERDIR/logs/web:/logs/web:ro
+      - /var/log:/var/log:ro
+      - $DOCKERDIR/appdata/crowdsec/data:/var/lib/crowdsec/data
+      - $DOCKERDIR/appdata/crowdsec/config:/etc/crowdsec
+
+  # CrowdSec Bouncer - Traefik
+  traefik-bouncer:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    image: fbonalair/traefik-crowdsec-bouncer
+    container_name: traefik-bouncer
+    #ports:
+    #  - "$TRAEFIK_BOUNCER_PORT:8080"
+    environment:
+      GIN_MODE: release # default is debug (more logs)
+      CROWDSEC_BOUNCER_API_KEY: $CROWDSEC_BOUNCER_TRAEFIK_API_KEY # sudo docker exec crowdsec cscli bouncers add traefik-bouncer
+      CROWDSEC_AGENT_HOST: crowdsec:8080 # CrowdSec host and port
+      CROWDSEC_BOUNCER_LOG_LEVEL: 1 # 1 INFO 2 WARN https://pkg.go.dev/github.com/rs/zerolog#readme-leveled-logging
+
+  # CrowdSec Bouncer - Cloudflare
+  # sudo docker exec crowdsec cscli bouncer add cloudflare-bouncer
+  # Set max ip number right the first time (max 10000). Recreating container deletes all ips and readds them causing cloudflare 429 rate limiting.
+  cloudflare-bouncer:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    image: crowdsecurity/cloudflare-bouncer
+    container_name: cloudflare-bouncer
+    #ports:
+    #  - "$CLOUDFLARE_BOUNCER_PORT:2112"
+    volumes:
+      - $DOCKERDIR/appdata/cloudflare-bouncer/cfg.yaml:/etc/crowdsec/bouncers/crowdsec-cloudflare-bouncer.yaml
+      - $DOCKERDIR/appdata/cloudflare-bouncer/cf-bouncer:/cf-bouncer
+
   ############################# DATABASE
 
   # MariaDB - MySQL Database
@@ -413,7 +461,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-      - /var/log/nginx:/var/log/nginx
+      - $DOCKERDIR/logs/web/nginx:/var/log/nginx
       - $DOCKERDIR/appdata/nginx:/etc/nginx
       - $DOCKERDIR/appdata/sites/shb/html:/var/www/html/shb
       #- $DOCKERDIR/appdata/sites/shb/beta:/var/www/html/beta
@@ -510,6 +558,41 @@ services:
       ## HTTP Services
       - "traefik.http.routers.vscode-rtr.service=vscode-svc"
       - "traefik.http.services.vscode-svc.loadbalancer.server.port=8443"
+
+  wg-easy:
+    image: weejewel/wg-easy
+    container_name: wg-easy
+    restart: unless-stopped
+    networks:
+      - default
+      - t2_proxy
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
+    ports:
+      - "51820:51820/udp"
+      - "51821:51821/tcp"
+    volumes:
+      - $DOCKERDIR/appdata/wireguard:/etc/wireguard
+    environment:
+      # ⚠️ Required:
+      # Change this to your host's public address
+      - WG_HOST=$SERVER_IP
+      - PASSWORD=Testpw
+      # Optional:
+      # - PASSWORD=foobar123
+      # - WG_PORT=51820
+      # - WG_DEFAULT_ADDRESS=10.8.0.x
+      # - WG_DEFAULT_DNS=1.1.1.1
+      # - WG_MTU=1420
+      # - WG_ALLOWED_IPS=192.168.15.0/24, 10.0.1.0/24
+      # - WG_PRE_UP=echo "Pre Up" > /etc/wireguard/pre-up.txt
+      # - WG_POST_UP=echo "Post Up" > /etc/wireguard/post-up.txt
+      # - WG_PRE_DOWN=echo "Pre Down" > /etc/wireguard/pre-down.txt
+      # - WG_POST_DOWN=echo "Post Down" > /etc/wireguard/post-down.txt
 
   ############################# MAINTENANCE
 

@@ -392,6 +392,20 @@ services:
       - "traefik.http.routers.dashy-rtr.service=dashy-svc"
       - "traefik.http.services.dashy-svc.loadbalancer.server.port=80"
 
+  # ZeroTier-One - Private Network over Internet
+  zerotier:
+    image: zerotier/zerotier-synology:latest
+    container_name: zerotier
+    network_mode: host
+    restart: always
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    devices:
+      - /dev/net/tun
+    volumes:
+      - $DOCKERDIR/appdata/zerotier:/var/lib/zerotier-one
+
   ############################# SMART HOME
 
   # Mosquitto - MQTT Broker
@@ -473,7 +487,7 @@ services:
       PLEX_CLAIM_FILE: /run/secrets/plex_claim
       PLEX_UID: $PUID
       PLEX_GID: $PGID
-      ADVERTISE_IP: http://$SERVER_IP1:32400/
+      ADVERTISE_IP: http://$ZEROTIER_IP_SYNOLOGY:32400/
     secrets:
       - plex_claim
     labels:
@@ -486,6 +500,19 @@ services:
       ## HTTP Services
       - "traefik.http.routers.plexms-rtr.service=plexms-svc"
       - "traefik.http.services.plexms-svc.loadbalancer.server.port=32400"
+
+  # Plex-Sync - For Syncing watched status between plex servers
+  plex-sync:
+    image: patsissons/plex-sync:develop
+    container_name: plex-sync
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      INITIAL_RUN: "true"
+      DRY_RUN: 0
+      CRON_SCHEDULE: "*/30 * * * *"
+      SECTION_MAPS: $HOME_PLEX/$HOME_PLEX_MOVIESH $CLOUD_PLEX/$CLOUD_PLEX_MOVIESH | $HOME_PLEX/$HOME_PLEX_SHOWST $CLOUD_PLEX/$CLOUD_PLEX_SHOWST | $HOME_PLEX/$HOME_PLEX_MOVIESI $CLOUD_PLEX/$CLOUD_PLEX_MOVIESI | $HOME_PLEX/$HOME_PLEX_MOVIEST $CLOUD_PLEX/$CLOUD_PLEX_MOVIEST | $HOME_PLEX/$HOME_PLEX_MOVIESK $CLOUD_PLEX/$CLOUD_PLEX_MOVIESK | $HOME_PLEX/$HOME_PLEX_SHOWSK $CLOUD_PLEX/$CLOUD_PLEX_SHOWSK
+    restart: unless-stopped
 
   ############################# MEDIA FILE MANAGEMENT
 
@@ -751,9 +778,9 @@ services:
       - "traefik.http.services.syncthing-svc.loadbalancer.server.port=8384"
 
   # VSCode - VSCode Editing
-  vscode:
+  vscode: # NOT WORKING - Started seeing WebSocket Closed with Status Code 1006 Error somewhere in July
     <<: *common-keys-core # See EXTENSION FIELDS at the top
-    image: lscr.io/linuxserver/code-server:latest
+    image: lscr.io/linuxserver/code-server:latest 
     container_name: vscode
     ports:
       - "$VSCODE_PORT:8443"
@@ -769,7 +796,7 @@ services:
       # SUDO_PASSWORD: password #optional
       # SUDO_PASSWORD_HASH: #optional
       # PROXY_DOMAIN: code-server.my.domain #optional
-      DEFAULT_WORKSPACE: /config/data/User/Workspaces/AZ.code-workspace #optional
+      # DEFAULT_WORKSPACE: /config/data/User/Workspaces/AZ.code-workspace #optional
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -852,14 +879,14 @@ services:
       - $DOCKERDIR/appdata/ddns-updater:/updater/data # Owned by UID 1000
     environment:
       <<: *default-tz-puid-pgid
-      PERIOD: 1h
+      PERIOD: 12h
       UPDATE_COOLDOWN_PERIOD: 5m
       PUBLICIP_DNS_TIMEOUT: 3s
       HTTP_TIMEOUT: 10s
       # Web UI
       LISTENING_PORT: 8000
       # Backup
-      BACKUP_PERIOD: 72h15m # 0 to disable
+      BACKUP_PERIOD: 96h # 0 to disable
       BACKUP_DIRECTORY: /updater/data/backups
       # Other
       LOG_LEVEL: info

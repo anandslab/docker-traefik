@@ -32,16 +32,16 @@ dip() {
 # DOCKER COMPOSE FILE BY HOSTNAME
 # I am sure there is a better way than using $HOSTNAME - if you do, feel free to share/contribute
 case $HOSTNAME in
-    cDoc)
+    cDoc|CDOC|cdoc)
       alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose-t2.yml'
       ;;
-    DSHB)
+    dSHB|DSHB|dshb)
       alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose-t2-web.yml'
       ;;
     DMS)
       alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose.yml'
       ;;
-    zSyn|zsyn) 
+    zSyn|zsyn|ZSYN) 
       alias dcrun2='sudo docker-compose -f /volume1/docker/docker-compose-t2-synology.yml'
       ;;
     *)
@@ -55,10 +55,11 @@ alias dcrec2='dcrun2 up -d --force-recreate'
 alias dcstop2='dcrun2 stop'
 alias dcrestart2='dcrun2 restart '
 alias dcpull2='dcrun2 pull'
-alias startbasic='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/basic-services.txt)'
-alias stopbasic='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/basic-services.txt)'
-alias stopmedia='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/media-services.txt)'
-alias startmedia='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/homeserver/media-services.txt)'
+alias startbasic='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/basic-services.txt)'
+alias stopbasic='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/basic-services.txt)'
+alias stopmedia='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/media-services.txt)'
+alias startmedia='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/media-services.txt)'
+alias webrs='dcrec2 php7 redis nginx'
 
 # CROWDSEC
 alias cscli='dcrun2 exec -t crowdsec cscli'
@@ -72,6 +73,15 @@ alias cshubupdate='cscli hub update'
 alias cshubupgrade='cscli hub update'
 alias csmetrics='cscli metrics'
 alias csmachines='cscli machines list'
+alias csbouncers='cscli bouncers list'
+alias csfbstatus='sudo systemctl status crowdsec-firewall-bouncer.service'
+alias csfbstart='sudo systemctl start crowdsec-firewall-bouncer.service'
+alias csfbstop='sudo systemctl stop crowdsec-firewall-bouncer.service'
+alias csfbrestart='sudo systemctl restart crowdsec-firewall-bouncer.service'
+alias tailkern='sudo tail -f /var/log/kern.log'
+alias tailauth='sudo tail -f /var/log/auth.log'
+alias tailcsfb='sudo tail -f /var/log/crowdsec-firewall-bouncer.log'
+alias csbrestart='dcrec2 traefik-bouncer ; csfbrestart'
 
 # WEB STACK
 alias webrs='dcrec2 php7 redis nginx'
@@ -137,11 +147,12 @@ alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 
 # TRASH - trash-cli
-alias rm='trash-put'
+alias rmt='trash-put'
+alias rm='rm -r'
 alias tput='trash-put'
 alias tempty='trash-empty ; sudo trash-empty ; sudo -H trash-empty'
 alias tlist='trash-list'
-alias srm='sudo trash-put'
+alias srmt='sudo trash-put'
 
 # FILE SIZE AND STORAGE
 alias fdisk='sudo fdisk -l'
@@ -160,7 +171,7 @@ alias usage10='du -hsx * | sort -rh | head -10' # Gives you what is using the mo
 # BASH
 alias baupdate='. ~/.bashrc'
 alias baedit='nano /home/$BA_USERNAME/.bash_aliases'
-#alias bacopy='sudo cp /home/$BA_USERNAME/.bash_aliases* /root/'
+alias bacopy='sudo cp /home/$BA_USERNAME/.bash_aliases* /root/'
 alias badomain='echo $BA_DOMAINNAME' # for troubleshooting
 
 # GIT AND SITE MANAGEMENT
@@ -281,12 +292,12 @@ alias gpumeminfo='grep -i --color memory /var/log/Xorg.0.log' # get GPU ram on d
 alias free='free -h'
 
 # RCLONE
-alias rcdlogs='tail -f /home/$BA_USERNAME/docker/logs/homeserver/rclone-drive.log'
-alias rcclogs='tail -f /home/$BA_USERNAME/docker/logs/homeserver/rclone-crypt.log'
-alias rcupmedia='bash /home/$BA_USERNAME/docker/scripts/homeserver/upload-media-now.sh'
-alias rcupmedialogs='tail -f /home/$BA_USERNAME/docker/logs/homeserver/upload-media-now.log'
-alias rcupdump='bash /home/$BA_USERNAME/docker/scripts/homeserver/upload-dump.sh'
-alias rcupdumplogs='tail -f /home/$BA_USERNAME/docker/logs/homeserver/upload-dump.log'
+alias rcdlogs='tail -f /home/$BA_USERNAME/docker/logs/cloudserver/rclone-drive.log'
+alias rcclogs='tail -f /home/$BA_USERNAME/docker/logs/cloudserver/rclone-crypt.log'
+alias rcupmedia='bash /home/$BA_USERNAME/docker/scripts/cloudserver/upload-media-now.sh'
+alias rcupmedialogs='tail -f /home/$BA_USERNAME/docker/logs/cloudserver/upload-media-now.log'
+alias rcupdump='bash /home/$BA_USERNAME/docker/scripts/cloudserver/upload-dump.sh'
+alias rcupdumplogs='tail -f /home/$BA_USERNAME/docker/logs/cloudserver/upload-dump.log'
 alias rcrestart='sudo bash /home/$BA_USERNAME/docker/scripts/rclone-restart.sh'
 alias rcstop='sudo bash /home/$BA_USERNAME/docker/scripts/rclone-stop.sh'
 alias rcstart='sudo bash /home/$BA_USERNAME/docker/scripts/rclone-start.sh'
