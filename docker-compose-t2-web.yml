@@ -113,7 +113,7 @@ services:
   traefik:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
-    image: traefik:2.7
+    image: traefik:2.8
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=true
@@ -581,7 +581,7 @@ services:
       # ⚠️ Required:
       # Change this to your host's public address
       - WG_HOST=$SERVER_IP
-      - PASSWORD=Testpw
+      - PASSWORD=$WGEASY_PASSWORD
       # Optional:
       # - PASSWORD=foobar123
       # - WG_PORT=51820

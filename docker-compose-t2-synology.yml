@@ -13,7 +13,7 @@ version: "3.9"
 # Google Drive mounted using Rclone Docker Container for media
 
 # Docker: 20.10.3
-# Docker Compose: 2.6.0
+# Docker Compose: 2.10.2
 
 ########################### NETWORKS
 # There is no need to create any networks outside this docker-compose file.
@@ -125,7 +125,7 @@ services:
   traefik:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
-    image: traefik:2.7
+    image: traefik:2.8
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=true
@@ -778,7 +778,7 @@ services:
       - "traefik.http.services.syncthing-svc.loadbalancer.server.port=8384"
 
   # VSCode - VSCode Editing
-  vscode: # NOT WORKING - Started seeing WebSocket Closed with Status Code 1006 Error somewhere in July
+  vscode: 
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/code-server:latest 
     container_name: vscode
