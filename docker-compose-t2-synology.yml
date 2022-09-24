@@ -119,8 +119,8 @@ services:
 
   # Traefik 2 - Reverse Proxy
   # touch (create empty files) traefik.log and acme/acme.json. Set acme.json permissions to 600.
-  # touch $DOCKERDIR/traefik2/acme/acme.json
-  # chmod 600 $DOCKERDIR/traefik2/acme/acme.json
+  # touch $DOCKERDIR/appdata/traefik2/acme/acme.json
+  # chmod 600 $DOCKERDIR/appdata/traefik2/acme/acme.json
   # touch $DOCKERDIR/logs/synology//traefik.log
   traefik:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
