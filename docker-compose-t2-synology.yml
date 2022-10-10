@@ -54,12 +54,8 @@ secrets:
     file: $DOCKERDIR/secrets/cf_email
   cf_api_key:
     file: $DOCKERDIR/secrets/cf_api_key
-  cf_token:
-    file: $DOCKERDIR/secrets/cf_token
   traefik_forward_auth:
     file: $DOCKERDIR/secrets/traefik_forward_auth
-  mysql_root_password:
-    file: $DOCKERDIR/secrets/mysql_root_password
   plex_claim:
     file: $DOCKERDIR/secrets/plex_claim
 
