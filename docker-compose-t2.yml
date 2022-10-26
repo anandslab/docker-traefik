@@ -650,8 +650,7 @@ services:
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.nzbget-rtr-bypass.entrypoints=https"
       # BYPASS IS NOT WORKING YET. NEED TO FIGURE THIS OUT.
-      - "traefik.http.routers.nzbget-rtr-bypass.rule=Host(`nzbget.$DOMAINNAME_CLOUD_SERVER`)"
-      #- "traefik.http.routers.nzbget-rtr-bypass.rule=Host(`nzbget.$DOMAINNAME_CLOUD_SERVER`) && Query(`apikey`, `$NZBGET_API_KEY`)"
+      - "traefik.http.routers.nzbget-rtr-bypass.rule=Host(`nzbget.$DOMAINNAME_CLOUD_SERVER`) && (Headers(`authorization`, `Basic $NZBGET_KEY`))"
       - "traefik.http.routers.nzbget-rtr-bypass.priority=100"
       ## HTTP Routers Auth
       - "traefik.http.routers.nzbget-rtr.entrypoints=https"
