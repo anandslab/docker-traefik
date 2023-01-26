@@ -10,8 +10,8 @@ version: "3.9"
 # Digital Ocean: 1 vCPU, 2 GB RAM, and 50 GB NVME
 # Use this Referral Link and get $100 Credit: https://m.do.co/c/5ae8e2c8f34b
 
-# Docker: 20.10.17
-# Docker Compose: 2.6.0 (v2 https://docs.docker.com/compose/#compose-v2-and-the-new-docker-compose-command)
+# Docker: 20.10.21
+# Docker Compose: v2.12.2 (docker-compose-plugin for Docker)
 
 ########################### NETWORKS
 # There is no need to create any networks outside this docker-compose file.
@@ -113,7 +113,7 @@ services:
   traefik:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
-    image: traefik:2.8
+    image: traefik:2.9
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=true
@@ -349,6 +349,8 @@ services:
       - "traefik.http.routers.autoindex-rtr.service=autoindex-svc"
       - "traefik.http.services.autoindex-svc.loadbalancer.server.port=80"
 
+  ############################# SECURITY
+
   # CrowdSec - Open-source & collaborative security IPS
   crowdsec:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
@@ -358,7 +360,7 @@ services:
       - "$CROWDSEC_API_PORT:8080"
       - "$ZEROTIER_IP_WEBSERVER:$CROWDSEC_PROMETHEUS_EXPORT:6060" # If you don't use ZeroTier remove use just $CROWDSEC_PROMETHEUS_EXPORT:6060
     environment:
-      COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/iptables crowdsecurity/linux crowdsecurity/nginx crowdsecurity/sshd"
+      COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/iptables crowdsecurity/linux crowdsecurity/nginx fulljackz/proxmox"
       GID: "${GID-1000}"
       CUSTOM_HOSTNAME: dSHB
     volumes:
@@ -368,17 +370,16 @@ services:
       - $DOCKERDIR/appdata/crowdsec/config:/etc/crowdsec
 
   # CrowdSec Bouncer - Traefik
+  # sudo docker exec crowdsec cscli bouncer add traefik-bouncer
   traefik-bouncer:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     image: fbonalair/traefik-crowdsec-bouncer
     container_name: traefik-bouncer
-    #ports:
-    #  - "$TRAEFIK_BOUNCER_PORT:8080"
     environment:
       GIN_MODE: release # default is debug (more logs)
       CROWDSEC_BOUNCER_API_KEY: $CROWDSEC_BOUNCER_TRAEFIK_API_KEY # sudo docker exec crowdsec cscli bouncers add traefik-bouncer
       CROWDSEC_AGENT_HOST: crowdsec:8080 # CrowdSec host and port
-      CROWDSEC_BOUNCER_LOG_LEVEL: 1 # 1 INFO 2 WARN https://pkg.go.dev/github.com/rs/zerolog#readme-leveled-logging
+      CROWDSEC_BOUNCER_LOG_LEVEL: 2 # https://pkg.go.dev/github.com/rs/zerolog#readme-leveled-logging
 
   # CrowdSec Bouncer - Cloudflare
   # sudo docker exec crowdsec cscli bouncer add cloudflare-bouncer
@@ -387,11 +388,27 @@ services:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     image: crowdsecurity/cloudflare-bouncer
     container_name: cloudflare-bouncer
-    #ports:
-    #  - "$CLOUDFLARE_BOUNCER_PORT:2112"
     volumes:
       - $DOCKERDIR/appdata/cloudflare-bouncer/cfg.yaml:/etc/crowdsec/bouncers/crowdsec-cloudflare-bouncer.yaml
-      - $DOCKERDIR/appdata/cloudflare-bouncer/cf-bouncer:/cf-bouncer
+
+  # CrowdSec Blocklist Mirror - For PiHole/AdGuard Use
+  # sudo docker exec crowdsec cscli bouncer add cloudflare-bouncer
+  crowdsec-blocklist:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    image: crowdsecurity/blocklist-mirror
+    container_name: crowdsec-blocklist
+    volumes:
+      - $DOCKERDIR/appdata/crowdsec-blocklist/cfg.yaml:/etc/crowdsec/bouncers/crowdsec-blocklist-mirror.yaml
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.crowdsec-blocklist-rtr.entrypoints=https"
+      - "traefik.http.routers.crowdsec-blocklist-rtr.rule=Host(`blocklist.$DOMAINNAME_SHB`)" # https://domain.com/security/blocklist
+      ## Middlewares
+      - "traefik.http.routers.crowdsec-blocklist-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.crowdsec-blocklist-rtr.service=crowdsec-blocklist-svc"
+      - "traefik.http.services.crowdsec-blocklist-svc.loadbalancer.server.port=41412"
 
   ############################# DATABASE
 
@@ -559,6 +576,7 @@ services:
       - "traefik.http.routers.vscode-rtr.service=vscode-svc"
       - "traefik.http.services.vscode-svc.loadbalancer.server.port=8443"
 
+  # WG-EASY - WireGuard Easy
   wg-easy:
     image: weejewel/wg-easy
     container_name: wg-easy
@@ -583,18 +601,17 @@ services:
       - WG_HOST=$SERVER_IP
       - PASSWORD=$WGEASY_PASSWORD
       # Optional:
-      # - PASSWORD=foobar123
       # - WG_PORT=51820
-      # - WG_DEFAULT_ADDRESS=10.8.0.x
-      # - WG_DEFAULT_DNS=1.1.1.1
+      - WG_DEFAULT_ADDRESS=192.168.20.x
+      - WG_DEFAULT_DNS=1.1.1.1
       # - WG_MTU=1420
-      # - WG_ALLOWED_IPS=192.168.15.0/24, 10.0.1.0/24
+      - WG_ALLOWED_IPS=0.0.0.0/0, ::/0
       # - WG_PRE_UP=echo "Pre Up" > /etc/wireguard/pre-up.txt
       # - WG_POST_UP=echo "Post Up" > /etc/wireguard/post-up.txt
       # - WG_PRE_DOWN=echo "Pre Down" > /etc/wireguard/pre-down.txt
       # - WG_POST_DOWN=echo "Post Down" > /etc/wireguard/post-down.txt
 
-  ############################# MAINTENANCE
+  ############################# MAINTENANCE AND TESTING
 
   # Docker-GC - Automatic Docker Garbage Collection
   # Create docker-gc-exclude file
@@ -616,3 +633,19 @@ services:
       CLEAN_UP_VOLUMES: 1
       TZ: $TZ
       DOCKER_HOST: tcp://socket-proxy:2375
+
+  # WhoAmI - For Testing and Troubleshooting
+  whoami:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    image: traefik/whoami
+    container_name: whoami
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.whoami-rtr.entrypoints=https"
+      - "traefik.http.routers.whoami-rtr.rule=Host(`whoami.$DOMAINNAME_SHB`)"
+      ## Middlewares
+      - "traefik.http.routers.whoami-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.whoami-rtr.service=whoami-svc"
+      - "traefik.http.services.whoami-svc.loadbalancer.server.port=80"

@@ -6,6 +6,7 @@
 # Sensitive information goes into the .env file - this allows me to share my bash aliases with the community
 # Rename shared/config/bash_aliases.env.example and use it as a starter
 source ~/.bash_aliases.env
+alias myprompt='export PS1="Anand>" '
 
 # DOCKER COMMON - All docker commands start with "d"
 alias dstop='sudo docker stop $(docker ps -a -q)'
@@ -32,11 +33,15 @@ dip() {
 # DOCKER COMPOSE FILE BY HOSTNAME
 # I am sure there is a better way than using $HOSTNAME - if you do, feel free to share/contribute
 case $HOSTNAME in
-    cDoc|CDOC|cdoc)
+    zdoc|zDoc)
       alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose-t2.yml'
+      alias traefiklogs='tail -f /home/$BA_USERNAME/docker/logs/cloudserver/traefik/traefik.log'
+      alias wd4='cd /media/zbox/wd4'
+      alias downloads='cd /media/data/downloads'
       ;;
     dSHB|DSHB|dshb)
       alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose-t2-web.yml'
+      alias traefiklogs='tail -f /home/$BA_USERNAME/docker/logs/webserver/traefik/traefik.log'
       ;;
     DMS)
       alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose.yml'
@@ -51,15 +56,17 @@ esac
 alias dclogs2='dcrun2 logs -tf --tail="50" '
 alias dcup2='dcrun2 up -d --build --remove-orphans'
 alias dcdown2='dcrun2 down --remove-orphans'
-alias dcrec2='dcrun2 up -d --force-recreate'
+alias dcrec2='dcrun2 up -d --force-recreate --remove-orphans'
 alias dcstop2='dcrun2 stop'
 alias dcrestart2='dcrun2 restart '
+alias dcstart2='dcrun2 start '
 alias dcpull2='dcrun2 pull'
 alias startbasic='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/basic-services.txt)'
 alias stopbasic='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/basic-services.txt)'
 alias stopmedia='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/media-services.txt)'
 alias startmedia='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/media-services.txt)'
 alias webrs='dcrec2 php7 redis nginx'
+
 
 # CROWDSEC
 alias cscli='dcrun2 exec -t crowdsec cscli'
@@ -175,7 +182,7 @@ alias bacopy='sudo cp /home/$BA_USERNAME/.bash_aliases* /root/'
 alias badomain='echo $BA_DOMAINNAME' # for troubleshooting
 
 # GIT AND SITE MANAGEMENT
-alias gcpush='echo "Usage: gcommit ../commits/date.txt" ; cd /home/$BA_USERNAME/docker ; bash scripts/doccheck.sh'
+alias gcpush='echo "Usage: gcpush ../commits/date.txt" ; cd /home/$BA_USERNAME/docker ; bash scripts/doccheck.sh'
 alias gpush='cd /home/$BA_USERNAME/docker ; git push'
 alias ggraph='git log --all --decorate --oneline --graph'
 

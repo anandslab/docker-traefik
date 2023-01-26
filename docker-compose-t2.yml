@@ -11,8 +11,8 @@ version: "3.9"
 # 64 GB for / and 2 TB for non-critical data and rclone cache.
 # Google Drive mounted using Rclone Docker for media and Proxmox backups
 
-# Docker: 20.10.17
-# Docker Compose: 2.6.0 (v2 https://docs.docker.com/compose/#compose-v2-and-the-new-docker-compose-command)
+# Docker: 20.10.21
+# Docker Compose: v2.12.2 (docker-compose-plugin for Docker)
 
 ########################### NETWORKS
 # There is no need to create any networks outside this docker-compose file.
@@ -67,6 +67,8 @@ secrets:
     file: $DOCKERDIR/secrets/guac_mysql_user
   guac_mysql_password:
     file: $DOCKERDIR/secrets/guac_mysql_password
+  plex_claim:
+    file: $DOCKERDIR/secrets/plex_claim
   #traefik_hub_agent_token:
   #  file: $DOCKERDIR/secrets/traefik_hub_agent_token
 
@@ -134,7 +136,7 @@ services:
   traefik:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
-    image: traefik:2.8
+    image: traefik:2.9
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=true
@@ -340,6 +342,8 @@ services:
     image: portainer/portainer-ce:latest
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
     command: -H tcp://socket-proxy:2375
+    ports:
+      - "$PORTAINER_PORT:9000"
     networks:
       - t2_proxy
       - socket_proxy
@@ -380,28 +384,30 @@ services:
       - "traefik.http.routers.autoindex-rtr.service=autoindex-svc"
       - "traefik.http.services.autoindex-svc.loadbalancer.server.port=80"
 
-  # Heimdall - Application Dashboard
-  heimdall:
+  # Homepage - Application Dashboard
+  homepage:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
-    image: lscr.io/linuxserver/heimdall
-    container_name: heimdall
+    image: ghcr.io/benphelps/homepage:latest
+    container_name: homepage
+    networks:
+      - t2_proxy
+      - socket_proxy
     # ports:
-    #  - "$HEIMDALL_PORT:80" # 80 to 82 already taken by other services
-      # - "444:443" # 443 used by Traefik/Nginx Proxy Manager. Disabled because we will put Heimdall behind proxy.
+    #  - "$HOMEPAGE_PORT:3000" 
     volumes:
-      - $DOCKERDIR/appdata/heimdall:/config
+      - $DOCKERDIR/appdata/homepage:/app/config
     environment:
       <<: *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
-      - "traefik.http.routers.heimdall-rtr.entrypoints=https"
-      - "traefik.http.routers.heimdall-rtr.rule=Host(`$DOMAINNAME_CLOUD_SERVER`,`www.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.homepage-rtr.entrypoints=https"
+      - "traefik.http.routers.homepage-rtr.rule=Host(`$DOMAINNAME_CLOUD_SERVER`,`www.$DOMAINNAME_CLOUD_SERVER`)"
       ## Middlewares
-      - "traefik.http.routers.heimdall-rtr.middlewares=chain-oauth@file"
+      - "traefik.http.routers.homepage-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
-      - "traefik.http.routers.heimdall-rtr.service=heimdall-svc"
-      - "traefik.http.services.heimdall-svc.loadbalancer.server.port=80"
+      - "traefik.http.routers.homepage-rtr.service=homepage-svc"
+      - "traefik.http.services.homepage-svc.loadbalancer.server.port=3000"
 
   # CrowdSec - Open-source & collaborative security IPS
   crowdsec:
@@ -410,19 +416,20 @@ services:
     container_name: crowdsec
     ports:
       - "$CROWDSEC_API_PORT:8080"
+      - "$ZEROTIER_IP_CLOUDSERVER:$CROWDSEC_PROMETHEUS_EXPORT:6060" # If you don't use ZeroTier remove use just $CROWDSEC_PROMETHEUS_EXPORT:6060
     environment:
-      COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/iptables crowdsecurity/linux crowdsecurity/nginx crowdsecurity/sshd"
+      COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/iptables crowdsecurity/linux fulljackz/proxmox"
       GID: "${GID-1000}"
-      CUSTOM_HOSTNAME: "cDoc"
+      CUSTOM_HOSTNAME: zDoc
       DISABLE_LOCAL_API: "true" # Only after successfully registering and validating remote agent below.
       # For the following, check local_api_credentials.yaml after cscli lapi register (secondary machine) and cscli machine validate (on primary machine)
       AGENT_USERNAME: $CROWDSEC_AGENT_USERNAME 
       AGENT_PASSWORD: $CROWDSEC_AGENT_PASSWORD 
       LOCAL_API_URL: $CROWDSEC_LOCAL_API_URL 
     volumes:
-      - $DOCKERDIR/logs/cloudserver:/logs:ro
+      - $DOCKERDIR/logs/cloudserver:/logs/cloudserver:ro
       - /var/log:/var/log:ro
-      - /media/cbox/log:/cbox/log:ro
+      - /media/zbox/log:/logs/zbox:ro
       - $DOCKERDIR/appdata/crowdsec/data:/var/lib/crowdsec/data
       - $DOCKERDIR/appdata/crowdsec/config:/etc/crowdsec
 
@@ -435,7 +442,7 @@ services:
       GIN_MODE: release # default is debug (more logs)
       CROWDSEC_BOUNCER_API_KEY: $CROWDSEC_BOUNCER_TRAEFIK_API_KEY
       CROWDSEC_AGENT_HOST: $CROWDSEC_LAPI_HOST:$CROWDSEC_LAPI_PORT # CrowdSec host and port
-  
+
   ############################# DATABASE
 
   # MariaDB - MySQL Database
@@ -551,7 +558,7 @@ services:
       t2_proxy:
         ipv4_address: 192.168.90.169
     # ports:
-    #  - "$TRANSMISSION_PORT:9091"
+    #  - "$TRANSMISSION_PORT:9091" if vpn is enabled you cannot access transmission using host ip
     cap_add:
       - NET_ADMIN
     devices:
@@ -563,7 +570,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - $DOCKERDIR/appdata/transmission-vpn/data:/data
       - $DOCKERDIR/appdata/transmission-vpn/config:/config
-      - $DATADIR/downloads:/data/downloads
+      - $EXTDRIVE/downloads:/data/downloads
     environment:
       <<: *default-tz-puid-pgid
       OPENVPN_PROVIDER: FASTESTVPN
@@ -573,17 +580,18 @@ services:
       #OPENVPN_OPTS: --inactive 3600 --ping 10 --ping-exit 60
       LOCAL_NETWORK: "$LOCAL_NETWORK"
       UMASK_SET: 2
+      # These transmission settings are not needed as /data/transmission-home/settings.json is persistent
       TRANSMISSION_RPC_AUTHENTICATION_REQUIRED: "true"
       TRANSMISSION_RPC_HOST_WHITELIST: "127.0.0.1,$SERVER_IP"
       TRANSMISSION_RPC_PASSWORD: $TRANSMISSION_RPC_PASSWORD
       TRANSMISSION_RPC_USERNAME: $TRANSMISSION_RPC_USERNAME
       TRANSMISSION_UMASK: 002
-      TRANSMISSION_RATIO_LIMIT: 0.01
+      TRANSMISSION_RATIO_LIMIT: 1.0
       TRANSMISSION_RATIO_LIMIT_ENABLED: "true"
-      TRANSMISSION_ALT_SPEED_DOWN: 40000
+      TRANSMISSION_ALT_SPEED_DOWN: 2000
       TRANSMISSION_ALT_SPEED_ENABLED: "false"
-      TRANSMISSION_ALT_SPEED_UP: 250
-      TRANSMISSION_SPEED_LIMIT_DOWN: 80000
+      TRANSMISSION_ALT_SPEED_UP: 100
+      TRANSMISSION_SPEED_LIMIT_DOWN: 10000
       TRANSMISSION_SPEED_LIMIT_DOWN_ENABLED: "true"
       TRANSMISSION_SPEED_LIMIT_UP: 500
       TRANSMISSION_SPEED_LIMIT_UP_ENABLED: "true"
@@ -611,11 +619,11 @@ services:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
     #network_mode: container:transmission-vpn
-    # ports:
-    #   - "$QBITTORRENT_PORT:8080"
+    ports:
+      - "$QBITTORRENT_PORT:8080"
     volumes:
       - $DOCKERDIR/appdata/qbittorrent:/config
-      - $DATADIR/downloads:/data/downloads # Ensure that downloads folder is set to /data/downloads in qBittorrent
+      - $EXTDRIVE/downloads:/data/downloads # Ensure that downloads folder is set to /data/downloads in qBittorrent
     environment:
       <<: *default-tz-puid-pgid
       UMASK_SET: 002
@@ -649,9 +657,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.nzbget-rtr-bypass.entrypoints=https"
-      # BYPASS IS NOT WORKING YET. NEED TO FIGURE THIS OUT.
-      - "traefik.http.routers.nzbget-rtr-bypass.rule=Host(`nzbget.$DOMAINNAME_CLOUD_SERVER`)"
-      #- "traefik.http.routers.nzbget-rtr-bypass.rule=Host(`nzbget.$DOMAINNAME_CLOUD_SERVER`) && Query(`apikey`, `$NZBGET_API_KEY`)"
+      - "traefik.http.routers.nzbget-rtr-bypass.rule=Headers(`traefik-bypass-key`, `$TRAEFIK_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
       - "traefik.http.routers.nzbget-rtr-bypass.priority=100"
       ## HTTP Routers Auth
       - "traefik.http.routers.nzbget-rtr.entrypoints=https"
@@ -659,7 +665,7 @@ services:
       - "traefik.http.routers.nzbget-rtr.priority=99"
       ## Middlewares
       - "traefik.http.routers.nzbget-rtr-bypass.middlewares=chain-no-auth@file"
-      - "traefik.http.routers.nzbget-rtr.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.nzbget-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.nzbget-rtr.service=nzbget-svc"
       - "traefik.http.routers.nzbget-rtr-bypass.service=nzbget-svc"
@@ -711,6 +717,7 @@ services:
       # Optional. See why MediaCover is mounted as volume https://github.com/htpcBeginner/docker-traefik/discussions/147
       - $DATADIR/temp/appdata/lidarr/MediaCover:/config/MediaCover
       - $DATADIR:/data
+      - $EXTDRIVE/downloads/torrents:/data/downloads/torrents
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       <<: *default-tz-puid-pgid
@@ -719,6 +726,7 @@ services:
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.lidarr-rtr-bypass.entrypoints=https"
       - "traefik.http.routers.lidarr-rtr-bypass.rule=Host(`lidarr.$DOMAINNAME_CLOUD_SERVER`) && (Headers(`X-Api-Key`, `$LIDARR_API_KEY`) || Query(`apikey`, `$LIDARR_API_KEY`))"
+      #- "traefik.http.routers.lidarr-rtr-bypass.rule=Headers(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
       - "traefik.http.routers.lidarr-rtr-bypass.priority=100"
       ## HTTP Routers Auth
       - "traefik.http.routers.lidarr-rtr.entrypoints=https"
@@ -748,6 +756,7 @@ services:
       # Optional. See why MediaCover is mounted as volume https://github.com/htpcBeginner/docker-traefik/discussions/147
       - $DATADIR/temp/appdata/radarr/MediaCover:/config/MediaCover
       - $DATADIR:/data
+      - $EXTDRIVE/downloads/torrents:/data/downloads/torrents
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       <<: *default-tz-puid-pgid
@@ -756,6 +765,7 @@ services:
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.radarr-rtr-bypass.entrypoints=https"
       - "traefik.http.routers.radarr-rtr-bypass.rule=Host(`radarr.$DOMAINNAME_CLOUD_SERVER`) && (Headers(`X-Api-Key`, `$RADARR_API_KEY`) || Query(`apikey`, `$RADARR_API_KEY`))"
+      #- "traefik.http.routers.radarr-rtr-bypass.rule=Headers(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
       - "traefik.http.routers.radarr-rtr-bypass.priority=100"
       ## HTTP Routers Auth
       - "traefik.http.routers.radarr-rtr.entrypoints=https"
@@ -785,6 +795,7 @@ services:
       # Optional. See why MediaCover is mounted as volume https://github.com/htpcBeginner/docker-traefik/discussions/147
       - $DATADIR/temp/appdata/sonarr/MediaCover:/config/MediaCover
       - $DATADIR:/data
+      - $EXTDRIVE/downloads/torrents:/data/downloads/torrents
       - "/etc/localtime:/etc/localtime:ro"
     environment:
       <<: *default-tz-puid-pgid
@@ -793,6 +804,7 @@ services:
       ## HTTP Routers Auth Bypass
       - "traefik.http.routers.sonarr-rtr-bypass.entrypoints=https"
       - "traefik.http.routers.sonarr-rtr-bypass.rule=Host(`sonarr.$DOMAINNAME_CLOUD_SERVER`) && (Headers(`X-Api-Key`, `$SONARR_API_KEY`) || Query(`apikey`, `$SONARR_API_KEY`))"
+      #- "traefik.http.routers.sonarr-rtr-bypass.rule=Headers(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
       - "traefik.http.routers.sonarr-rtr-bypass.priority=100"
       ## HTTP Routers Auth
       - "traefik.http.routers.sonarr-rtr.entrypoints=https"
@@ -812,8 +824,8 @@ services:
     <<: *common-keys-media # See EXTENSION FIELDS at the top
     image: hotio/readarr:nightly
     container_name: readarr
-    # ports:
-    #  - "$READARR_PORT:8787"
+    ports:
+      - "$READARR_PORT:8787"
     volumes:
       - $DOCKERDIR/appdata/readarr:/config
       - $DATADIR:/data
@@ -845,18 +857,27 @@ services:
       - $DOCKERDIR/appdata/airsonic/playlists:/data/playlists
       - $DOCKERDIR/appdata/airsonic/config:/config
       - $DATADIR/local/music:/data/music
+    ports:
+      - "$AIRSONIC_PORT:4040"
     environment:
       <<: *default-tz-puid-pgid
       JAVA_OPTS: '-Dserver.forward-headers-strategy=native' # optional - if you use a reverse-proxy
     labels:
       - "traefik.enable=true"
+      ## HTTP Routers Auth Bypass
+      - "traefik.http.routers.airsonic-rtr-bypass.entrypoints=https"
+      - "traefik.http.routers.airsonic-rtr-bypass.rule=Headers(`traefik-bypass-key`, `$TRAEFIK_BYPASS_KEY`)" # Bypass Auth 
+      - "traefik.http.routers.airsonic-rtr-bypass.priority=100"
       ## HTTP Routers
       - "traefik.http.routers.airsonic-rtr.entrypoints=https"
       - "traefik.http.routers.airsonic-rtr.rule=Host(`proxair.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.airsonic-rtr.priority=99"
       ## Middlewares
+      - "traefik.http.routers.airsonic-rtr-bypass.middlewares=chain-no-auth@file"
       - "traefik.http.routers.airsonic-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.airsonic-rtr.service=airsonic-svc"
+      - "traefik.http.routers.airsonic-rtr-bypass.service=airsonic-svc"
       - "traefik.http.services.airsonic-svc.loadbalancer.server.port=4040"
 
   # Jellyfin - Media Server
@@ -876,6 +897,7 @@ services:
       - $DOCKERDIR/appdata/jellyfin:/config
       - $DATADIR/temp/appdata/jellyfin/metadata:/config/metadata
       - $DATADIR/downloads:/data/downloads
+      - $EXTDRIVE/downloads/torrents:/data/downloads/torrents
       - $DATADIR/media:/data/media
       - /dev/shm:/data/transcode # Offload transcoding to RAM if you have enough RAM
     labels:
@@ -910,6 +932,7 @@ services:
     volumes:
       - $DOCKERDIR/appdata/plexms:/config
       - $DATADIR/downloads:/data/downloads
+      - $EXTDRIVE/downloads/torrents:/data/downloads/torrents
       - $DATADIR/media:/data/media
       - /dev/shm:/data/transcode # Offload transcoding to RAM if you have enough RAM
       # Optional. See why the folders below are mounted as volumes https://github.com/htpcBeginner/docker-traefik/discussions/147
@@ -922,7 +945,7 @@ services:
       PLEX_CLAIM_FILE: /run/secrets/plex_claim
       PLEX_UID: $PUID
       PLEX_GID: $PGID
-      ADVERTISE_IP: http://$ZEROTIER_IP_CLOUDSERVER:32400/
+      ADVERTISE_IP: "http://$SERVER_IP:32400/,http://$ZEROTIER_IP_CLOUDSERVER:32400/,https://proxplex.$DOMAINNAME_CLOUD_SERVER"
     secrets:
       - plex_claim
     labels:
@@ -966,13 +989,21 @@ services:
       <<: *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
+      ## HTTP Routers Auth Bypass
+      - "traefik.http.routers.tautulli-rtr-bypass.entrypoints=https"
+      - "traefik.http.routers.tautulli-rtr-bypass.rule=Host(`tautulli.$DOMAINNAME_CLOUD_SERVER`) && (Headers(`X-Api-Key`, `$TAUTULLI_API_KEY`) || Query(`apikey`, `$TAUTULLI_API_KEY`))"
+      #- "traefik.http.routers.tautulli-rtr-bypass.rule=Headers(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
+      - "traefik.http.routers.tautulli-rtr-bypass.priority=100"
       ## HTTP Routers
       - "traefik.http.routers.tautulli-rtr.entrypoints=https"
       - "traefik.http.routers.tautulli-rtr.rule=Host(`tautulli.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.tautulli-rtr.priority=99"
       ## Middlewares
+      - "traefik.http.routers.tautulli-rtr-bypass.middlewares=chain-no-auth@file"
       - "traefik.http.routers.tautulli-rtr.middlewares=chain-oauth@file"
-      ## HTTP Servicesnoauth
+      ## HTTP Services
       - "traefik.http.routers.tautulli-rtr.service=tautulli-svc"
+      - "traefik.http.routers.tautulli-rtr-bypass.service=tautulli-svc"
       - "traefik.http.services.tautulli-svc.loadbalancer.server.port=8181"
 
   ############################# MEDIA FILE MANAGEMENT
@@ -991,20 +1022,13 @@ services:
       <<: *default-tz-puid-pgid
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers Auth Bypass
-      - "traefik.http.routers.bazarr-rtr-bypass.entrypoints=https"
-      - "traefik.http.routers.bazarr-rtr-bypass.rule=Host(`bazarr.$DOMAINNAME_CLOUD_SERVER`) && (Headers(`X-Api-Key`, `$BAZARR_API_KEY`) || Query(`apikey`, `$BAZARR_API_KEY`))"
-      - "traefik.http.routers.bazarr-rtr-bypass.priority=100"
       ## HTTP Routers Auth
       - "traefik.http.routers.bazarr-rtr.entrypoints=https"
       - "traefik.http.routers.bazarr-rtr.rule=Host(`bazarr.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.bazarr-rtr.priority=99"
       ## Middlewares
-      - "traefik.http.routers.bazarr-rtr-bypass.middlewares=chain-no-auth@file"
       - "traefik.http.routers.bazarr-rtr.middlewares=chain-oauth@file"
       ## HTTP Services
       - "traefik.http.routers.bazarr-rtr.service=bazarr-svc"
-      - "traefik.http.routers.bazarr-rtr-bypass.service=bazarr-svc"
       - "traefik.http.services.bazarr-svc.loadbalancer.server.port=6767"
 
   # Picard - Music Library Tagging and Management
@@ -1142,8 +1166,8 @@ services:
     networks:
       - t2_proxy
       - default
-    # ports:
-    #   - "$GRAFANA_PORT:3000"
+    ports:
+      - "$GRAFANA_PORT:3000"
     user: $PUID
     volumes:
       - $DOCKERDIR/appdata/grafana:/var/lib/grafana
@@ -1169,8 +1193,8 @@ services:
     networks:
       - t2_proxy
       - default
-    # ports:
-    #   - "$GUACAMOLE_PORT:8080"
+    ports:
+      - "$GUACAMOLE_PORT:8080"
     environment:
       GUACD_HOSTNAME: guacd
       MYSQL_HOSTNAME: mariadb
@@ -1338,6 +1362,8 @@ services:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     image: lscr.io/linuxserver/code-server:latest
     container_name: vscode
+    ports:
+      - "$VSCODE_PORT:8443"
     volumes:
       - $DOCKERDIR:/data/docker
       - $USERDIR/server:/data/server
@@ -1408,6 +1434,17 @@ services:
       - "traefik.http.routers.uptime-kuma-rtr.service=uptime-kuma-svc"
       - "traefik.http.services.uptime-kuma-svc.loadbalancer.server.port=3001"
 
+  # AdGuard Home Sync - Sync Settings between AdGuard Homes
+  adguardhome-sync:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    image: lscr.io/linuxserver/adguardhome-sync:latest
+    container_name: adguardhome-sync
+    environment:
+      <<: *default-tz-puid-pgid
+      CONFIGFILE: /config/adguardhome-sync.yaml #optional
+    volumes:
+      - $DOCKERDIR/appdata/adguard-home/config:/config
+
   ############################# MAINTENANCE
 
   # Docker-GC - Automatic Docker Garbage Collection
@@ -1430,26 +1467,3 @@ services:
       CLEAN_UP_VOLUMES: 1
       TZ: $TZ
       DOCKER_HOST: tcp://socket-proxy:2375
-
-  # Cloudflare-Companion - Automatic CNAME DNS Creation
-  cf-companion:
-    <<: *common-keys-core # See EXTENSION FIELDS at the top
-    container_name: cf-companion
-    image: tiredofit/traefik-cloudflare-companion:latest
-    networks:
-      - socket_proxy
-    environment:
-      - TIMEZONE=$TZ
-      - TRAEFIK_VERSION=2
-      - CF_TOKEN__FILE=/run/secrets/cf_token
-      - TARGET_DOMAIN=cdoc.$DOMAINNAME_CLOUD_SERVER # Edit this. Either a subdomain or just $DOMAINNAME_CLOUD_SERVER pointing to the IP will work. See: https://github.com/htpcBeginner/docker-traefik/issues/244.
-      - DOMAIN1=$DOMAINNAME_CLOUD_SERVER
-      - DOMAIN1_ZONE_ID=$CLOUDFLARE_ZONEID # Copy from Cloudflare Overview page
-      - DOMAIN1_PROXIED=TRUE
-      - DOCKER_HOST=tcp://socket-proxy:2375
-    secrets: 
-      - cf_token
-    labels:
-      # Add hosts specified in rules here to force cf-companion to create the CNAMEs
-      # Since cf-companion creates CNAMEs based on host rules, this a workaround for non-docker/external apps
-      - "traefik.http.routers.cf-companion-rtr.rule=Host(Host(`webmin.$DOMAINNAME_CLOUD_SERVER`) || Host(`shell.$DOMAINNAME_CLOUD_SERVER`) || Host(`stcdoc.$DOMAINNAME_CLOUD_SERVER`) || Host(`ag.$DOMAINNAME_CLOUD_SERVER`)"

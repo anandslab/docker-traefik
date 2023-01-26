@@ -50,6 +50,6 @@ if /bin/findmnt $LOCAL -o FSTYPE -n | grep fuse; then
 fi
 
 # Rclone Move Command
-/usr/bin/rclone move $LOCAL $REMOTE:/media --max-transfer=500G --cutoff-mode=soft --delete-empty-src-dirs --log-file $LOGFILE -v --exclude-from $EXCLUDES --fast-list --min-age $MOVEAGE
+/usr/bin/rclone move $LOCAL $REMOTE:/media --drive-stop-on-upload-limit --max-transfer=500G --cutoff-mode=soft --delete-empty-src-dirs --log-file $LOGFILE -v --exclude-from $EXCLUDES --fast-list --min-age $MOVEAGE
 
 exit 0
