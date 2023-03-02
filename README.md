@@ -36,7 +36,7 @@ Go step-by-step. If you bite too big of a piece, I guarantee you will choke.
 
 <strong>Supporting Articles:</strong>
 
-- [How to Install Docker and Docker Compose on Ubuntu 22.04 LTS](https://www.smarthomebeginner.com/install-docker-on-ubuntu-22-04/)[VIDEO](https://youtu.be/nwFh4JBGD_0)
+- [How to Install Docker and Docker Compose on Ubuntu 22.04 LTS](https://www.smarthomebeginner.com/install-docker-on-ubuntu-22-04/) [[VIDEO](https://youtu.be/nwFh4JBGD_0)]
 - [How to Install Docker and Docker Compose on Ubuntu 20.04 LTS](https://www.smarthomebeginner.com/install-docker-on-ubuntu-20-04/)
 - [Cloudflare Settings for Traefik Docker: DDNS, CNAMEs, & Tweaks](https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/)
 - [Google OAuth 2 MFA Protection for Docker](https://www.smarthomebeginner.com/traefik-forward-auth-google-oauth-2022/)
