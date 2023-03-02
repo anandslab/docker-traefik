@@ -36,7 +36,7 @@ Go step-by-step. If you bite too big of a piece, I guarantee you will choke.
 
 <strong>Supporting Articles:</strong>
 
-- [How to Install Docker and Docker Compose on Ubuntu 22.04 LTS](https://www.smarthomebeginner.com/install-docker-on-ubuntu-22-04/)
+- [How to Install Docker and Docker Compose on Ubuntu 22.04 LTS](https://www.smarthomebeginner.com/install-docker-on-ubuntu-22-04/)[VIDEO](https://youtu.be/nwFh4JBGD_0)
 - [How to Install Docker and Docker Compose on Ubuntu 20.04 LTS](https://www.smarthomebeginner.com/install-docker-on-ubuntu-20-04/)
 - [Cloudflare Settings for Traefik Docker: DDNS, CNAMEs, & Tweaks](https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/)
 - [Google OAuth 2 MFA Protection for Docker](https://www.smarthomebeginner.com/traefik-forward-auth-google-oauth-2022/)
@@ -107,8 +107,10 @@ The apps I use are scattered around in several different docker-compose files. S
 - OAuth - Google OAuth 2 Forward Authentication
 - Authelia - Private Forward Authentication
 - Portainer - Container Management
-- Organizr - Unified Frontend
-- Heimdall - Unified Frontend Alternative
+- Organizr - Dashboard for Apps
+- Heimdall - Dashboard for Apps
+- Homepage - Dashboard for Apps
+- Dashy - Dashboard for Apps
 - Autoindex - Plain text Index to All Files
 
 ### SMART HOME
@@ -134,10 +136,10 @@ The apps I use are scattered around in several different docker-compose files. S
 ### DOWNLOADERS
 
 - jDownloader - Download management
-- TransmissionBT with VPN - Torrent Downloader with [IPVanish](https://www.smarthomebeginner.com/go/ipvanish) VPN.
+- TransmissionBT with VPN - Torrent Downloader.
 - SABnzbd - Binary newsgrabber, NZB downloader
 - Nzbget - Binary newsgrabber, NZB downloader
-- qBittorrent with VPN - Torrent downloader
+- qBittorrent with Wireguard VPN from [Surfshark](https://bit.ly/shb-surfshark) - Torrent downloader
 
 ### INDEXERS
 
@@ -200,6 +202,8 @@ The apps I use are scattered around in several different docker-compose files. S
 - UniFi Controller - Controller for Ubiquiti UniFi Network Gear
 - Rclone - Mount Cloud/Google Drive
 - MergerFS - Merge local and remote file systems
+- Gluetun - VPN client for docker containers and more
+- DeUnhealth - Auto restart containers on VPN restart
 
 ### WEB
 
@@ -213,6 +217,7 @@ The apps I use are scattered around in several different docker-compose files. S
 - Traefik Certificate Dumper - Extract Traefik SSL Certs
 - Cloudflare DDNS - Dynamic IP Updater
 - Cloudflare Companion - Automatic CNAME creation for services
+- WhoAmI - For testing.
 
 # Installation and Usage
 
