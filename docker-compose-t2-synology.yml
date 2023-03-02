@@ -13,7 +13,7 @@ version: "3.9"
 # Google Drive mounted using Rclone Docker Container for media
 
 # Docker: 20.10.3
-# Docker Compose: 2.10.2
+# Docker Compose: 2.15.1
 
 ########################### NETWORKS
 # There is no need to create any networks outside this docker-compose file.
@@ -361,37 +361,6 @@ services:
       - "traefik.http.routers.autoindex-rtr.service=autoindex-svc"
       - "traefik.http.services.autoindex-svc.loadbalancer.server.port=80"
 
-  # Dashy - Application Dashboard
-  dashy:
-    <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    container_name: dashy
-    image: lissy93/dashy
-    healthcheck:
-      test: ['CMD', 'node', '/app/services/healthcheck']
-      interval: 1m30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    ports:
-      - 4000:80
-    volumes:
-      - $DOCKERDIR/appdata/dashy/conf.yml:/app/public/conf.yml
-      - $DOCKERDIR/appdata/dashy:/app/public/item-icons
-    environment:
-      - NODE_ENV=production
-      - UID=$PUID
-      - GID=$PGID
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.dashy-rtr.entrypoints=https"
-      - "traefik.http.routers.dashy-rtr.rule=Host(`$DOMAINNAME_HOME_SYNOLOGY`,`www.$DOMAINNAME_HOME_SYNOLOGY`)"
-      ## Middlewares
-      - "traefik.http.routers.dashy-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
-      - "traefik.http.routers.dashy-rtr.service=dashy-svc"
-      - "traefik.http.services.dashy-svc.loadbalancer.server.port=80"
-
   # ZeroTier-One - Private Network over Internet
   zerotier:
     image: zerotier/zerotier-synology:latest
@@ -509,9 +478,9 @@ services:
       - no-new-privileges:true
     environment:
       INITIAL_RUN: "true"
-      DRY_RUN: 0
+      #DRY_RUN: 0
       CRON_SCHEDULE: "*/30 * * * *"
-      SECTION_MAPS: $HOME_PLEX/$HOME_PLEX_MOVIESH $CLOUD_PLEX/$CLOUD_PLEX_MOVIESH | $HOME_PLEX/$HOME_PLEX_SHOWST $CLOUD_PLEX/$CLOUD_PLEX_SHOWST | $HOME_PLEX/$HOME_PLEX_MOVIESI $CLOUD_PLEX/$CLOUD_PLEX_MOVIESI | $HOME_PLEX/$HOME_PLEX_MOVIEST $CLOUD_PLEX/$CLOUD_PLEX_MOVIEST | $HOME_PLEX/$HOME_PLEX_MOVIESK $CLOUD_PLEX/$CLOUD_PLEX_MOVIESK | $HOME_PLEX/$HOME_PLEX_SHOWSK $CLOUD_PLEX/$CLOUD_PLEX_SHOWSK
+      SECTION_MAPS: $CLOUD_PLEX/$CLOUD_PLEX_SHOWST $HOME_PLEX/$HOME_PLEX_SHOWST | $CLOUD_PLEX/$CLOUD_PLEX_MOVIESK $HOME_PLEX/$HOME_PLEX_MOVIESK | $CLOUD_PLEX/$CLOUD_PLEX_SHOWSK $HOME_PLEX/$HOME_PLEX_SHOWSK
     restart: unless-stopped
 
   ############################# MEDIA FILE MANAGEMENT
@@ -762,7 +731,8 @@ services:
       - "22000:22000/udp"
       - "21027:21027/udp"
     volumes:
-      - /volume1:/data
+      - /volume1:/data/volume1
+      - /volume3:/data/volume3
       - $DOCKERDIR/appdata/syncthing:/config
     environment:
       <<: *default-tz-puid-pgid

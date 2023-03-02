@@ -47,7 +47,7 @@ case $HOSTNAME in
       alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose.yml'
       ;;
     zSyn|zsyn|ZSYN) 
-      alias dcrun2='sudo docker-compose -f /volume1/docker/docker-compose-t2-synology.yml'
+      alias dcrun2='sudo docker-compose -f /volume3/docker/docker-compose-t2-synology.yml'
       ;;
     *)
 esac
