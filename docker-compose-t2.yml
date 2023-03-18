@@ -28,8 +28,11 @@ networks:
         - subnet: 192.168.90.0/24
   default:
     driver: bridge
-  socket_proxy:
-    name: socket_proxy
+   # docker-compose nuisance: networks are assigned interfaces based on alphabetical order in docker compose V3
+   # see https://github.com/docker/cli/issues/1372
+   # we want our default gateway in containers to be default > traefik > socket proxy, hence socket proxy gets a 'z' prefix
+  zsocket_proxy:
+    name: zsocket_proxy
     driver: bridge
     ipam:
       config:
@@ -188,7 +191,7 @@ services:
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
-      socket_proxy:
+      zsocket_proxy:
     #healthcheck:
     #  test: ["CMD", "traefik", "healthcheck", "--ping"]
     #  interval: 5s
@@ -256,7 +259,7 @@ services:
     container_name: socket-proxy
     image: tecnativa/docker-socket-proxy
     networks:
-      socket_proxy:
+      zsocket_proxy:
         ipv4_address: 192.168.91.254 # You can specify a static IP
     # privileged: true # true for VM. False for unprivileged LXC container.
     #ports:
@@ -346,7 +349,7 @@ services:
       - "$PORTAINER_PORT:9000"
     networks:
       - t2_proxy
-      - socket_proxy
+      - zsocket_proxy
     volumes:
       # - /var/run/docker.sock:/var/run/docker.sock:ro # # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/appdata/portainer/data:/data # Change to local directory if you want to save/transfer config locally
@@ -1202,7 +1205,7 @@ services:
     # network_mode: host
     networks:
       - t2_proxy
-      - socket_proxy
+      - zsocket_proxy
       - default
     # ports:
     #   - "$GLANCES_PORT:61208"
@@ -1267,7 +1270,7 @@ services:
     container_name: dozzle
     networks:
       - t2_proxy
-      - socket_proxy
+      - zsocket_proxy
     # ports:
     #   - "$DOZZLE_PORT:8080"
     environment:
@@ -1428,7 +1431,7 @@ services:
     image: clockworksoul/docker-gc-cron:latest
     container_name: docker-gc
     networks:
-      - socket_proxy
+      - zsocket_proxy
     volumes:
       # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/appdata/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude
@@ -1464,7 +1467,7 @@ services:
     image: qmcgaw/deunhealth
     container_name: deunhealth
     networks:
-      - socket_proxy
+      - zsocket_proxy
     environment:
       LOG_LEVEL: info
       HEALTH_SERVER_ADDRESS: 127.0.0.1:9999
