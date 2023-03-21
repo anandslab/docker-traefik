@@ -9,6 +9,7 @@ http:
       service: haos-svc
       tls:
         certResolver: dns-cloudflare
+        options: tls-opts@file
   services:
     haos-svc:
       loadBalancer:
