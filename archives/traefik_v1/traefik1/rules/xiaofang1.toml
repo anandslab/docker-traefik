@@ -1,0 +1,31 @@
+[backends]
+  [backends.backend-xiaofang1]
+    [backends.backend-xiaofang1.servers]
+      [backends.backend-xiaofang1.servers.server-xiaofang1-ext]
+        url = "https://192.168.15.4"
+        weight = 0
+[frontends]
+  [frontends.frontend-xiaofang1]
+    backend = "backend-xiaofang1"
+    passHostHeader = true
+    [frontends.frontend-xiaofang1.routes]
+          [frontends.frontend-xiaofang1.routes.route-xiaofang1-ext]
+        rule = "Host:xiaofang1.example.com"
+    [frontends.frontend-xiaofang1.headers]
+      SSLRedirect = true
+      SSLHost = "xiaofang1.example.com"
+      SSLForceHost = true
+      STSSeconds = 315360000
+      STSIncludeSubdomains = true
+      STSPreload = true
+      forceSTSHeader = true
+      frameDeny = true
+      contentTypeNosniff = true
+      browserXSSFilter = true
+      customFrameOptionsValue="allow-from https:example.com"
+    [frontends.frontend-xiaofang1.auth]
+      headerField = "X-WebAuth-User"
+      [frontends.frontend-xiaofang1.auth.forward]
+        address = "http://oauth:4181"
+        trustForwardHeader = true
+        authResponseHeaders = ["X-Forwarded-User"]

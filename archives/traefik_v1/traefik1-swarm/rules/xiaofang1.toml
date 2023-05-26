@@ -1,0 +1,14 @@
+[backends]
+  [backends.backend-xiaofang1.servers]
+    [backends.backend-xiaofang1.servers.server-xiaofang1-ext]
+      url = "https://192.168.1.83"
+      weight = 0
+
+[frontends]
+  [frontends.frontend-xiaofang1]
+    backend = "backend-xiaofang1"
+    passHostHeader = true
+
+    [frontends.frontend-xiaofang1.routes]
+      [frontends.frontend-xiaofang1.routes.route-xiaofang1-ext]
+        rule = "Host:xiaofang1.example.com" 

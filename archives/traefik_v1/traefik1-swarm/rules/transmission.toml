@@ -1,0 +1,17 @@
+[backends]
+  [backends.backend-trans]
+    [backends.backend-trans.servers]
+      [backends.backend-trans.servers.server-trans-ext]
+        url = "http://192.168.1.90:8169"
+        weight = 0
+
+[frontends]
+  [frontends.frontend-trans]
+    backend = "backend-trans"
+    passHostHeader = true
+#    basicAuth = [
+#      "user:HASHED_PASSWORD",
+#    ]
+    [frontends.frontend-trans.routes]
+          [frontends.frontend-trans.routes.route-trans-ext]
+        rule = "Host:trans.example.com"

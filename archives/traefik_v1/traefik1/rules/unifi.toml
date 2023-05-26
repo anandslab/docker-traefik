@@ -1,0 +1,31 @@
+[backends]
+  [backends.backend-ufi]
+    [backends.backend-ufi.servers]
+      [backends.backend-ufi.servers.server-ufi-ext]
+        url = "https://192.168.5.254:8443"
+        weight = 0
+[frontends]
+  [frontends.frontend-ufi]
+    backend = "backend-ufi"
+    passHostHeader = true
+    [frontends.frontend-ufi.routes]
+          [frontends.frontend-ufi.routes.route-ufi-ext]
+        rule = "Host:ufi.example.com"
+    [frontends.frontend-ufi.headers]
+      SSLRedirect = true
+      SSLHost = "ufi.example.com"
+      SSLForceHost = true
+      STSSeconds = 315360000
+      STSIncludeSubdomains = true
+      STSPreload = true
+      forceSTSHeader = true
+      frameDeny = true
+      contentTypeNosniff = true
+      browserXSSFilter = true
+      customFrameOptionsValue="allow-from https:example.com"
+    [frontends.frontend-ufi.auth]
+      headerField = "X-WebAuth-User"
+      [frontends.frontend-ufi.auth.forward]
+        address = "http://oauth:4181"
+        trustForwardHeader = true
+        authResponseHeaders = ["X-Forwarded-User"]

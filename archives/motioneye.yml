@@ -1,0 +1,40 @@
+  # MotionEye - Video Surveillance
+  motioneye:
+    image: ccrisan/motioneye:master-amd64
+    container_name: motioneye
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "$MOTIONEYE_CAM1:8081"
+      - "$MOTIONEYE_CAM2:8082"
+      - "$MOTIONEYE_CAM3:8083"
+      - "$MOTIONEYE_PORT:8765"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - $DOCKERDIR/shared:/shared
+      - $DOCKERDIR/motioneye/etc:/etc/motioneye
+      - $DOCKERDIR/motioneye/merged:/var/lib/motioneye # merged = local + google drive, using rclone and mergerfs
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers Auth Bypass
+      # - "traefik.http.routers.motioneye-rtr-bypass.entrypoints=https"
+      # - "traefik.http.routers.motioneye-rtr-bypass.rule=Headers(`$MOTIONEYE_BYPASS_KEY`, `$MOTIONEYE_BYPASS_VALUE`)"
+      # - "traefik.http.routers.motioneye-rtr-bypass.priority=100"
+      ## HTTP Routers Auth
+      - "traefik.http.routers.motioneye-rtr.entrypoints=https"
+      - "traefik.http.routers.motioneye-rtr.rule=Host(`meye.$DOMAINNAME`)"
+      - "traefik.http.routers.motioneye-rtr.priority=99"
+      ## Middlewares
+      # - "traefik.http.routers.motioneye-rtr-bypass.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.motioneye-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.motioneye-rtr.service=motioneye-svc"
+      # - "traefik.http.routers.motioneye-rtr-bypass.service=motioneye-svc"
+      - "traefik.http.services.motioneye-svc.loadbalancer.server.port=8765"

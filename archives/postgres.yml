@@ -1,0 +1,13 @@
+  # Postgres - Database
+  postgres:
+    image: postgres
+    container_name: postgres
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - $DOCKERDIR/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: $STATPING_DB_PASS
+      POSTGRES_USER: $STATPING_DB_USER
+      POSTGRES_DB: $STATPING_DB

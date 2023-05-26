@@ -1,0 +1,21 @@
+  # WatchTower - Automatic Docker Container Updates
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    networks:
+      - socket_proxy
+    depends_on:
+      - socket-proxy
+    environment:
+      TZ: $TZ
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_REMOVE_VOLUMES: "true"
+      WATCHTOWER_INCLUDE_STOPPED: "true"
+      WATCHTOWER_NO_STARTUP_MESSAGE: "false"
+      WATCHTOWER_SCHEDULE: "0 30 12 * * *" # Everyday at 12:30
+      WATCHTOWER_NOTIFICATIONS: shoutrrr
+      WATCHTOWER_NOTIFICATION_URL: "telegram://$TGRAM_BOT_TOKEN@telegram?channels=$TGRAM_CHAT_ID"
+      WATCHTOWER_NOTIFICATIONS_LEVEL: info
+      DOCKER_HOST: tcp://socket-proxy:2375
+      DOCKER_API_VERSION: "1.40"

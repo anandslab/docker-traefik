@@ -1,0 +1,17 @@
+[backends]
+  [backends.backend-hassterm]
+    [backends.backend-hassterm.servers]
+      [backends.backend-hassterm.servers.server-hassterm-ext]
+        url = "http://192.168.1.90:7681"
+        weight = 0
+
+[frontends]
+  [frontends.frontend-hassterm]
+    backend = "backend-hassterm"
+    passHostHeader = true
+#    basicAuth = [
+#      "user:HASHED_PASSWORD",
+#    ]
+    [frontends.frontend-hassterm.routes]
+          [frontends.frontend-hassterm.routes.route-hassterm-ext]
+        rule = "Host:hassterm.example.com"

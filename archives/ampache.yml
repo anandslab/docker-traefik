@@ -1,0 +1,28 @@
+  # Ampache - Music Server
+  ampache:
+    container_name: ampache
+    image: ampache/ampache:nosql
+    restart: "no"
+    # profiles:
+    # - media
+    networks:
+      - t2_proxy
+      - default
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$AMPACHE_PORT:80"
+    volumes:
+      - $DOCKERDIR/appdata/ampache/config:/var/www/config
+      - $DOCKERDIR/appdata/ampache/log:/var/log/ampache
+      - $DATADIR/media/music:/media
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.ampache-rtr.entrypoints=https"
+      - "traefik.http.routers.ampache-rtr.rule=Host(`amp.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.ampache-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.ampache-rtr.service=ampache-svc"
+      - "traefik.http.services.ampache-svc.loadbalancer.server.port=80"

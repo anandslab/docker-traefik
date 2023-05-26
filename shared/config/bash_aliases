@@ -33,21 +33,22 @@ dip() {
 # DOCKER COMPOSE FILE BY HOSTNAME
 # I am sure there is a better way than using $HOSTNAME - if you do, feel free to share/contribute
 case $HOSTNAME in
-    zdoc|zDoc)
-      alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose-t2.yml'
+    home-server)
+      alias dcrun2='sudo docker compose --profile all -f /home/$BA_USERNAME/docker/docker-compose-t2.yml'
       alias traefiklogs='tail -f /home/$BA_USERNAME/docker/logs/cloudserver/traefik/traefik.log'
-      alias wd4='cd /media/zbox/wd4'
-      alias downloads='cd /media/data/downloads'
       ;;
-    dSHB|DSHB|dshb)
+    media-server)
+      alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose-t2-media-db.yml'
+      ;;
+    web-server)
       alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose-t2-web.yml'
       alias traefiklogs='tail -f /home/$BA_USERNAME/docker/logs/webserver/traefik/traefik.log'
       ;;
+    ds918) 
+      alias dcrun2='sudo docker-compose -f /volume6/docker/docker-compose-t2-synology.yml'
+      ;;
     DMS)
       alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose.yml'
-      ;;
-    zSyn|zsyn|ZSYN) 
-      alias dcrun2='sudo docker-compose -f /volume3/docker/docker-compose-t2-synology.yml'
       ;;
     *)
 esac
@@ -61,12 +62,11 @@ alias dcstop2='dcrun2 stop'
 alias dcrestart2='dcrun2 restart '
 alias dcstart2='dcrun2 start '
 alias dcpull2='dcrun2 pull'
-alias startbasic='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/basic-services.txt)'
-alias stopbasic='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/basic-services.txt)'
+alias startcore='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/core-services.txt)'
+alias stopcore='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/core-services.txt)'
 alias stopmedia='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/media-services.txt)'
 alias startmedia='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/media-services.txt)'
 alias webrs='dcrec2 php7 redis nginx'
-
 
 # CROWDSEC
 alias cscli='dcrun2 exec -t crowdsec cscli'
@@ -143,8 +143,9 @@ alias scp='scp -r'
 alias rsynce='sudo rsync -avzh --progress --force --delete --exclude-from /home/$BA_USERNAME/docker/shared/config/rsync-exclude'
 alias rsyncne='sudo rsync -avzh --progress --force --delete'
 alias cpn='cp --verbose' # native copy
-alias cp='sudo rsync -azh --info=progress2' # copy files with rsync
-alias mv='mv --verbose' # native move
+alias cp='sudo rsync -avzh --info=progress2' # copy files with rsync
+alias mv='sudo rsync -avzh --info=progress2 --remove-source-files' # move files with rsync
+alias mvn='mv --verbose' # native move
 
 # SEARCH AND FIND
 alias gh='history|grep' # search bash history

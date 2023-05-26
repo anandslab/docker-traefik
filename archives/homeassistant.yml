@@ -1,0 +1,57 @@
+  # Home Assistant Core - Home Automation
+  # Added temporarily since HASS.io (Home Assistant Supervised) on Docker has been deprecated.
+  homeassistant:
+    container_name: hass-core
+    restart: unless-stopped
+    image: homeassistant/home-assistant:2021.1.5
+    network_mode: host
+    #    networks:
+    #      - t2_proxy
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/ttyUSB1:/dev/ttyUSB1
+      - /dev/ttyACM0:/dev/ttyACM0
+    privileged: true
+    volumes:
+      - $USERDIR/docker/homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+      #- /media/ssd/motioneye:/media/motioneye
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    labels:
+      ## Exclude From Watchtower
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  # Home Assistant Core - Home Automation
+  # If you want Home Assistant, use the one above. This is was old setup. I am still migrating things from this one to Home Assistant Core Above.
+  # Added temporarily since HASS.io (Home Assistant Supervised) on Docker has been deprecated.
+  hassio:
+    container_name: hassio
+    restart: unless-stopped
+    image: homeassistant/home-assistant:0.111.0
+    networks:
+      - t2_proxy
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/ttyUSB1:/dev/ttyUSB1
+      - /dev/ttyACM0:/dev/ttyACM0
+    ports:
+      - target: 8123
+        published: $HOMEASSISTANT_PORT
+        protocol: tcp
+        mode: host
+    privileged: true
+    volumes:
+      - $USERDIR/docker/hassio/homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+      - $USERDIR/docker/shared:/shared
+      - $USERDIR/docker/open-zwave:/open-zwave
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    labels:
+      ## Exclude From Watchtower
+      - "com.centurylinklabs.watchtower.enable=false"

@@ -1,0 +1,17 @@
+[backends]
+  [backends.backend-vscode]
+    [backends.backend-vscode.servers]
+      [backends.backend-vscode.servers.server-vscode-ext]
+        url = "http://192.168.1.90:1337"
+        weight = 0
+
+[frontends]
+  [frontends.frontend-vscode]
+    backend = "backend-vscode"
+    passHostHeader = true
+#    basicAuth = [
+#      "user:HASHED_PASSWORD",
+#    ]
+    [frontends.frontend-vscode.routes]
+          [frontends.frontend-vscode.routes.route-vscode-ext]
+        rule = "Host:vscode.example.com"

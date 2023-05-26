@@ -1,0 +1,31 @@
+[backends]
+  [backends.backend-dafang1]
+    [backends.backend-dafang1.servers]
+      [backends.backend-dafang1.servers.server-dafang1-ext]
+        url = "https://192.168.5.246"
+        weight = 0
+[frontends]
+  [frontends.frontend-dafang1]
+    backend = "backend-dafang1"
+    passHostHeader = true
+    [frontends.frontend-dafang1.routes]
+          [frontends.frontend-dafang1.routes.route-dafang1-ext]
+        rule = "Host:dafang1.example.com"
+    [frontends.frontend-dafang1.headers]
+      SSLRedirect = true
+      SSLHost = "dafang1.example.com"
+      SSLForceHost = true
+      STSSeconds = 315360000
+      STSIncludeSubdomains = true
+      STSPreload = true
+      forceSTSHeader = true
+      frameDeny = true
+      contentTypeNosniff = true
+      browserXSSFilter = true
+      customFrameOptionsValue="allow-from https:example.com"
+    [frontends.frontend-dafang1.auth]
+      headerField = "X-WebAuth-User"
+      [frontends.frontend-dafang1.auth.forward]
+        address = "http://oauth:4181"
+        trustForwardHeader = true
+        authResponseHeaders = ["X-Forwarded-User"]

@@ -1,0 +1,14 @@
+[backends]
+  [backends.backend-synology.servers]
+    [backends.backend-synology.servers.server-synology-ext]
+      url = "http://192.168.1.254:5000"
+      weight = 0
+
+[frontends]
+  [frontends.frontend-synology]
+    backend = "backend-synology"
+    passHostHeader = true
+
+    [frontends.frontend-synology.routes]
+      [frontends.frontend-synology.routes.route-synology-ext]
+        rule = "Host:syno.example.com" 

@@ -7,7 +7,7 @@ version: "3.9"
 
 ########################### SYSTEM DESCRIPTION
 # DOCKER-COMPOSE FOR WORDPRESS / WEB SERVER
-# Digital Ocean: 1 vCPU, 2 GB RAM, and 50 GB NVME
+# Digital Ocean: 2 vCPU, 2 GB RAM, and 60 GB NVME
 # Use this Referral Link and get $100 Credit: https://m.do.co/c/5ae8e2c8f34b
 
 # Docker: 23.0.1
@@ -80,7 +80,7 @@ x-common-keys-core: &common-keys-core
   # - core
 
 # Keys common to some of the services in basic-services.txt
-x-common-keys-core: &common-keys-monitoring
+x-common-keys-monitoring: &common-keys-monitoring
   networks:
     - t2_proxy
   security_opt:
@@ -649,3 +649,39 @@ services:
       ## HTTP Services
       - "traefik.http.routers.whoami-rtr.service=whoami-svc"
       - "traefik.http.services.whoami-svc.loadbalancer.server.port=80"
+
+  # Traefik Certs Dumper - Extract LetsEncrypt Certificates - Traefik2 Compatible
+  certdumper:
+    container_name: traefik_certdumper
+    image: humenius/traefik-certs-dumper:latest
+    network_mode: none
+    security_opt:
+      - no-new-privileges:true
+    # command: --restart-containers container1,container2,container3
+    volumes:
+      - $DOCKERDIR/appdata/traefik2/acme:/traefik:ro
+      - $DOCKERDIR/shared/certs/$DOMAINNAME_SHB:/output:rw
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Only needed if restarting containers (use Docker Socket Proxy instead)
+    environment:
+      DOMAIN: $DOMAINNAME_SHB
+
+  # AdGuard Home - DNS AdBlocking
+  adguardhome:
+    container_name: adguardhome
+    image: adguard/adguardhome
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    ports:
+      - 53:53/udp
+      - 67:67/udp 
+      - 68:68/tcp 
+      - 68:68/udp 
+      - 81:80/tcp 
+      - 444:443/tcp 
+      - 853:853/tcp 
+      - 3000:3000/tcp 
+    volumes:
+      - $DOCKERDIR/appdata/adguardhome/conf:/opt/adguardhome/conf
+      - $DOCKERDIR/appdata/adguardhome/work:/opt/adguardhome/work
+      - $DOCKERDIR/shared/certs/$DOMAINNAME_SHB:/certs # optional: if you have your own SSL certs

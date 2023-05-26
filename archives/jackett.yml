@@ -1,0 +1,28 @@
+  # Jackett - Torrent proxy
+  # Set url_base in Jackett settings if using PathPrefix
+  jackett:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    # network_mode: container:transmission-vpn
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.161
+    # ports:
+    #  - "$JACKETT_PORT:9117"
+    volumes:
+      - $DOCKERDIR/appdata/jackett:/config
+      - $DATADIR/downloads:/data/downloads
+      - "/etc/localtime:/etc/localtime:ro"
+    environment:
+      <<: *default-tz-puid-pgid
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.jackett-rtr.entrypoints=https"
+      - "traefik.http.routers.jackett-rtr.rule=Host(`jackett.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.jackett-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.jackett-rtr.service=jackett-svc"
+      - "traefik.http.services.jackett-svc.loadbalancer.server.port=9117"

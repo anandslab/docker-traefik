@@ -1,0 +1,40 @@
+  # MergerFS - A featureful union filesystem
+  mergerfs:
+    container_name: mergerfs
+    hostname: mergerfs
+    image: hotio/mergerfs:latest
+    restart: always
+    depends_on:
+      - rclone-drive
+      - rclone-crypt
+    user: $PUID:$PGID
+    command: "/data/media-local:/data/media-crypt:/data/media-drive=RO \
+      /data/media \
+      -o rw,\
+      use_ino,\
+      allow_other,\
+      func.getattr=newest,\
+      category.action=all,\
+      category.create=ff,\
+      statfs_ignore=nc,\
+      cache.files=auto-full,\
+      func.getattr=newest,\
+      dropcacheonclose=true,\
+      nonempty"
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    devices:
+      - /dev/fuse
+    environment:
+      - TZ=$TZ
+    volumes:
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - /etc/fuse.conf:/etc/fuse.conf:shared
+      #- $DATADIR:/data:slave # creates local-media and shb-media on host
+      - $DATADIR/local/media:/data/media-local:rshared
+      - /media/shb-drive/media:/data/media-drive:rshared
+      - /media/shb-crypt/media:/data/media-crypt:rshared
+      - $DATADIR/media:/data/media:rshared

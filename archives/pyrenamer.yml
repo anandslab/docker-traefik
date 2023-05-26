@@ -1,0 +1,34 @@
+  #PyRenamer - Easily Rename Your Files
+  pyrenamer:
+    image: mikenye/pyrenamer:latest
+    container_name: pyrenamer
+    restart: "no"
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$PYRENAMER_PORT:5800"
+    volumes:
+      - $USERDIR/Downloads:/data/downloads:rw
+      - $DOCKERDIR/appdata/pyrenamer:/config:rw
+      - /media/shb-drive/data/media:/data/shb:rw
+      - /media/ds918/data/media:/data/ds918:rw
+      - /dev/shm:/dev/shm
+    environment:
+      USER_ID: $PUID
+      GROUP_ID: $PGID
+      TZ: $TZ
+      UMASK: 002
+      DISPLAY_WIDTH: 1600
+      DISPLAY_HEIGHT: 960
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.pyrenamer-rtr.entrypoints=https"
+      - "traefik.http.routers.pyrenamer-rtr.rule=Host(`pyrenamer.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.pyrenamer-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.pyrenamer-rtr.service=pyrenamer-svc"
+      - "traefik.http.services.pyrenamer-svc.loadbalancer.server.port=5800"

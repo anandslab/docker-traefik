@@ -1,0 +1,216 @@
+version: "3.9"
+
+######### IMPORTANT #############
+# docker-compose-t2.yml is my main docker compose.
+# This is my docker-compose file for media servers and databases. 
+# I am running my media servers and databases, isolated from other home server apps, to ensure better availability.
+# You can copy-paste services from one docker-compose file in this repo to another to add other apps.
+
+########################### SYSTEM DESCRIPTION
+# DOCKER-COMPOSE FOR MEDIA SERVER
+# PROXMOX HOST: ASROCK 4X4 BOX-4800U, 64 GB RAM, 1 TB NVME m.2 SSD, and 2 TB SATA SSD
+# LXC: 12 Cores (limit 8), 16 GB RAM, 4 GB Swap, Ubuntu 22.04, and Docker
+# Google Drive mounted using Rclone on Proxmox host, and shared with the LXC using RO bind mount. 
+
+# Docker: 23.0.3
+# Docker Compose: v2.17.2 (docker-compose-plugin for Docker)
+
+########################### NETWORKS
+# There is no need to create any networks outside this docker-compose file.
+# You may customize the network subnets (192.168.90.0/24 and 91.0/24) below as you please.
+# Docker Compose version 3.5 or higher required to define networks this way.
+
+networks:
+  default:
+    driver: bridge
+  dockervlan:
+    name: dockervlan
+    driver: macvlan
+    driver_opts:
+      parent: eth0 # using ifconfig
+    ipam:
+      config:
+        - subnet: "192.168.1.0/24"
+          ip_range: "192.168.1.226/32"
+          gateway: "192.168.1.1"
+
+########################### SECRETS
+secrets:
+  plex_claim:
+    file: $DOCKERDIR/secrets/plex_claim
+  mysql_root_password:
+    file: $DOCKERDIR/secrets/mysql_root_password
+
+########################### SERVICES
+services:
+
+############################# MEDIA
+
+  # Airsonic Advanced - Music Server
+  airsonic-advanced:
+    image: lscr.io/linuxserver/airsonic-advanced
+    container_name: airsonic-advanced
+    networks:
+      - default
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    volumes:
+      - $DOCKERDIR/appdata/airsonic/podcasts:/data/podcasts
+      - $DOCKERDIR/appdata/airsonic/playlists:/data/playlists
+      - $DOCKERDIR/appdata/airsonic/config:/config
+      - $EXTDIR/ssd/home-server/local/music:/data/music
+    ports:
+      - "4040:4040"
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      JAVA_OPTS: '-Dserver.forward-headers-strategy=native' # optional - if you use a reverse-proxy
+
+  # Jellyfin - Media Server
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    networks:
+      - default
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    user: $PUID:$PGID
+    devices:
+      - /dev/dri:/dev/dri # for harware transcoding
+    ports:
+      - "8096:8096"
+      # - "8920:8920" # Emby also uses same port if running both
+    environment:
+      UMASK_SET: 022
+      TZ: $TZ
+    volumes:
+      - $DOCKERDIR/appdata/jellyfin:/config
+      - $DATADIR/media:/data/media
+      - $EXTDIR/ssd/home-server/downloads:/data/downloads
+      - /dev/shm:/data/transcode # Offload transcoding to RAM if you have enough RAM
+
+  # Plex - Media Server
+  plex:
+    image: plexinc/pms-docker:plexpass
+    container_name: plex
+    networks:
+      - default
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    devices:
+      - /dev/dri:/dev/dri # for harware transcoding
+    ports:
+      - "32400:32400/tcp"
+      - "3005:3005/tcp"
+      - "8324:8324/tcp"
+      - "32469:32469/tcp"
+      - "1900:1900/udp"
+      - "32410:32410/udp"
+      - "32412:32412/udp"
+      - "32413:32413/udp"
+      - "32414:32414/udp"
+      - "33400:33400/tcp"
+    volumes:
+      - $DOCKERDIR/appdata/plex:/config
+      - $DATADIR/media:/data/media
+      # - $DATADIR/nas_media:/data/nas_media
+      - $EXTDIR/ssd/home-server/downloads:/data/downloads
+      - /dev/shm:/data/transcode # Offload transcoding to RAM if you have enough RAM
+    environment:
+      TZ: $TZ
+      HOSTNAME: "zPlex"
+      PLEX_CLAIM_FILE: /run/secrets/plex_claim
+      PLEX_UID: $PUID
+      PLEX_GID: $PGID
+      ADVERTISE_IP: "http://$MEDIASERVER_IP:32400/,http://$ZEROTIER_IP_MEDIASERVER:32400/,https://proxplex.$DOMAINNAME_CLOUD_SERVER"
+      ALLOWED_NETWORKS: $LOCAL_NETWORK
+    secrets:
+      - plex_claim
+
+  ############################# DATABASE
+
+  # MariaDB - MySQL Database
+  # After starting container for first time dexec and mysqladmin -u root password <password>
+  mariadb:
+    container_name: mariadb
+    image: lscr.io/linuxserver/mariadb
+    networks:
+      - default
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    volumes:
+      - $DOCKERDIR/appdata/mariadb/data:/config
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      FILE__MYSQL_ROOT_PASSWORD: /run/secrets/mysql_root_password # Note FILE__ (double underscore) - Issue #127
+    secrets:
+      - mysql_root_password
+
+  # Prometheus - Database for sensor data
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    networks:
+      - default
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - $DOCKERDIR/appdata/prometheus/config:/etc/prometheus
+      - $DOCKERDIR/appdata/prometheus/data:/prometheus
+    user: $PUID:$PGID
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+
+  # InfluxDB - Database for sensor data
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    networks:
+      - default
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    volumes:
+      - $DOCKERDIR/appdata/influxdb2/config:/etc/influxdb2
+      - $DOCKERDIR/appdata/influxdb2/db:/var/lib/influxdb2
+
+  # Node Exporter - Metrics to Prometheus
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter:latest
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["monitoring", "all"]
+    networks:
+      - default
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"

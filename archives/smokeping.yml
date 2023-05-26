@@ -1,0 +1,28 @@
+  # SmokePing - Network latency Monitoring
+  smokeping:
+    image: linuxserver/smokeping:latest
+    container_name: smokeping
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #  - "$SMOKEPING_PORT:80"
+    volumes:
+      - $DOCKERDIR/smokeping/config:/config
+      - $DOCKERDIR/smokeping/data:/data
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.smokeping-rtr.entrypoints=https"
+      - "traefik.http.routers.smokeping-rtr.rule=HostHeader(`smokeping.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.smokeping-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.smokeping-rtr.service=smokeping-svc"
+      - "traefik.http.services.smokeping-svc.loadbalancer.server.port=80"

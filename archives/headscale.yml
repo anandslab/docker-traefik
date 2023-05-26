@@ -1,0 +1,22 @@
+  # HeadScale - SDN
+  headscale:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    image: headscale/headscale:latest
+    container_name: headscale
+    volumes:
+      - $DOCKERDIR/appdata/headscale/config:/etc/headscale
+      - $DOCKERDIR/appdata/headscale/data:/var/lib/headscale
+    #ports:
+    #  - 27896:8080
+    command: headscale serve
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.headscale-rtr.entrypoints=https"
+      - "traefik.http.routers.headscale-rtr.rule=Host(`headscale.$DOMAINNAME_SHB`)"
+      ## Middlewares
+      #- "traefik.http.routers.headscale-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.headscale-rtr.service=headscale-svc"
+      - "traefik.http.services.headscale-svc.loadbalancer.server.port=8080"
+

@@ -1,0 +1,17 @@
+[backends]
+  [backends.backend-dsmfiles]
+    [backends.backend-dsmfiles.servers]
+      [backends.backend-dsmfiles.servers.server-dsmfiles-ext]
+        url = "http://192.168.1.254:7000"
+        weight = 0
+
+[frontends]
+  [frontends.frontend-dsmfiles]
+    backend = "backend-dsmfiles"
+    passHostHeader = true
+    basicAuth = [
+      "user:HASHED_PASSWORD",
+    ]
+    [frontends.frontend-dsmfiles.routes]
+          [frontends.frontend-dsmfiles.routes.route-dsmfiles-ext]
+        rule = "Host:dsmfiles.example.com"

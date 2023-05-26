@@ -1,0 +1,10 @@
+  # Loki - Log Aggregation
+  loki:
+    <<: *common-keys-monitoring # See EXTENSION FIELDS at the top
+    container_name: loki
+    image: grafana/loki:latest
+    volumes:
+      - $DOCKERDIR/appdata/loki:/etc/loki
+    ports:
+      - "$LOKI_PORT:3100"
+    command: -config.file=/etc/loki/config.yml

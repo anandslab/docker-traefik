@@ -1,0 +1,32 @@
+  # xTeve - IPTV proxy for Plex
+  xteve:
+    image: alturismo/xteve
+    container_name: xteve
+    restart: unless-stopped
+    # network_mode: host
+    networks:
+      - t2_proxy
+    ports:
+      - "34400:34400"
+      - "1901:1900"
+    # user: "0"
+    # logging:
+    #   options:
+    #     max-size: "10m"
+    #     max-files: 3
+    environment:
+      TZ: $TZ
+    volumes:
+      - $USERDIR/docker/xteve:/config:rw
+      - /dev/shm:/tmp/xteve
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.xteve-rtr.entrypoints=https"
+      - "traefik.http.routers.xteve-rtr.rule=Host(`xteve.$DOMAINNAME`)"
+      - "traefik.http.routers.xteve-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.xteve-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.xteve-rtr.service=xteve-svc"
+      - "traefik.http.services.xteve-svc.loadbalancer.server.port=34400"

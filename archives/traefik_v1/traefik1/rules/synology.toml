@@ -1,0 +1,31 @@
+[backends]
+  [backends.backend-synology]
+    [backends.backend-synology.servers]
+      [backends.backend-synology.servers.server-synology-ext]
+        url = "http://192.168.5.254:5000"
+        weight = 0
+[frontends]
+  [frontends.frontend-synology]
+    backend = "backend-synology"
+    passHostHeader = true
+    [frontends.frontend-synology.routes]
+          [frontends.frontend-synology.routes.route-synology-ext]
+        rule = "Host:syno.example.com"
+    [frontends.frontend-synology.headers]
+      SSLRedirect = true
+      SSLHost = "syno.example.com"
+      SSLForceHost = true
+      STSSeconds = 315360000
+      STSIncludeSubdomains = true
+      STSPreload = true
+      forceSTSHeader = true
+      frameDeny = true
+      contentTypeNosniff = true
+      browserXSSFilter = true
+      customFrameOptionsValue="allow-from https:example.com"
+    [frontends.frontend-synology.auth]
+      headerField = "X-WebAuth-User"
+      [frontends.frontend-synology.auth.forward]
+        address = "http://oauth:4181"
+        trustForwardHeader = true
+        authResponseHeaders = ["X-Forwarded-User"]

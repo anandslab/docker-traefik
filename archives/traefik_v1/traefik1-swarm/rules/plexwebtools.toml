@@ -1,0 +1,17 @@
+[backends]
+  [backends.backend-plexwebtools]
+    [backends.backend-plexwebtools.servers]
+      [backends.backend-plexwebtools.servers.server-plexwebtools-ext]
+        url = "http://192.168.1.254:33400/"
+        weight = 0
+
+[frontends]
+  [frontends.frontend-plexwebtools]
+    backend = "backend-plexwebtools"
+    passHostHeader = true
+#    basicAuth = [
+#      "user:HASHED_PASSWORD",
+#    ]
+    [frontends.frontend-plexwebtools.routes]
+          [frontends.frontend-plexwebtools.routes.route-plexwebtools-ext]
+        rule = "Host:pwt.example.com"

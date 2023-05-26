@@ -1,0 +1,35 @@
+  # Emby - Media Server
+  embyms:
+    image: emby/embyserver:latest
+    container_name: embyms
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    devices:
+      - /dev/dri:/dev/dri # for harware transcoding
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "$EMBY_PORT:8096/tcp"
+      - "8920:8920/tcp"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - $DOCKERDIR/appdata/embyms:/config
+      - /dev/shm:/data/transcode
+      - $DATADIR/media:/data/media
+      - $DATADIR/Downloads:/data/downloads
+    environment:
+      TZ: $TZ
+      HOSTNAME: "nucEmby"
+      UID: $PUID
+      GID: $PGID
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.embyms-rtr.entrypoints=https"
+      - "traefik.http.routers.embyms-rtr.rule=Host(`nucemby.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.embyms-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.embyms-rtr.service=embyms-svc"
+      - "traefik.http.services.embyms-svc.loadbalancer.server.port=8096"

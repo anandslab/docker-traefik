@@ -1,0 +1,17 @@
+[backends]
+  [backends.backend-hassio]
+    [backends.backend-hassio.servers]
+      [backends.backend-hassio.servers.server-hassio-ext]
+        url = "http://192.168.1.908888"
+        weight = 0
+
+[frontends]
+  [frontends.frontend-hassio]
+    backend = "backend-hassio"
+    passHostHeader = true
+#    basicAuth = [
+#      "user:HASHED_PASSWORD",
+#    ]
+    [frontends.frontend-hassio.routes]
+          [frontends.frontend-hassio.routes.route-hassio-ext]
+        rule = "Host:hassio.example.com"

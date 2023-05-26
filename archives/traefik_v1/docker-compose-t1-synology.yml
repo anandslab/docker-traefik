@@ -1,0 +1,96 @@
+version: "3.7"
+
+########################### NETWORKS
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy
+  default:
+    driver: bridge
+
+########################### SERVICES
+services:
+  #UNIFI
+  unifi:
+    image: jacobalberty/unifi:stable
+    container_name: unifi
+    hostname: unifi
+    restart: unless-stopped
+    networks:
+      - default
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+      - "3478:3478/udp"
+      - "10001:10001/udp"
+      - "6789:6789"
+    environment:
+      UNIFI_UID: 1026
+      UNIFI_GID: 100
+      TZ: America/New_York
+      RUNAS_UID0: "false"
+      BIND_PRIV: "false"
+    volumes:
+      - ${DOCKERDIR}/unifi:/unifi
+
+  plexms:
+    image: plexinc/pms-docker:public
+    container_name: plexms
+    hostname: plexms
+    restart: unless-stopped
+    volumes:
+      - ${DOCKERDIR}/plex:/config
+      - ${MEDIADIR}:/media:ro
+      - /dev/shm:/transcode
+    network_mode: "host"
+    environment:
+      TZ: ${TZ}
+      HOSTNAME: "synPlex"
+      PLEX_CLAIM: ${PLEX_CLAIM}
+      PLEX_UID: ${PUID}
+      PLEX_GID: ${PGID}
+      ADVERTISE_IP: http://${SERVER_IP}:32400/
+    devices:
+      - /dev/dri:/dev/dri
+    privileged: true
+
+  ############################# MAINTENANCE
+
+  # Ouroboros - Automatic Docker Container Updates
+  ouroboros:
+    image: pyouroboros/ouroboros
+    container_name: ouroboros
+    hostname: ouroboros
+    restart: unless-stopped
+    networks:
+      - default
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      TZ: ${TZ}
+      INTERVAL: 86400
+      LOG_LEVEL: debug
+      SELF_UPDATE: "true"
+      CLEANUP: "true"
+      #      IGNORE: traefik influxdb hassio_dns homeassistant hassio_supervisor addon_core_check_config addon_62c7908d_autobackup plexms
+      NOTIFIERS: "tgram://${TGRAM_BOT_TOKEN}/${TGRAM_CHAT_ID}/"
+
+  # Docker-GC - Automatic Docker Garbage Collection
+  # Create docker-gc-exclude file
+  dockergc:
+    image: clockworksoul/docker-gc-cron:latest
+    container_name: docker-gc
+    hostname: docker-gc
+    restart: unless-stopped
+    network_mode: none
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DOCKERDIR}/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude
+    environment:
+      CRON: 0 0 * * *
+      FORCE_IMAGE_REMOVAL: 1
+      FORCE_CONTAINER_REMOVAL: 0
+      GRACE_PERIOD_SECONDS: 604800
+      DRY_RUN: 0
+      CLEAN_UP_VOLUMES: 1
+      TZ: ${TZ}

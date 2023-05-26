@@ -1,0 +1,26 @@
+  # digikam - Photo Management
+  digikam:
+    image: ghcr.io/linuxserver/digikam
+    container_name: digikam
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    volumes:
+      - $DOCKERDIR/appdata/digikam:/config
+      - $DATADIR/photos:/data/photos
+    #ports:
+    #  - 3000:3000
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.digikam-rtr.entrypoints=https"
+      - "traefik.http.routers.digikam-rtr.rule=Host(`digikam.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.digikam-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.digikam-rtr.service=digikam-svc"
+      - "traefik.http.services.digikam-svc.loadbalancer.server.port=3000"

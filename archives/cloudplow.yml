@@ -1,0 +1,20 @@
+  # CloudPlow - Rclone remote uploader/syncer
+  cloudplow:
+    image: sabrsorensen/alpine-cloudplow
+    container_name: cloudplow
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - $DOCKERDIR/appdata/cloudplow:/config/:rw
+      - $DOCKERDIR/appdata/rclone:/rclone_config/:rw
+      #- /home/<user>/google_drive_service_accounts:/service_accounts/:rw
+      - $DATADIR/media:/data/media:rw
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - CLOUDPLOW_CONFIG=/config/config.json
+      - CLOUDPLOW_LOGFILE=/config/cloudplow.log
+      - CLOUDPLOW_LOGLEVEL=DEBUG
+      - CLOUDPLOW_CACHEFILE=/config/cache.db

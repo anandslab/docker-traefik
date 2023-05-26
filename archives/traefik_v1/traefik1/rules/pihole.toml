@@ -1,0 +1,31 @@
+[backends]
+  [backends.backend-pihole]
+    [backends.backend-pihole.servers]
+      [backends.backend-pihole.servers.server-pihole-ext]
+        url = "http://192.168.1.26"
+        weight = 0
+[frontends]
+  [frontends.frontend-pihole]
+    backend = "backend-pihole"
+    passHostHeader = true
+    [frontends.frontend-pihole.routes]
+          [frontends.frontend-pihole.routes.route-pihole-ext]
+        rule = "Host:pi.example.com;AddPrefix:/admin"
+    [frontends.frontend-pihole.headers]
+      SSLRedirect = true
+      SSLHost = "pi.example.com"
+      SSLForceHost = true
+      STSSeconds = 315360000
+      STSIncludeSubdomains = true
+      STSPreload = true
+      forceSTSHeader = true
+      frameDeny = true
+      contentTypeNosniff = true
+      browserXSSFilter = true
+      customFrameOptionsValue="allow-from https:example.com"
+    [frontends.frontend-pihole.auth]
+      headerField = "X-WebAuth-User"
+      [frontends.frontend-pihole.auth.forward]
+        address = "http://oauth:4181"
+        trustForwardHeader = true
+        authResponseHeaders = ["X-Forwarded-User"]

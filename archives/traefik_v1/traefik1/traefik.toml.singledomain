@@ -1,0 +1,44 @@
+logLevel = "WARN" #DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+defaultEntryPoints = ["http", "https"]
+
+# WEB interface of Traefik - it will show web page with overview of frontend and backend configurations 
+[web]
+address = ":8080"
+  [web.auth.basic]
+  usersFile = "/certs/.htpasswd"
+
+# Force HTTPS
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+#    [entryPoints.https.auth.basic]
+#    usersFile = "/certs/.htpasswd"  
+    [entryPoints.https.tls]
+#      [[entryPoints.https.tls.certificates]]
+#      certFile = "/home/example/docker/certs/example_com-unified.crt"
+#      keyFile = "/home/example/docker/certs/pi20151206.key"
+      
+# Let's encrypt configuration
+[acme]
+email = "admin@example.com"
+storage="/etc/traefik/acme/acme.json"
+entryPoint = "https"
+acmeLogging=true 
+onDemand = false #create certificate when container is created
+onHostRule = true
+  # Use a HTTP-01 acme challenge rather than TLS-SNI-01 challenge
+  [acme.httpChallenge]
+  entryPoint = "http"
+
+# Connection to docker host system (docker.sock)
+[docker]
+endpoint = "unix:///var/run/docker.sock"
+domain = "example.com"
+watch = true
+# This will hide all docker containers that don't have explicitly  
+# set label to "enable"
+exposedbydefault = false

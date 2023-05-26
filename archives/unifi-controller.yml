@@ -1,0 +1,53 @@
+  # UniFi Controller - Managing UniFi Network
+  # UDP 3478 Port used for STUN. #REQUIRED
+  # TCP 5514 Port used for remote syslog capture.
+  # TCP 8080 Port used for device and controller communication. #REQUIRED
+  # TCP 8443 Port used for controller GUI/API as seen in a web browser #REQUIRED
+  # TCP 8880 Port used for HTTP portal redirection.
+  # TCP 8843 Port used for HTTPS portal redirection.
+  # TCP 6789 Port used for UniFi mobile speed test. #REQUIRED
+  # TCP 27117 Port used for local-bound database communication.
+  # UDP 5656-5699 Ports used by AP-EDU broadcasting.
+  # UDP 10001 Port used for device discovery #REQUIRED
+  # UDP 1900 Port used for "Make controller discoverable on L2 network" in controller settings.
+
+  unifi:
+    container_name: unifi
+    image: jacobalberty/unifi:stable
+    restart: unless-stopped
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.100
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+      - "3478:3478/udp"
+      - "10001:10001/udp"
+      - "6789:6789"
+      #- "8081:8081"
+      #- "8843:8843"
+      #- "8880:8880"
+    volumes:
+      - ${DOCKERDIR}/unifi:/unifi
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      UNIFI_UID: $PUID
+      UNIFI_GID: $PGID
+      TZ: America/New_York
+      RUNAS_UID0: "false"
+      BIND_PRIV: "false"
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.unifi-rtr.entrypoints=https"
+      - "traefik.http.routers.unifi-rtr.rule=HostHeader(`ufi.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.unifi-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.unifi-rtr.service=unifi-svc"
+      - "traefik.http.services.unifi-svc.loadbalancer.server.port=8443"
+
+

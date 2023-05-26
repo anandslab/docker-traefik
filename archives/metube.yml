@@ -1,0 +1,24 @@
+  # MeTube - Youtube downloader
+  # Could not get this to work - "Could not resolve name" error
+  metube:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    image: alexta69/metube
+    container_name: metube
+    user: $PUID:$PGID
+    volumes:
+      - $DATADIR/downloads/youtube:/downloads
+      - $DOCKERDIR/appdata/metube/config:/config
+      - $DOCKERDIR/appdata/metube/cookies:/cookies
+    environment:
+      - STATE_DIR=/config
+      - YTDL_OPTIONS={"cookiefile":"/cookies/cookies.txt"}
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.metube-rtr.entrypoints=https"
+      - "traefik.http.routers.metube-rtr.rule=Host(`metube.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.metube-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.metube-rtr.service=metube-svc"
+      - "traefik.http.services.metube-svc.loadbalancer.server.port=8081"

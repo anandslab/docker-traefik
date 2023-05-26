@@ -1,0 +1,11 @@
+  # Cloudflare DDNS - Dynamic DNS Updater
+  cloudddns:
+    container_name: cloudddns
+    restart: always
+    image: joshava/cloudflare-ddns
+    volumes:
+      - $USERDIR/docker/cloudflare-ddns/config.yaml:/app/config.yaml
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ

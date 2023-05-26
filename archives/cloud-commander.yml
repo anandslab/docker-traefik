@@ -1,0 +1,27 @@
+  # Cloud Commander - web file manager
+  cloudcmd:
+    image: coderaiser/cloudcmd
+    container_name: cloudcmd
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - $USERDIR/docker/cloudcmd:/root
+      - $USERDIR:/mnt/fs
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.cloudcmd-rtr.entrypoints=https"
+      - "traefik.http.routers.cloudcmd-rtr.rule=Host(`cloudcmd.$DOMAINNAME`)"
+      - "traefik.http.routers.cloudcmd-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.cloudcmd-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.cloudcmd-rtr.service=cloudcmd-svc"
+      - "traefik.http.services.cloudcmd-svc.loadbalancer.server.port=8000"

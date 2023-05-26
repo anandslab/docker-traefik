@@ -1,0 +1,25 @@
+  youtubedl-material:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    image: tzahi12345/youtubedl-material:latest
+    container_name: youtubedl-material
+    # ports:
+    #   - "$YOUTUBEDLMATERIAL_PORT:17442"
+    volumes:
+      - $DOCKERDIR/appdata/youtubedl-material/config:/app/appdata
+      - $DATADIR/downloads/youtubedl-material/audio:/app/audio
+      - $DATADIR/downloads/youtubedl-material/video:/app/video
+      - $DATADIR/downloads/youtubedl-material/subscriptions:/app/subscriptions
+      - $DOCKERDIR/appdata/youtubedl-material/users:/app/users
+    environment:
+      UID: $PUID
+      GID: $PGID
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.youtubedl-material-rtr.entrypoints=https"
+      - "traefik.http.routers.youtubedl-material-rtr.rule=Host(`ytdl.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.youtubedl-material-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.youtubedl-material-rtr.service=youtubedl-material-svc"
+      - "traefik.http.services.youtubedl-material-svc.loadbalancer.server.port=17442"

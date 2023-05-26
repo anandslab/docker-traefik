@@ -1,0 +1,19 @@
+  # HA-Dockermon - Manage Docker containers in Home Assistant
+  ha-dockermon:
+    image: philhawthorne/ha-dockermon:latest
+    container_name: ha-dockermon
+    restart: unless-stopped
+    networks:
+      - socket_proxy
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "$HA_DOCKERMON_PORT:8126"
+    volumes:
+      - $DOCKERDIR/ha-dockermon:/config
+      # - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      DOCKER_HOST: tcp://socket-proxy:2375

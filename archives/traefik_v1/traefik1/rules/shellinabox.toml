@@ -1,0 +1,31 @@
+[backends]
+  [backends.backend-shellinabox]
+    [backends.backend-shellinabox.servers]
+      [backends.backend-shellinabox.servers.server-shellinabox-ext]
+        url = "http://192.168.5.904200"
+        weight = 0
+[frontends]
+  [frontends.frontend-shellinabox]
+    backend = "backend-shellinabox"
+    passHostHeader = true
+    [frontends.frontend-shellinabox.routes]
+          [frontends.frontend-shellinabox.routes.route-shellinabox-ext]
+        rule = "Host:shell.example.com"
+    [frontends.frontend-shellinabox.headers]
+      SSLRedirect = true
+      SSLHost = "shell.example.com"
+      SSLForceHost = true
+      STSSeconds = 315360000
+      STSIncludeSubdomains = true
+      STSPreload = true
+      forceSTSHeader = true
+      frameDeny = true
+      contentTypeNosniff = true
+      browserXSSFilter = true
+      customFrameOptionsValue="allow-from https:example.com"
+    [frontends.frontend-shellinabox.auth]
+      headerField = "X-WebAuth-User"
+      [frontends.frontend-shellinabox.auth.forward]
+        address = "http://oauth:4181"
+        trustForwardHeader = true
+        authResponseHeaders = ["X-Forwarded-User"]

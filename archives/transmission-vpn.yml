@@ -1,0 +1,64 @@
+  # TransmissionBT - Torrent Downloader
+  # ONLY ACCESSIBLE THROUGH https://domain.com/transmission/web/ if using PathPrefix
+  # For Proxmox LXC Containers - https://pve.proxmox.com/wiki/OpenVPN_in_LXC
+  transmission-vpn:
+    image: haugene/transmission-openvpn:latest
+    container_name: transmission-vpn
+    restart: unless-stopped
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.169
+    # ports:
+    #  - "$TRANSMISSION_PORT:9091" if vpn is enabled you cannot access transmission using host ip
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    # dns:
+    #   - 1.1.1.1
+    #   - 1.0.0.1
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - $DOCKERDIR/appdata/transmission-vpn/data:/data
+      - $DOCKERDIR/appdata/transmission-vpn/config:/config
+      - $EXTDRIVE/downloads:/data/downloads
+    environment:
+      <<: *default-tz-puid-pgid
+      OPENVPN_PROVIDER: FASTESTVPN
+      OPENVPN_USERNAME: $FASTESTVPN_USERNAME
+      OPENVPN_PASSWORD: $FASTESTVPN_PASSWORD
+      #OPENVPN_CONFIG: "Switzerland-UDP"
+      #OPENVPN_OPTS: --inactive 3600 --ping 10 --ping-exit 60
+      LOCAL_NETWORK: "$LOCAL_NETWORK"
+      UMASK_SET: 2
+      # These transmission settings are not needed as /data/transmission-home/settings.json is persistent
+      TRANSMISSION_RPC_AUTHENTICATION_REQUIRED: "true"
+      TRANSMISSION_RPC_HOST_WHITELIST: "127.0.0.1,$SERVER_IP"
+      TRANSMISSION_RPC_PASSWORD: $TRANSMISSION_RPC_PASSWORD
+      TRANSMISSION_RPC_USERNAME: $TRANSMISSION_RPC_USERNAME
+      TRANSMISSION_UMASK: 002
+      TRANSMISSION_RATIO_LIMIT: 1.0
+      TRANSMISSION_RATIO_LIMIT_ENABLED: "true"
+      TRANSMISSION_ALT_SPEED_DOWN: 2000
+      TRANSMISSION_ALT_SPEED_ENABLED: "false"
+      TRANSMISSION_ALT_SPEED_UP: 100
+      TRANSMISSION_SPEED_LIMIT_DOWN: 10000
+      TRANSMISSION_SPEED_LIMIT_DOWN_ENABLED: "true"
+      TRANSMISSION_SPEED_LIMIT_UP: 500
+      TRANSMISSION_SPEED_LIMIT_UP_ENABLED: "true"
+      TRANSMISSION_INCOMPLETE_DIR: /data/downloads/torrents/incomplete
+      TRANSMISSION_INCOMPLETE_DIR_ENABLED: "true"
+      TRANSMISSION_WATCH_DIR: /data/downloads/torrents
+      TRANSMISSION_WATCH_DIR_ENABLED: "true"
+      TRANSMISSION_DOWNLOAD_DIR: /data/downloads/torrents
+      LOG_TO_STDOUT: "true"
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.transmission-vpn-rtr.entrypoints=https"
+      - "traefik.http.routers.transmission-vpn-rtr.rule=Host(`trans.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.transmission-vpn-rtr.middlewares=middlewares-rate-limit@file"
+      ## HTTP Services
+      - "traefik.http.routers.transmission-vpn-rtr.service=transmission-vpn-svc"
+      - "traefik.http.services.transmission-vpn-svc.loadbalancer.server.port=9091" 

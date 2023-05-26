@@ -1,0 +1,30 @@
+  # Dashy - Application Dashboard
+  dashy:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    container_name: dashy
+    image: lissy93/dashy
+    healthcheck:
+      test: ['CMD', 'node', '/app/services/healthcheck']
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    ports:
+      - 4000:80
+    volumes:
+      - $DOCKERDIR/appdata/dashy/conf.yml:/app/public/conf.yml
+      - $DOCKERDIR/appdata/dashy:/app/public/item-icons
+    environment:
+      - NODE_ENV=production
+      - UID=$PUID
+      - GID=$PGID
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.dashy-rtr.entrypoints=https"
+      - "traefik.http.routers.dashy-rtr.rule=Host(`$DOMAINNAME_HOME_SYNOLOGY`,`www.$DOMAINNAME_HOME_SYNOLOGY`)"
+      ## Middlewares
+      - "traefik.http.routers.dashy-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.dashy-rtr.service=dashy-svc"
+      - "traefik.http.services.dashy-svc.loadbalancer.server.port=80"

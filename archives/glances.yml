@@ -1,0 +1,34 @@
+  # Glances - System Information
+  glances:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    image: nicolargo/glances:latest
+    container_name: glances
+    # privileged: true # Only for VM
+    # network_mode: host
+    networks:
+      - t2_proxy
+      - socket_proxy
+      - default
+    # ports:
+    #   - "$GLANCES_PORT:61208"
+    pid: host
+    volumes:
+      - $DOCKERDIR/appdata/glances/glances.conf:/glances/conf/glances.conf # Use this if you want to add a glances.conf file
+      - $USERDIR:/data/home:ro
+      - /media/data:/data/data:ro
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
+    environment:
+      # GLANCES_OPT: "-C /glances/conf/glances.conf --quiet --export influxdb"
+      # GLANCES_OPT: "--export influxdb"
+      GLANCES_OPT: "-w"
+      DOCKER_HOST: tcp://socket-proxy:2375
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.glances-rtr.entrypoints=https"
+      - "traefik.http.routers.glances-rtr.rule=Host(`glances.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.glances-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.glances-rtr.service=glances-svc"
+      - "traefik.http.services.glances-svc.loadbalancer.server.port=61208"

@@ -1,0 +1,30 @@
+  # Unmanic - Library Optimizer
+  unmanic:
+    image: josh5/unmanic:latest
+    container_name: unmanic
+    restart: "no"
+    # profiles:
+    # - media
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$UNMANIC_PORT:8888"
+    volumes:
+      - $DATADIR/media/videos:/library
+      - $DOCKERDIR/appdata/unmanic:/config
+      - $DATADIR/temp/transcode/unmanic:/tmp/unmanic
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.unmanic-rtr.entrypoints=https"
+      - "traefik.http.routers.unmanic-rtr.rule=Host(`manic.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.unmanic-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.unmanic-rtr.service=unmanic-svc"
+      - "traefik.http.services.unmanic-svc.loadbalancer.server.port=8888"

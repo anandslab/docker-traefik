@@ -1,0 +1,28 @@
+  # Ombi - Media Requests
+  ombi:
+    image: linuxserver/ombi:latest
+    container_name: ombi
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    # ports:
+    #  - "$OMBI_PORT:3579"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - $DOCKERDIR/appdata/ombi:/config
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      BASE_URL: /ombi #optional
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.ombi-rtr.entrypoints=https"
+      - "traefik.http.routers.ombi-rtr.rule=Host(`ombi.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.ombi-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.ombi-rtr.service=ombi-svc"
+      - "traefik.http.services.ombi-svc.loadbalancer.server.port=3579"

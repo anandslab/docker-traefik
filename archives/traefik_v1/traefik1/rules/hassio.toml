@@ -1,0 +1,32 @@
+[backends]
+  [backends.backend-hassio]
+    [backends.backend-hassio.servers]
+      [backends.backend-hassio.servers.server-hassio-ext]
+        url = "http://192.168.5.908888"
+        weight = 0
+[frontends]
+  [frontends.frontend-hassio]
+    backend = "backend-hassio"
+    passHostHeader = true
+    [frontends.frontend-hassio.routes]
+          [frontends.frontend-hassio.routes.route-hassio-ext]
+        rule = "Host:hassio.example.com"
+    [frontends.frontend-hassio.headers]
+      SSLRedirect = true
+      SSLHost = "hassio.example.com"
+      SSLForceHost = true
+      STSSeconds = 315360000
+      STSIncludeSubdomains = true
+      STSPreload = true
+      forceSTSHeader = true
+      frameDeny = true
+      contentTypeNosniff = true
+      browserXSSFilter = true
+      customFrameOptionsValue="allow-from https:example.com"
+# ENABLING AUTH CAUSES ISSUES WITH SERVICES THAT RELY ON REACHING HASSIO.example.COM (EG. TELEGRAM, GOOGLE ASSISTANT, ETC.)
+#    [frontends.frontend-hassio.auth]
+#      headerField = "X-WebAuth-User"
+#      [frontends.frontend-hassio.auth.forward]
+#        address = "http://oauth:4181"
+#        trustForwardHeader = true
+#        authResponseHeaders = ["X-Forwarded-User"]

@@ -1,0 +1,17 @@
+  # FlareSolverr - Proxy server to bypass Cloudflare protection
+  # Not sure if I need this or not. Just testing.
+  flaresolverr:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.160
+    environment:
+      LOG_LEVEL: info
+      LOG_HTML: false
+      CAPTCHA_SOLVER: none
+      TZ: $TZ
+    #ports:
+    #  - "8191:8191"
+    restart: unless-stopped

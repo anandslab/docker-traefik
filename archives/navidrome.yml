@@ -1,0 +1,28 @@
+  # Navidrome - Music Server
+  navidrome:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
+    container_name: navidrome
+    image: deluan/navidrome:latest
+    # ports:
+    #   - "$FUNKWHALE_PORT:4533"
+    user: $PUID:$PGID
+    volumes:
+      - $DOCKERDIR/appdata/navidrome:/data
+      - $DATADIR/media/music/English:/music/English:ro
+      - $DATADIR/media/music/Kids:/music/Kids:ro
+    environment:
+      - TZ=$TZ
+      - ND_SCANSCHEDULE=1h
+      - ND_LOGLEVEL=info
+      #- ND_BASEURL=""
+      - ND_SESSIONTIMEOUT=24h
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.navidrome-rtr.entrypoints=https"
+      - "traefik.http.routers.navidrome-rtr.rule=Host(`proxnd.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.navidrome-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.navidrome-rtr.service=navidrome-svc"
+      - "traefik.http.services.navidrome-svc.loadbalancer.server.port=4533"

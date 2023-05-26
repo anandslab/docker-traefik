@@ -1,0 +1,25 @@
+  # CrowdSec Dashboard
+  # Uses a lot of resources. May be crowdsec's cloud dashboard or Prometheus Grafana may be a better option.
+  csdash:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    container_name: crowdsec-dashboard
+    build:
+      context: $DOCKERDIR/custom/
+      dockerfile: Dockerfile-csdash
+    depends_on:
+      - crowdsec
+    environment:
+      - MB_DB_FILE=/data/metabase.db
+      - MGID=1000
+    volumes:
+      - $DOCKERDIR/appdata/crowdsec/data:/metabase-data/
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.csdash-rtr.entrypoints=https"
+      - "traefik.http.routers.csdash-rtr.rule=Host(`csdash.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.csdash-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.csdash-rtr.service=csdash-svc"
+      - "traefik.http.services.csdash-svc.loadbalancer.server.port=3000"

@@ -1,0 +1,21 @@
+  # Photoshow - Simple Photo Viewer
+  photoshow:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
+    image: lscr.io/linuxserver/photoshow
+    container_name: photoshow
+    volumes:
+      - $DATADIR/media/misc:/Pictures
+      - $DOCKERDIR/appdata/photoshow:/config
+      - $DATADIR/temp/appdata/photoshow:/Thumbs
+    environment:
+      <<: *default-tz-puid-pgid
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.photoshow-rtr.entrypoints=https"
+      - "traefik.http.routers.photoshow-rtr.rule=Host(`photoshow.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.photoshow-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.photoshow-rtr.service=photoshow-svc"
+      - "traefik.http.services.photoshow-svc.loadbalancer.server.port=80"

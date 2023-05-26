@@ -1,0 +1,31 @@
+  # MakeMKV - Video Editing (Ripping from Disks)
+  makemkv:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    image: jlesage/makemkv:latest
+    container_name: makemkv
+    # ports:
+    #   - "$MAKEMKV_PORT:5800"
+    volumes:
+      - $DATADIR/downloads:/data/downloads
+      - $DOCKERDIR/appdata/makemkv/config:/config
+      - /dev/shm:/dev/shm
+    environment:
+      USER_ID: $PUID
+      GROUP_ID: $PGID
+      UMASK: 002
+      TZ: $TZ
+      KEEP_APP_RUNNING: 1
+      CLEAN_TMP_DIR: 1
+      DISPLAY_WIDTH: 1600
+      DISPLAY_HEIGHT: 960
+      VNC_PASSWORD: $MAKEMKV_VNC_PASSWD
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.makemkv-rtr.entrypoints=https"
+      - "traefik.http.routers.makemkv-rtr.rule=Host(`makemkv.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.makemkv-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.makemkv-rtr.service=makemkv-svc"
+      - "traefik.http.services.makemkv-svc.loadbalancer.server.port=5800"

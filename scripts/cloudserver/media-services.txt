@@ -2,7 +2,6 @@ lidarr
 radarr
 sonarr
 readarr
-jellyfin
-plexms
 bazarr
-airsonic-advanced
+plexmm
+tautulli

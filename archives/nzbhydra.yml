@@ -1,0 +1,22 @@
+  # NZBHydra2 - NZB meta search
+  hydra:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    image: linuxserver/nzbhydra2:latest
+    container_name: hydra
+    ports:
+      - "$NZBHYDRA_PORT:5076"
+    volumes:
+      - $DOCKERDIR/appdata/hydra2:/config
+      - $DATADIR/downloads:/data/downloads
+    environment:
+      <<: *default-tz-puid-pgid
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.hydra-rtr.entrypoints=https"
+      - "traefik.http.routers.hydra-rtr.rule=Host(`hydra.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.hydra-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.hydra-rtr.service=hydra-svc"
+      - "traefik.http.services.hydra-svc.loadbalancer.server.port=5076"

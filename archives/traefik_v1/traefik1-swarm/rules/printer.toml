@@ -1,0 +1,17 @@
+[backends]
+  [backends.backend-printer]
+    [backends.backend-printer.servers]
+      [backends.backend-printer.servers.server-printer-ext]
+        url = "http://192.168.1.23"
+        weight = 0
+
+[frontends]
+  [frontends.frontend-printer]
+    backend = "backend-printer"
+    passHostHeader = true
+    basicAuth = [
+      "user:HASHED_PASSWORD",
+    ]
+    [frontends.frontend-printer.routes]
+          [frontends.frontend-printer.routes.route-printer-ext]
+        rule = "Host:printer.example.com"

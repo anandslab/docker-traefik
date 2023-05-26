@@ -1,0 +1,31 @@
+[backends]
+  [backends.backend-webmin]
+    [backends.backend-webmin.servers]
+      [backends.backend-webmin.servers.server-webmin-ext]
+        url = "http://192.168.5.90:8110"
+        weight = 0
+[frontends]
+  [frontends.frontend-webmin]
+    backend = "backend-webmin"
+    passHostHeader = true
+    [frontends.frontend-webmin.routes]
+          [frontends.frontend-webmin.routes.route-webmin-ext]
+        rule = "Host:webmin.example.com"
+    [frontends.frontend-webmin.headers]
+      SSLRedirect = true
+      SSLHost = "webmin.example.com"
+      SSLForceHost = true
+      STSSeconds = 315360000
+      STSIncludeSubdomains = true
+      STSPreload = true
+      forceSTSHeader = true
+      frameDeny = true
+      contentTypeNosniff = true
+      browserXSSFilter = true
+      customFrameOptionsValue="allow-from https:example.com"
+    [frontends.frontend-webmin.auth]
+      headerField = "X-WebAuth-User"
+      [frontends.frontend-webmin.auth.forward]
+        address = "http://oauth:4181"
+        trustForwardHeader = true
+        authResponseHeaders = ["X-Forwarded-User"]

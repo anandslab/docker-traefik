@@ -1,0 +1,12 @@
+  # Plex-Sync - For Syncing watched status between plex servers
+  plex-sync:
+    image: patsissons/plex-sync:develop
+    container_name: plex-sync
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      INITIAL_RUN: "true"
+      # DRY_RUN: 0
+      CRON_SCHEDULE: "*/5 * * * *"
+      SECTION_MAPS: $SYN_PLEX/$SYN_PLEX_HOLLYWOOD $NUC_PLEX/$NUC_PLEX_HOLLYWOOD | $SYN_PLEX/$SYN_PLEX_TVSHOWS $NUC_PLEX/$NUC_PLEX_TVSHOWS | $SYN_PLEX/$SYN_PLEX_INDIAN $NUC_PLEX/$NUC_PLEX_INDIAN | $SYN_PLEX/$SYN_PLEX_KOLLYWOOD $NUC_PLEX/$NUC_PLEX_KOLLYWOOD | $SYN_PLEX/$SYN_PLEX_DOCMOVIES $NUC_PLEX/$NUC_PLEX_DOCMOVIES | $SYN_PLEX/$SYN_PLEX_DOCSHOWS $NUC_PLEX/$NUC_PLEX_DOCSHOWS | $SYN_PLEX/$SYN_PLEX_KIDSMOVIES $NUC_PLEX/$NUC_PLEX_KIDSMOVIES | $SYN_PLEX/$SYN_PLEX_INTERNATIONAL $NUC_PLEX/$NUC_PLEX_INTERNATIONAL
+    restart: unless-stopped

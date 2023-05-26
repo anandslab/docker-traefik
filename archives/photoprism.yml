@@ -1,0 +1,57 @@
+  # PhotoPrism - Photos Management
+  photoprism:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
+    image: photoprism/photoprism:latest
+    container_name: photoprism
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    environment:
+      PHOTOPRISM_ADMIN_PASSWORD: "$PHOTOPRISM_PASSWORD"          # !!! PLEASE CHANGE YOUR INITIAL "admin" PASSWORD !!!
+      PHOTOPRISM_SITE_URL: "https://prism.$DOMAINNAME0"  # public server URL incl http:// or https:// and /path, :port is optional
+      PHOTOPRISM_ORIGINALS_LIMIT: 5000               # file size limit for originals in MB (increase for high-res video)
+      PHOTOPRISM_HTTP_COMPRESSION: "gzip"            # improves transfer speed and bandwidth utilization (none or gzip)
+      PHOTOPRISM_DEBUG: "false"                      # run in debug mode (shows additional log messages)
+      PHOTOPRISM_PUBLIC: "false"                     # no authentication required (disables password protection)
+      PHOTOPRISM_READONLY: "false"                   # don't modify originals directory (reduced functionality)
+      PHOTOPRISM_EXPERIMENTAL: "false"               # enables experimental features
+      PHOTOPRISM_DISABLE_CHOWN: "false"              # disables storage permission updates on startup
+      PHOTOPRISM_DISABLE_WEBDAV: "false"             # disables built-in WebDAV server
+      PHOTOPRISM_DISABLE_SETTINGS: "false"           # disables Settings in Web UI
+      PHOTOPRISM_DISABLE_TENSORFLOW: "false"         # disables all features depending on TensorFlow
+      PHOTOPRISM_DISABLE_FACES: "false"              # disables facial recognition
+      PHOTOPRISM_DISABLE_CLASSIFICATION: "false"     # disables image classification
+      PHOTOPRISM_DARKTABLE_PRESETS: "false"          # enables Darktable presets and disables concurrent RAW conversion
+      PHOTOPRISM_DETECT_NSFW: "false"                # flag photos as private that MAY be offensive (requires TensorFlow)
+      PHOTOPRISM_UPLOAD_NSFW: "true"                 # allows uploads that MAY be offensive
+      PHOTOPRISM_DATABASE_DRIVER: "mysql"            # use MariaDB 10.5+ or MySQL 8+ instead of SQLite for improved performance
+      PHOTOPRISM_DATABASE_SERVER: "$MARIADB_HOST:$MARIADB_PORT"     # MariaDB or MySQL database server (hostname:port)
+      PHOTOPRISM_DATABASE_NAME: "$PHOTOPRISM_DB"         # MariaDB or MySQL database schema name
+      PHOTOPRISM_DATABASE_USER: "$PHOTOPRISM_DB_USER"         # MariaDB or MySQL database user name
+      PHOTOPRISM_DATABASE_PASSWORD: "$PHOTOPRISM_DB_PASSWORD"       # MariaDB or MySQL database user password
+      PHOTOPRISM_SITE_TITLE: "PhotoPrism"
+      PHOTOPRISM_SITE_CAPTION: "AI-Powered Photos App"
+      PHOTOPRISM_SITE_DESCRIPTION: ""
+      PHOTOPRISM_SITE_AUTHOR: ""
+      ## Run/install on first startup (options: update, gpu, tensorflow, davfs, nano, clean):
+      PHOTOPRISM_INIT: "tensorflow"
+      ## Hardware video transcoding config (optional)
+      # PHOTOPRISM_FFMPEG_BUFFERS: "64"              # FFmpeg capture buffers (default: 32)
+      # PHOTOPRISM_FFMPEG_BITRATE: "32"              # FFmpeg encoding bitrate limit in Mbit/s (default: 50)
+      # PHOTOPRISM_FFMPEG_ENCODER: "h264_v4l2m2m"    # use Video4Linux for AVC transcoding (default: libx264)
+      # PHOTOPRISM_FFMPEG_ENCODER: "h264_qsv"        # use Intel Quick Sync Video for AVC transcoding (default: libx264)
+      PHOTOPRISM_UMASK: 002
+    user: $PUID:$PGID
+    volumes:
+      - $DATADIR/downloads:/photoprism/originals
+      - $DOCKERDIR/appdata/photoprism:/photoprism/storage
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.photoprism-rtr.entrypoints=https"
+      - "traefik.http.routers.photoprism-rtr.rule=Host(`prism.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.photoprism-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.photoprism-rtr.service=photoprism-svc"
+      - "traefik.http.services.photoprism-svc.loadbalancer.server.port=2342"

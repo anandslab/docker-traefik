@@ -1,0 +1,65 @@
+#debug = true
+
+logLevel = "INFO" #DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+InsecureSkipVerify = true
+defaultEntryPoints = ["https", "http"]
+
+# WEB interface of Traefik - it will show web page with overview of frontend and backend configurations 
+
+[api]
+  entryPoint = "traefik"
+  dashboard = true
+  debug = false
+  address = ":8080"
+#  usersFile = "/shared/.htpasswd"
+
+# Force HTTPS
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+#  [entryPoints.traefik]
+#  address = ":8080"
+#    [entryPoints.https.auth.basic.users]
+#    usersFile = "/shared/.htpasswd" 
+  [entryPoints.https]
+  address = ":443"
+#    [entryPoints.https.auth.basic.users]
+#    usersFile = "/shared/.htpasswd"  
+    [entryPoints.https.tls]
+#      [[entryPoints.https.tls.certificates]]
+#      certFile = "/home/example/docker/shared/example_com-unified.crt"
+#      keyFile = "/home/example/docker/shared/pi20151206.key"
+
+[file]
+  directory = "/etc/traefik/rules/"
+  watch = true
+
+# Let's encrypt configuration
+[acme]
+email = "admin@example.com"
+storage="/etc/traefik/acme/acme.json"
+entryPoint = "https"
+acmeLogging=true 
+onDemand = false #create certificate when container is created
+#onHostRule = true #disable for wildcard domains
+# Use a HTTP-01 acme challenge rather than TLS-SNI-01 challenge
+#[acme.httpChallenge] #does not work with wildcard domains, use dns challenge
+#  entryPoint = "http" #does not work with wildcard domains
+[acme.dnsChallenge]
+  provider = "cloudflare"
+  delayBeforeCheck = 180
+[[acme.domains]]
+   main = "example.com"
+[[acme.domains]]
+   main = "*.example.com"
+   
+# Connection to docker host system (docker.sock)
+[docker]
+endpoint = "unix:///var/run/docker.sock"
+domain = "example.com"
+watch = true
+# This will hide all docker containers that don't have explicitly  
+# set label to "enable"
+exposedbydefault = false

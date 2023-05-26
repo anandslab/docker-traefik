@@ -1,0 +1,16 @@
+  # Traefik Certs Dumper - Extract LetsEncrypt Certificates - Traefik2 Compatible
+  certdumper:
+    container_name: traefik_certdumper
+    image: humenius/traefik-certs-dumper:latest
+    network_mode: none
+    # profiles:
+    # - core
+    security_opt:
+      - no-new-privileges:true
+    # command: --restart-containers container1,container2,container3
+    volumes:
+      - $DOCKERDIR/appdata/traefik2/acme:/traefik:ro
+      - $DOCKERDIR/shared/certs/home:/output:rw
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Only needed if restarting containers (use Docker Socket Proxy instead)
+    environment:
+      DOMAIN: $DOMAINNAME0

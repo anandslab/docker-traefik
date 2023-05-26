@@ -1,0 +1,19 @@
+  # APCUPSD - APC UPS Management
+  # create the apcupsd.conf file
+  apcupsd:
+    image: gersilex/apcupsd:latest
+    container_name: apcupsd
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "$APCUPSD_PORT:3551"
+    privileged: true
+    tty: true
+    volumes:
+      - /tmp/apcupsd-docker:/tmp/apcupsd-docker
+      - $DOCKERDIR/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
+      - $DOCKERDIR/apcupsd/doshutdown:/etc/apcupsd/doshutdown
+      - $DOCKERDIR/apcupsd/apcupsd.events:/var/log/apcupsd.events

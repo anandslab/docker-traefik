@@ -1,0 +1,13 @@
+  # SMTP to Telegram - Send SMTP Notifications as Telegram Message
+  # Use case: https://github.com/htpcBeginner/docker-traefik/issues/78
+  smtp_to_telegram:
+    image: kostyaesmukov/smtp_to_telegram
+    container_name: smtp_to_telegram
+    restart: always
+    networks:
+      - default
+    environment:
+      TZ: $TZ
+      ST_TELEGRAM_CHAT_IDS: $TGRAM_CHAT_ID
+      ST_TELEGRAM_BOT_TOKEN: $TGRAM_BOT_TOKEN
+      ST_TELEGRAM_MESSAGE_TEMPLATE: "{subject}\\n{body}"

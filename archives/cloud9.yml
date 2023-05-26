@@ -1,0 +1,31 @@
+  # Cloud IDE - Editing
+  cloud9:
+    image: linuxserver/cloud9
+    container_name: cloud9
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "$CLOUD9_PORT:8000"
+    volumes:
+      - $USERDIR/server/scripts:/code
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      # PASSWORD: $CLOUD9_PASSWORD
+      # USERNAME: $CLOUD9_USERNAME
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.cloud9-rtr.entrypoints=https"
+      - "traefik.http.routers.cloud9-rtr.rule=Host(`cloud9.$DOMAINNAME`)"
+      - "traefik.http.routers.cloud9-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.cloud9-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.cloud9-rtr.service=cloud9-svc"
+      - "traefik.http.services.cloud9-svc.loadbalancer.server.port=8000"

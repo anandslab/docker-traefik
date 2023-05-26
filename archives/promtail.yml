@@ -1,0 +1,14 @@
+  # Promtail - Log Scraping/Shipping Agent
+  promtail:
+    <<: *common-keys-monitoring # See EXTENSION FIELDS at the top
+    container_name: promtail
+    image: grafana/promtail:latest
+    volumes:
+      - /var/log:/var/log
+      - /media/cbox/log:/data/logs/cbox
+      - $DOCKERDIR/logs/homeserver:/data/logs/scripts
+      - $DOCKERDIR/appdata/promtail:/etc/promtail
+    # ports:
+    #   - "1514:1514" # this is only needed if you are going to send syslogs
+    command: -config.file=/etc/promtail/config.yml
+    

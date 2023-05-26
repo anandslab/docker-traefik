@@ -1,0 +1,18 @@
+  # PlexTraktSync
+  # Create Trakt Application https://github.com/Taxel/PlexTraktSync
+  # Had to run this first before starting compose
+  # git clone -b plexmovieagent-fixed https://github.com/Taxel/PlexTraktSync.git /home/USER/docker/apps/
+  # sudo docker run -it --name ptsync -v /home/USER/docker/apps/PlexTraktSync:/usr/src/app -e TZ="America/New_York" --restart on-failure:2 twolaw/plextraktsync:latest
+  # change permissions of .env and .pytrakt.json to 600 and root:root
+  ptsync:
+    image: twolaw/plextraktsync:latest
+    container_name: ptsync
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      TZ: $TZ
+    volumes:
+      - $DOCKERDIR/apps/pts-mafixed:/usr/src/app # plexmovieagent-fixed branch

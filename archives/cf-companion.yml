@@ -1,0 +1,22 @@
+  # Cloudflare-Companion - Automatic CNAME DNS Creation
+  cf-companion:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    container_name: cf-companion
+    image: tiredofit/traefik-cloudflare-companion:latest
+    networks:
+      - socket_proxy
+    environment:
+      - TIMEZONE=$TZ
+      - TRAEFIK_VERSION=2
+      - CF_TOKEN__FILE=/run/secrets/cf_token
+      - TARGET_DOMAIN=cdoc.$DOMAINNAME_CLOUD_SERVER # Edit this. Either a subdomain or just $DOMAINNAME_CLOUD_SERVER pointing to the IP will work. See: https://github.com/htpcBeginner/docker-traefik/issues/244.
+      - DOMAIN1=$DOMAINNAME_CLOUD_SERVER
+      - DOMAIN1_ZONE_ID=$CLOUDFLARE_ZONEID # Copy from Cloudflare Overview page
+      - DOMAIN1_PROXIED=TRUE
+      - DOCKER_HOST=tcp://socket-proxy:2375
+    secrets: 
+      - cf_token
+    labels:
+      # Add hosts specified in rules here to force cf-companion to create the CNAMEs
+      # Since cf-companion creates CNAMEs based on host rules, this a workaround for non-docker/external apps
+      - "traefik.http.routers.cf-companion-rtr.rule=Host(Host(`webmin.$DOMAINNAME_CLOUD_SERVER`) || Host(`shell.$DOMAINNAME_CLOUD_SERVER`) || Host(`stcdoc.$DOMAINNAME_CLOUD_SERVER`) || Host(`ag.$DOMAINNAME_CLOUD_SERVER`)"

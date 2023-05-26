@@ -1,0 +1,22 @@
+  # Ouroboros - Automatic Docker Container Updates
+  ouroboros:
+    image: pyouroboros/ouroboros:latest
+    container_name: ouroboros
+    restart: unless-stopped
+    networks:
+      - default
+      - socket_proxy
+    # depends_on:
+    #  - socket-proxy
+    volumes:
+      # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+      - $DOCKERDIR/ouroboros/config.json:/root/.docker/config.json:ro
+    environment:
+      TZ: $TZ
+      INTERVAL: 86400
+      LOG_LEVEL: info
+      SELF_UPDATE: "true"
+      CLEANUP: "true"
+      IGNORE: traefik influxdb hassio_dns homeassistant hassio_supervisor addon_core_check_config addon_62c7908d_autobackup plexms
+      NOTIFIERS: "tgram://$TGRAM_BOT_TOKEN/$TGRAM_CHAT_ID/"
+      DOCKER_SOCKETS: tcp://socket-proxy:2375 # POST to be enabled on Socket Proxy

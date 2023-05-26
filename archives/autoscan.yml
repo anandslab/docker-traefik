@@ -1,0 +1,23 @@
+  # Plex AutoScan - On demand/specific folder scanning for Plex
+  autoscan:
+    image: hotio/autoscan
+    container_name: autoscan
+    restart: "no"
+    # profiles:
+    # - media
+    # - testing
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    #ports:
+    #  - "3030:3030"
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      UMASK: 002
+      #PLEX_LOGIN: ""
+      #PLEX_PASSWORD: ""
+    volumes:
+      - $DOCKERDIR/appdata/autoscan:/config

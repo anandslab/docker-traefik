@@ -1,0 +1,35 @@
+  # Tiny Media Manager - Media and Metadata Management Tool
+  tinymm:
+    image: romancin/tinymediamanager:latest
+    container_name: tinymm
+    restart: "no"
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$TINYMM_PORT:5800"
+    volumes:
+      - $DOCKERDIR/appdata/tinymm:/config
+      - $DATADIR/media:/data/media
+      - $DATADIR/downloads:/data/downloads
+    environment:
+      USER_ID: $PUID
+      GROUP_ID: $PGID
+      TZ: $TZ
+      UMASK: 002
+      KEEP_APP_RUNNING: 1
+      CLEAN_TMP_DIR: 1
+      DISPLAY_WIDTH: 1600
+      DISPLAY_HEIGHT: 960
+      VNC_PASSWD: $TINYMM_VNC_PASSWD
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.tinymm-rtr.entrypoints=https"
+      - "traefik.http.routers.tinymm-rtr.rule=Host(`tmm.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.tinymm-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.tinymm-rtr.service=tinymm-svc"
+      - "traefik.http.services.tinymm-svc.loadbalancer.server.port=5800"

@@ -1,0 +1,32 @@
+  # Gonic - Music Server
+  gonic:
+    container_name: gonic
+    image: sentriz/gonic:latest
+    restart: "no"
+    # profiles:
+    # - media
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$GONIC_PORT:80"
+    volumes:
+      - $DOCKERDIR/appdata/gonic/data:/data
+      - $DOCKERDIR/appdata/gonic/podcasts:/podcasts
+      - $DATADIR/transcode/gonic:/cache
+      - $DATADIR/media/music:/music:ro
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.gonic-rtr.entrypoints=https"
+      - "traefik.http.routers.gonic-rtr.rule=Host(`gonic.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.gonic-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.gonic-rtr.service=gonic-svc"
+      - "traefik.http.services.gonic-svc.loadbalancer.server.port=80"

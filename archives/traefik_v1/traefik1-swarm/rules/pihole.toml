@@ -1,0 +1,17 @@
+[backends]
+  [backends.backend-pihole]
+    [backends.backend-pihole.servers]
+      [backends.backend-pihole.servers.server-pihole-ext]
+        url = "http://192.168.1.26"
+        weight = 0
+
+[frontends]
+  [frontends.frontend-pihole]
+    backend = "backend-pihole"
+    passHostHeader = true
+#    basicAuth = [
+#      "user:HASHED_PASSWORD",
+#    ]
+    [frontends.frontend-pihole.routes]
+          [frontends.frontend-pihole.routes.route-pihole-ext]
+        rule = "Host:pi.example.com"

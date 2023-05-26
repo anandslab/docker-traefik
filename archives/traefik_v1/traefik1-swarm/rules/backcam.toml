@@ -1,0 +1,16 @@
+[backends]
+  [backends.backend-backcam.servers]
+    [backends.backend-backcam.servers.server-backcam-ext]
+      url = "http://192.168.1.93"
+      weight = 0
+
+[frontends]
+  [frontends.frontend-backcam]
+    backend = "backend-backcam"
+    passHostHeader = true
+    basicAuth = [
+      "user:HASHED_PASSWORD",
+    ]
+    [frontends.frontend-backcam.routes]
+      [frontends.frontend-backcam.routes.route-backcam-ext]
+        rule = "Host:backcam.example.com" 

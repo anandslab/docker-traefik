@@ -1,0 +1,35 @@
+  # MusicBrainz - Music Library Tagging and Management
+  musicbrainz:
+    image: ghcr.io/linuxserver/musicbrainz
+    container_name: musicbrainz
+    restart: "no"
+    # profiles:
+    # - media
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$MUSICBRAINZ_PORT:5000"
+    volumes:
+      - $DOCKERDIR/appdata/musicbrainz/config:/config
+      - $DATADIR/temp/docker/appdata/musicbrainz/data:/data
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      FILE__BRAINZCODE: /run/secrets/brainzcode
+      WEBADDRESS: $SERVER_IP
+      #NPROC: <parameter> #optional
+    secrets:
+      - brainzcode
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.musicbrainz-rtr.entrypoints=https"
+      - "traefik.http.routers.musicbrainz-rtr.rule=Host(`brainz.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.musicbrainz-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.musicbrainz-rtr.service=musicbrainz-svc"
+      - "traefik.http.services.musicbrainz-svc.loadbalancer.server.port=5000"

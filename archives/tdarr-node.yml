@@ -1,0 +1,26 @@
+tdarr-node2:
+  image: haveagitgat/tdarr_node:latest
+  container_name: tdarr-node2
+  restart: "no"
+  # profiles:
+  # - media
+  security_opt:
+    - no-new-privileges:true
+  networks:
+    - default
+  environment:
+    PUID: $PUID
+    PGID: $PGID
+    TZ: $TZ
+    UMASK_SET: 002
+    nodeID: Node2
+    nodeIP: tdarr-node2 # or hostname
+    nodePort: 8267
+    serverIP: tdarr # or hostname
+    serverPort: 8266
+  volumes:
+    - $DOCKERDIR/appdata/tdarr/configs:/app/configs
+    - $DOCKERDIR/appdata/tdarr/logs:/app/logs
+    - $DATADIR/transcode/tdarr:/data/temp
+    - $DATADIR/zdata/Photos/zVideos:/data/media:ro
+    - $DATADIR/ds918/media/zvideos:/data/output

@@ -1,0 +1,17 @@
+[backends]
+  [backends.backend-shellinabox]
+    [backends.backend-shellinabox.servers]
+      [backends.backend-shellinabox.servers.server-shellinabox-ext]
+        url = "https://192.168.1.904200"
+        weight = 0
+
+[frontends]
+  [frontends.frontend-shellinabox]
+    backend = "backend-shellinabox"
+    passHostHeader = true
+    basicAuth = [
+      "user:HASHED_PASSWORD",
+    ]
+    [frontends.frontend-shellinabox.routes]
+          [frontends.frontend-shellinabox.routes.route-shellinabox-ext]
+        rule = "Host:shell.example.com"

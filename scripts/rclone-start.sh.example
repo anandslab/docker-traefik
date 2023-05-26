@@ -8,22 +8,22 @@ echo "Stopping MergerFS..."
 sudo systemctl stop merge-media.service
 
 echo 
-echo "Starting Rclone-Drive..."
-sudo systemctl start rclone-drive.service
+echo "Starting Rclone-GDrive..."
+sudo systemctl start rclone-gdrive.service
 
 echo
-echo "Starting Rclone-Crypt..."
-sudo systemctl start rclone-crypt.service
+echo "Starting Rclone-GCrypt..."
+sudo systemctl start rclone-gcrypt.service
 
 echo
 echo "Starting MergerFS..."
 sudo systemctl start merge-media.service
 
-drive_status=$(systemctl is-active rclone-drive.service)
-crypt_status=$(systemctl is-active rclone-crypt.service)
+gdrive_status=$(systemctl is-active rclone-gdrive.service)
+gcrypt_status=$(systemctl is-active rclone-gcrypt.service)
 mergerfs_status=$(systemctl is-active merge-media.service)
 
 echo
-echo "Rclone Drive is: $drive_status"
-echo "Rclone Crypt is: $crypt_status"
+echo "Rclone GDrive is: $gdrive_status"
+echo "Rclone GCrypt is: $gcrypt_status"
 echo "Rclone MergerFS is: $mergerfs_status"

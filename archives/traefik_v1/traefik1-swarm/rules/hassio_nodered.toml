@@ -1,0 +1,14 @@
+[backends]
+  [backends.backend-node.servers]
+    [backends.backend-node.servers.server-node-ext]
+      url = "http://192.168.1.90:1880"
+      weight = 0
+
+[frontends]
+  [frontends.frontend-node]
+    backend = "backend-node"
+    passHostHeader = true
+
+    [frontends.frontend-node.routes]
+      [frontends.frontend-node.routes.route-node-ext]
+        rule = "Host:node.example.com" 

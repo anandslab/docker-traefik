@@ -1,0 +1,26 @@
+  # cAdvisor - Container Advisor
+  cadvisor:
+    <<: *common-keys-monitoring # See EXTENSION FIELDS at the top
+    container_name: cadvisor
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "$CADVISOR_PORT:8080"
+    #privileged: true # Only needed for CentOS, Fedora, Red Hat, etc.
+    #devices:
+    #  - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.cadvisor-rtr.entrypoints=https"
+      - "traefik.http.routers.cadvisor-rtr.rule=HostHeader(`cad.$DOMAINNAME1`)"
+      ## Middlewares
+      - "traefik.http.routers.cadvisor-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.cadvisor-rtr.service=cadvisor-svc"
+      - "traefik.http.services.cadvisor-svc.loadbalancer.server.port=8080"

@@ -1,0 +1,11 @@
+  # MiFlora MQTT Daemon - BT to MQTT Daemon for MiFlora Sensors
+  miflora:
+    image: raymondmm/miflora-mqtt
+    container_name: miflora-mqtt
+    environment:
+      - TZ=$TZ
+    network_mode: host
+    # user: "0"
+    volumes:
+      - $USERDIR/docker/miflora-mqtt/config:/config
+    restart: unless-stopped

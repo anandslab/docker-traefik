@@ -1,0 +1,16 @@
+[backends]
+  [backends.backend-webmin.servers]
+    [backends.backend-webmin.servers.server-webmin-ext]
+      url = "http://192.168.1.90:8110"
+      weight = 0
+
+[frontends]
+  [frontends.frontend-webmin]
+    backend = "backend-webmin"
+    passHostHeader = true
+    basicAuth = [
+      "user:HASHED_PASSWORD",
+    ]
+    [frontends.frontend-webmin.routes]
+      [frontends.frontend-webmin.routes.route-webmin-ext]
+        rule = "Host:webmin.example.com" 

@@ -1,0 +1,14 @@
+[backends]
+  [backends.backend-plex]
+    [backends.backend-plex.servers]
+      [backends.backend-plex.servers.server-plex-ext]
+        url = "http://192.168.5.238:32400"
+        weight = 0
+[frontends]
+  [frontends.frontend-plex]
+    backend = "backend-plex"
+    passHostHeader = true
+    [frontends.frontend-plex.routes]
+          [frontends.frontend-plex.routes.route-plex-ext]
+        rule = "Host:synplex.example.com"
+

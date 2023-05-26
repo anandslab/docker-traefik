@@ -1,0 +1,36 @@
+  # nzbget - Binary newsgrabber (NZB downloader)
+  nzbget:
+    image: lscr.io/linuxserver/nzbget
+    container_name: nzbget
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["apps", "all"]
+    networks:
+      - t2_proxy
+    ports:
+      - "6789:6789"
+    volumes:
+      - $DOCKERDIR/appdata/nzbget:/config
+      - $DATADIR/downloads:/data/downloads
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers Auth Bypass
+      - "traefik.http.routers.nzbget-rtr-bypass.entrypoints=https"
+      - "traefik.http.routers.nzbget-rtr-bypass.rule=Headers(`traefik-bypass-key`, `$TRAEFIK_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
+      - "traefik.http.routers.nzbget-rtr-bypass.priority=100"
+      ## HTTP Routers Auth
+      - "traefik.http.routers.nzbget-rtr.entrypoints=https"
+      - "traefik.http.routers.nzbget-rtr.rule=Host(`nzbget.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.nzbget-rtr.priority=99"
+      ## Middlewares
+      - "traefik.http.routers.nzbget-rtr-bypass.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.nzbget-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.nzbget-rtr.service=nzbget-svc"
+      - "traefik.http.routers.nzbget-rtr-bypass.service=nzbget-svc"
+      - "traefik.http.services.nzbget-svc.loadbalancer.server.port=6789"

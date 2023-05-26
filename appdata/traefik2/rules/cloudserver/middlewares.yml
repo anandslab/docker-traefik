@@ -30,18 +30,14 @@ http:
         stsIncludeSubdomains: true
         stsPreload: true
         forceSTSHeader: true
-        customFrameOptionsValue: "allow-from https:{{env "DOMAINNAME_CLOUD_SERVER"}}" #CSP takes care of this but may be needed for organizr.
+        customFrameOptionsValue: SAMEORIGIN # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
         contentTypeNosniff: true
         browserXssFilter: true
-        # sslForceHost: true # add sslHost to all of the services
-        # sslHost: "{{env "DOMAINNAME_CLOUD_SERVER"}}"
         referrerPolicy: "same-origin"
         permissionsPolicy: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), vr=()"
         customResponseHeaders:
-          X-Robots-Tag: "none,noarchive,nosnippet,notranslate,noimageindex,"
-          server: ""
-          # https://community.traefik.io/t/how-to-make-websockets-work-with-traefik-2-0-setting-up-rancher/1732
-          # X-Forwarded-Proto: "https"
+          X-Robots-Tag: "none,noarchive,nosnippet,notranslate,noimageindex," # disable search engines from indexing home server
+          server: "" # hide server info from visitors
 
     middlewares-oauth:
       forwardAuth:

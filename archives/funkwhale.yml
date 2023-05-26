@@ -1,0 +1,26 @@
+  # FunkWhale - Music Server
+  funkwhale:
+    <<: *common-keys-media # See EXTENSION FIELDS at the top
+    container_name: funkwhale
+    image: thetarkus/funkwhale
+    # ports:
+    #   - "$FUNKWHALE_PORT:80"
+    volumes:
+      - $DOCKERDIR/appdata/funkwhale:/data
+      - $DATADIR/media/music:/music:ro
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - FUNKWHALE_HOSTNAME=proxfw.$DOMAINNAME0
+      - NESTED_PROXY=1
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.funkwhale-rtr.entrypoints=https"
+      - "traefik.http.routers.funkwhale-rtr.rule=Host(`proxfw.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.funkwhale-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.funkwhale-rtr.service=funkwhale-svc"
+      - "traefik.http.services.funkwhale-svc.loadbalancer.server.port=80"
+

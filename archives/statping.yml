@@ -1,0 +1,35 @@
+  # StatPing - Status Page & Monitoring Server
+  # Not adding $TZ to linuxserver/mariadb resulted in a blank page
+  # Had to change default username admin in MariaDB
+  # dexec into mariadb and run mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql -p
+  statping:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    image: statping/statping:latest
+    container_name: statping
+    networks:
+      - t2_proxy
+      - default
+    volumes:
+      - $DOCKERDIR/appdata/statping:/app
+    environment:
+      <<: *default-tz-puid-pgid
+      DB_CONN: mysql
+      DB_HOST: $MARIADB_HOST
+      DB_PORT: $MARIADB_PORT
+      DB_USER: $STATPING_DB_USER
+      DB_PASS: $STATPING_DB_PASS
+      DB_DATABASE: $STATPING_DB
+      IS_DOCKER: "true"
+      DISABLE_LOGS: "false"
+      NAME: StatPing
+      DESCRIPTION: Monitor web services
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.statping-rtr.entrypoints=https"
+      - "traefik.http.routers.statping-rtr.rule=Host(`sp.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.statping-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.statping-rtr.service=statping-svc"
+      - "traefik.http.services.statping-svc.loadbalancer.server.port=8080"

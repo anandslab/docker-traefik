@@ -1,0 +1,22 @@
+  # Redis Commander - Redis Management Tool
+  rediscommander:
+    container_name: rediscommander
+    image: rediscommander/redis-commander:latest
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=$REDIS_PASSWORD
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.rediscommander-rtr.entrypoints=https"
+      - "traefik.http.routers.rediscommander-rtr.rule=HostHeader(`rediscom.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.rediscommander-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.rediscommander-rtr.service=rediscommander-svc"
+      - "traefik.http.services.rediscommander-svc.loadbalancer.server.port=8081"

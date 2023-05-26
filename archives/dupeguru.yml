@@ -1,0 +1,31 @@
+  # DupeGuru - Duplicate File/Folder Remover
+  dupeguru:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    image: jlesage/dupeguru:latest
+    container_name: dupeguru
+    # ports:
+    #   - "$dupeguru_PORT:5800"
+    volumes:
+      - $USERDIR:/data/home:ro
+      - $DOCKERDIR/appdata/dupeguru/config:/config:rw
+      - /media/data:/data/data:rw
+    environment:
+      USER_ID: $PUID
+      GROUP_ID: $PGID
+      UMASK: 002
+      TZ: $TZ
+      KEEP_APP_RUNNING: 1
+      CLEAN_TMP_DIR: 1
+      DISPLAY_WIDTH: 1600
+      DISPLAY_HEIGHT: 960
+      VNC_PASSWORD: $DUPEGURU_VNC_PASSWD
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.dupeguru-rtr.entrypoints=https"
+      - "traefik.http.routers.dupeguru-rtr.rule=Host(`dupe.$DOMAINNAME0`)"
+      ## Middlewares
+      - "traefik.http.routers.dupeguru-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.dupeguru-rtr.service=dupeguru-svc"
+      - "traefik.http.services.dupeguru-svc.loadbalancer.server.port=5800"

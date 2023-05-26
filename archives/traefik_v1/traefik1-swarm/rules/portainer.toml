@@ -1,0 +1,17 @@
+[backends]
+  [backends.backend-portainer]
+    [backends.backend-portainer.servers]
+      [backends.backend-portainer.servers.server-portainer-ext]
+        url = "http://192.168.1.90:8146"
+        weight = 0
+
+[frontends]
+  [frontends.frontend-portainer]
+    backend = "backend-portainer"
+    passHostHeader = true
+#    basicAuth = [
+#      "user:HASHED_PASSWORD",
+#    ]
+    [frontends.frontend-portainer.routes]
+          [frontends.frontend-portainer.routes.route-portainer-ext]
+        rule = "Host:portainer.example.com"

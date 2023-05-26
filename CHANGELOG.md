@@ -5,7 +5,7 @@
 - Only showing high-level changes. Smaller changes are too many to list. See commits.
 
 ## Planned (notes for future):
-
+- apprise, Apprise api, remmina, Webtop, openvscode-server, 
 - Add projectsend, embystat, nextcloud, nut-upsd, HealthChecks, FileRun, fail2ban, ofelia, scrutiny to NUC, Wireguard, traktarr, listrr, Subliminal, netdata, Exportarr, Unpackarr
 - Check Cloudbox/cloudbox - plex autoscan, cloudplow, plexdupefinder, plextraktsync
 - implement secrets and remove variables from .env

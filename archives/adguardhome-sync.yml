@@ -1,0 +1,11 @@
+  # AdGuard Home Sync - Sync Settings between AdGuard Homes
+  adguardhome-sync:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    image: lscr.io/linuxserver/adguardhome-sync:latest
+    container_name: adguardhome-sync
+    environment:
+      <<: *default-tz-puid-pgid
+      CONFIGFILE: /config/adguardhome-sync.yaml #optional
+    volumes:
+      - $DOCKERDIR/appdata/adguard-home/config:/config
+    
