@@ -3,24 +3,18 @@
 # Save this script in one of your shares and schedule it to run as root at boot
 #   through Control Panel -> Task Scheduler
 # DSM upgrades will reset these changes, which is why we schedule them to happen automatically
-# Set the variables below if you want to customise the ports which DSM will listen on instead
-# NOTE: These ports are used for some services, e.g. Photo Station
 
-# NGINX Ports
-# Several Synology services use port 80 and 443 via Nginx. This conflicts with Traefik. 
-# This script reconfigures Nginx to use 81 and 444 instead, leaving ports 80 and 443 free for Traefik to use.
-HTTP_PORT=81
-HTTPS_PORT=444
-sed -i "s/^\( *listen .*\)80/\1$HTTP_PORT/" /usr/syno/share/nginx/*.mustache || { echo "Switching HTTP port to 81 failed." ; exit 1; }
-sed -i "s/^\( *listen .*\)443/\1$HTTPS_PORT/" /usr/syno/share/nginx/*.mustache || { echo "Switching HTTPS port to 444 failed." ; exit 1; }
+# NGINX Ports - CUSTOMIZE THIS
+# Several Synology services use port 80 and 443 via Nginx. This conflicts with Traefik, Nginx Proxy Manager, Caddy, etc. 
+# This script reconfigures Nginx to use non-default ports, leaving ports 80 and 443 free for reverse proxy.
+
+DEFAULT_HTTP_PORT=80 # typically left as-is, 80.
+DEFAULT_HTTPS_PORT=443 # typically left as-is, 443.
+NEW_HTTP_PORT=81
+NEW_HTTPS_PORT=444
+
+################ DO NOT EDIT BEYOND THIS LINE ###########################
+sed -i "s/^\([ \t]\+listen[ \t]\+[]:[]*\)$DEFAULT_HTTP_PORT\([^0-9]\)/\1$NEW_HTTP_PORT\2/" /usr/syno/share/nginx/*.mustache
+sed -i "s/^\([ \t]\+listen[ \t]\+[]:[]*\)$DEFAULT_HTTPS_PORT\([^0-9]\)/\1$NEW_HTTPS_PORT\2/" /usr/syno/share/nginx/*.mustache
 
 synosystemctl restart nginx
-
-# MYSQL/MARIADB
-# Disabled because I do not use the Synology MariaDB package. Instead, I use MariaDB on docker. See docker-compose-t2-synology.yml.
-#MYSQL_DEF_PORT=3307
-#MYSQL_NEW_PORT=3306
-#MY_CNF1="/usr/local/mariadb10/etc/mysql/my.cnf"
-#MY_CNF2="/volume1/@appstore/MariaDB10/usr/local/mariadb10/etc/mysql/my.cnf"
-#sed -i "s@port = $MYSQL_DEF_PORT@port = $MYSQL_NEW_PORT@g" "$MY_CNF1" || { echo "Replacing in CNF1 failed." ; exit 1; }
-#sed -i "s@port = $MYSQL_DEF_PORT@port = $MYSQL_NEW_PORT@g" "$MY_CNF2" || { echo "Replacing in CNF2 failed." ; exit 1; }
