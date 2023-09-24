@@ -6,7 +6,7 @@
 # Sensitive information goes into the .env file - this allows me to share my bash aliases with the community
 # Rename shared/config/bash_aliases.env.example and use it as a starter
 source ~/.bash_aliases.env
-alias myprompt='export PS1="Anand>" '
+alias myprompt='export PS1="AnandSHB> " '
 
 # DOCKER COMMON - All docker commands start with "d"
 alias dstop='sudo docker stop $(docker ps -a -q)'
@@ -30,25 +30,19 @@ dip() {
   sudo docker inspect --format '{{json .}}' "$1" | jq -rs 'map(.NetworkSettings.Networks[].IPAddress) | .[]'
 }
 
+alias dcrun2='sudo docker compose --profile all -f /home/$BA_USERNAME/docker/$COMPOSE_FILE'
+
 # DOCKER COMPOSE FILE BY HOSTNAME
 # I am sure there is a better way than using $HOSTNAME - if you do, feel free to share/contribute
 case $HOSTNAME in
     home-server)
-      alias dcrun2='sudo docker compose --profile all -f /home/$BA_USERNAME/docker/docker-compose-t2.yml'
       alias traefiklogs='tail -f /home/$BA_USERNAME/docker/logs/cloudserver/traefik/traefik.log'
       ;;
-    media-server)
-      alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose-t2-media-db.yml'
-      ;;
     web-server)
-      alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose-t2-web.yml'
       alias traefiklogs='tail -f /home/$BA_USERNAME/docker/logs/webserver/traefik/traefik.log'
       ;;
     ds918) 
-      alias dcrun2='sudo docker-compose -f /volume6/docker/docker-compose-t2-synology.yml'
-      ;;
-    DMS)
-      alias dcrun2='sudo docker compose -f /home/$BA_USERNAME/docker/docker-compose.yml'
+      alias dcrun2='sudo docker-compose -f /volume1/docker/docker-compose-t2-synology.yml'
       ;;
     *)
 esac
@@ -62,11 +56,21 @@ alias dcstop2='dcrun2 stop'
 alias dcrestart2='dcrun2 restart '
 alias dcstart2='dcrun2 start '
 alias dcpull2='dcrun2 pull'
-alias startcore='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/core-services.txt)'
-alias stopcore='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/core-services.txt)'
-alias stopmedia='dcstop2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/media-services.txt)'
-alias startmedia='dcup2 $(cat /home/$BA_USERNAME/docker/scripts/cloudserver/media-services.txt)'
-alias webrs='dcrec2 php7 redis nginx'
+alias startcore='sudo docker compose --profile core -f /home/$BA_USERNAME/docker/$COMPOSE_FILE start'
+alias createcore='sudo docker compose --profile core -f /home/$BA_USERNAME/docker/$COMPOSE_FILE up -d --build --remove-orphans'
+alias stopcore='sudo docker compose --profile core -f /home/$BA_USERNAME/docker/$COMPOSE_FILE stop'
+alias stopmedia='sudo docker compose --profile media -f /home/$BA_USERNAME/docker/$COMPOSE_FILE stop'
+alias createmedia='sudo docker compose --profile media -f /home/$BA_USERNAME/docker/$COMPOSE_FILE up -d --build --remove-orphans'
+alias startmedia='sudo docker compose --profile media -f /home/$BA_USERNAME/docker/$COMPOSE_FILE start'
+alias stopdownloads='sudo docker compose --profile downloads -f /home/$BA_USERNAME/docker/$COMPOSE_FILE stop'
+alias createdownloads='sudo docker compose --profile downloads -f /home/$BA_USERNAME/docker/$COMPOSE_FILE up -d --build --remove-orphans'
+alias startdownloads='sudo docker compose --profile downloads -f /home/$BA_USERNAME/docker/$COMPOSE_FILE start'
+alias stoparrs='sudo docker compose --profile arrs -f /home/$BA_USERNAME/docker/$COMPOSE_FILE stop'
+alias startarrs='sudo docker compose --profile arrs -f /home/$BA_USERNAME/docker/$COMPOSE_FILE start'
+alias createarrs='sudo docker compose --profile arrs -f /home/$BA_USERNAME/docker/$COMPOSE_FILE up -d --build --remove-orphans'
+alias stopdbs='sudo docker compose --profile dbs -f /home/$BA_USERNAME/docker/$COMPOSE_FILE stop'
+alias createdbs='sudo docker compose --profile dbs -f /home/$BA_USERNAME/docker/$COMPOSE_FILE up -d --build --remove-orphans'
+alias startdbs='sudo docker compose --profile dbs -f /home/$BA_USERNAME/docker/$COMPOSE_FILE start'
 
 # CROWDSEC
 alias cscli='dcrun2 exec -t crowdsec cscli'
@@ -155,9 +159,8 @@ alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 
 # TRASH - trash-cli
-alias rmt='trash-put'
-alias rm='rm -r'
-alias tput='trash-put'
+alias rm='trash-put'
+alias rmv='rm -rv'
 alias tempty='trash-empty ; sudo trash-empty ; sudo -H trash-empty'
 alias tlist='trash-list'
 alias srmt='sudo trash-put'
@@ -187,12 +190,10 @@ alias gcpush='echo "Usage: gcpush ../commits/date.txt" ; cd /home/$BA_USERNAME/d
 alias gpush='cd /home/$BA_USERNAME/docker ; git push'
 alias ggraph='git log --all --decorate --oneline --graph'
 
-# MAIL SERVER
+# MAIL SERVER TESTING
 alias nullsend='sudo echo 1 > /var/spool/nullmailer/trigger'
-alias tmail1='echo "Tmail1 This mail test needs an email id after tmail1 command" ; echo "Test mail from zNUC using tmail1." | mail -s "tmail1 from zNUC"'
-alias tmail2='echo "Tmail2 This is the message body" | mail -s "tmail2 this is the subject" info@$BA_DOMAINNAME -aFrom:server@$BA_DOMAINNAME'
-alias tmail3='echo "Test mail from zNUC using tmail3." | mail -s "tmail3 from zNUC" $BA_MYEMAIL1'
-alias pftest='mail -s "Postfix Mailgun Test mail" $BA_MYEMAIL1 <<< "A test message using Mailgun and Postfix"'
+alias tmail1='echo -e "### `date +'\''%Y-%m-%d %H:%M'\''` ### \n\n This is a mail server test using tmail1 alias." | mail -s "tmail1 from $HOSTNAME" info@$PRIMARY_DOMAIN -aFrom:$HOSTNAME@$PRIMARY_DOMAIN'
+alias tmail2='echo -e "### `date +'\''%Y-%m-%d %H:%M'\''` ### \n\n This is a mail server test using tmail2 alias. It needs and email id after the tmail2 command." | mail -s "tmail2 from $HOSTNAME"'
 
 # UFW FIREWALL
 alias ufwenable='sudo ufw enable'

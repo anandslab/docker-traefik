@@ -1,0 +1,23 @@
+  # CrowdSec Blocklist Mirror - For PiHole/AdGuard Use
+  # sudo docker exec crowdsec cscli bouncer add cloudflare-bouncer
+  crowdsec-blocklist:
+    image: crowdsecurity/blocklist-mirror
+    container_name: crowdsec-blocklist
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["apps", "all"]
+    networks:
+      - t2_proxy
+    volumes:
+      - $DOCKERDIR/appdata/crowdsec-blocklist/cfg.yaml:/etc/crowdsec/bouncers/crowdsec-blocklist-mirror.yaml
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.crowdsec-blocklist-rtr.entrypoints=https"
+      - "traefik.http.routers.crowdsec-blocklist-rtr.rule=Host(`blocklist.$DOMAINNAME_SHB`)" # https://domain.com/security/blocklist
+      ## Middlewares
+      - "traefik.http.routers.crowdsec-blocklist-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.crowdsec-blocklist-rtr.service=crowdsec-blocklist-svc"
+      - "traefik.http.services.crowdsec-blocklist-svc.loadbalancer.server.port=41412"

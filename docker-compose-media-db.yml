@@ -54,12 +54,13 @@ services:
       - default
     security_opt:
       - no-new-privileges:true
-    restart: unless-stopped
+    restart: "no"
+    profiles: ["media", "all"]
     volumes:
       - $DOCKERDIR/appdata/airsonic/podcasts:/data/podcasts
       - $DOCKERDIR/appdata/airsonic/playlists:/data/playlists
       - $DOCKERDIR/appdata/airsonic/config:/config
-      - $EXTDIR/ssd/home-server/local/music:/data/music
+      - $DATADIR/media/music:/data/music
     ports:
       - "4040:4040"
     environment:
@@ -76,7 +77,8 @@ services:
       - default
     security_opt:
       - no-new-privileges:true
-    restart: unless-stopped
+    restart: "no"
+    profiles: ["media", "all"]
     user: $PUID:$PGID
     devices:
       - /dev/dri:/dev/dri # for harware transcoding
@@ -100,7 +102,8 @@ services:
       - default
     security_opt:
       - no-new-privileges:true
-    restart: unless-stopped
+    restart: "no"
+    profiles: ["media", "all"]
     devices:
       - /dev/dri:/dev/dri # for harware transcoding
     ports:
@@ -117,7 +120,7 @@ services:
     volumes:
       - $DOCKERDIR/appdata/plex:/config
       - $DATADIR/media:/data/media
-      # - $DATADIR/nas_media:/data/nas_media
+      # - $DATADIR/media:/data/media
       - $EXTDIR/ssd/home-server/downloads:/data/downloads
       - /dev/shm:/data/transcode # Offload transcoding to RAM if you have enough RAM
     environment:
@@ -143,6 +146,7 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
+    profiles: ["dbs", "all"]
     ports:
       - "3306:3306"
     volumes:
@@ -164,6 +168,7 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
+    profiles: ["dbs", "all"]
     ports:
       - "9090:9090"
     volumes:
@@ -187,12 +192,15 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
+    profiles: ["dbs", "all"]
     ports:
       - "8086:8086"
     volumes:
       - $DOCKERDIR/appdata/influxdb2/config:/etc/influxdb2
       - $DOCKERDIR/appdata/influxdb2/db:/var/lib/influxdb2
 
+  ############################# DATABASE
+  
   # Node Exporter - Metrics to Prometheus
   node-exporter:
     container_name: node-exporter

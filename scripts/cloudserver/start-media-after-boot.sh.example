@@ -1,19 +1,27 @@
 #!/bin/bash
-# All containers (see media-services.txt) that access rclone/MergerFS mounts set to NOT restart automatically at boot time. 
+# All containers (profile "media") that access rclone/MergerFS mounts set to NOT restart automatically at boot time. 
 # This is because, rclone can take a few seconds/minutes to mount remote drives.
 # This script checks the required mounts every 5 seconds and as soon as required drives are mounted, it starts the "media" containers.
 
 # CHECKING FOR DRIVE MOUNTS
 num_drives=3
-drive1="/media/drive"
+drive1="/media/rclone/gdrive"
 drive1_seconds=0
 drive1_status=0
-drive2="/media/crypt"
+drive2="/media/rclone/gcrypt"
 drive2_seconds=0
 drive2_status=0
-drive3="/media/data/media"
+drive3="/media/ssd/home-server/media"
 drive3_seconds=0
 drive3_status=0
+
+# Variables set in /etc/environment
+source /etc/environment
+# PRIMARY_USER="username"
+# PRIMARY_DOMAIN="example.com"
+
+email_to="info@$PRIMARY_DOMAIN"
+email_from="$HOSTNAME@$PRIMARY_DOMAIN"
 
 mounted=0
 rounds=0
@@ -47,15 +55,16 @@ do
     fi
 	sleep 5
 	rounds=$((rounds + 1))
-	#echo -e "$rounds\n"
+	echo -e "$rounds\n"
 done
 
 seconds=$((rounds * 5))
 
 if [[ "$mounted" -eq "$num_drives" ]]; then
-	echo -e "All drives mounted: \n\n - $drive1 in $drive1_seconds \n - $drive2 in $drive2_seconds \n - $drive3 in $drive3_seconds\n\nStarting media containers." | mail -s "[cDoc MSG] Starting media containers" info@example.com -aFrom:cDoc@example.com
-	sudo docker start $(cat /home/USER/docker/scripts/cloudserver/media-services.txt)
+	echo -e "All drives mounted: \n\n - $drive1 in $drive1_seconds \n - $drive2 in $drive2_seconds \n - $drive3 in $drive3_seconds\n\nStarting media containers." | mail -s "[$HOSTNAME] Starting media containers" ${email_to} -aFrom:${email_from}
+	sudo docker compose --profile "media" -f /home/$PRIMARY_USER/docker/docker-compose-t2.yml up -d --build --remove-orphans
 else
-	echo -e "Not all drives mounted after reboot: \n\n - $drive1 is $drive1_status \n - $drive2 is $drive2_status \n - $drive3 is $drive3_status\n\nTimed out after $seconds seconds." | mail -s "[cDoc ERROR] Mounted not equal to $num_drives." info@example.com -aFrom:cDoc@example.com
-	sudo docker stop $(cat /home/USER/docker/scripts/cloudserver/media-services.txt)
+	echo "not equal"
+	echo -e "Not all drives mounted after reboot: \n\n - $drive1 is $drive1_status \n - $drive2 is $drive2_status \n - $drive3 is $drive3_status\n\nTimed out after $seconds seconds." | mail -s "[$HOSTNAME] Mounted not equal to $num_drives." ${email_to} -aFrom:${email_from}
+	sudo docker compose --profile "media" -f /home/$PRIMARY_USER/docker/docker-compose-t2.yml down --remove-orphans
 fi
