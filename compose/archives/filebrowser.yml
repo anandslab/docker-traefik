@@ -1,0 +1,30 @@
+  # File Browser - Explorer
+  filebrowser:
+    image: filebrowser/filebrowser:s6
+    container_name: filebrowser
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["apps", "all"]
+    networks:
+      - t2_proxy
+    ports:
+      - "81:80"
+    volumes:
+      - $DOCKERDIR/appdata/filebrowser:/config
+      - $EXTDRIVE:/data/media
+      - $USERDIR:/data/home
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.filebrowser-rtr.entrypoints=https"
+      - "traefik.http.routers.filebrowser-rtr.rule=Host(`fb.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.filebrowser-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.filebrowser-rtr.service=filebrowser-svc"
+      - "traefik.http.services.filebrowser-svc.loadbalancer.server.port=80"

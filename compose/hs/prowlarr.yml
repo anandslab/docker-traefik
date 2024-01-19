@@ -1,0 +1,30 @@
+services:
+  # Prowlarr - Torrent proxy
+  prowlarr:
+    image: ghcr.io/linuxserver/prowlarr:develop
+    container_name: prowlarr
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["apps", "all"]
+    networks:
+      - t2_proxy
+    ports:
+      - "9696:9696"
+    volumes:
+      - $DOCKERDIR/appdata/prowlarr:/config
+      - "/etc/localtime:/etc/localtime:ro"
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.prowlarr-rtr.entrypoints=https"
+      - "traefik.http.routers.prowlarr-rtr.rule=Host(`prowlarr.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.prowlarr-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.prowlarr-rtr.service=prowlarr-svc"
+      - "traefik.http.services.prowlarr-svc.loadbalancer.server.port=9696"

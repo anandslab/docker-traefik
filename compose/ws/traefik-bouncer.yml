@@ -1,0 +1,17 @@
+services:
+  # CrowdSec Bouncer - Traefik
+  # sudo docker exec crowdsec cscli bouncer add traefik-bouncer
+  traefik-bouncer:
+    image: fbonalair/traefik-crowdsec-bouncer
+    container_name: traefik-bouncer
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["core", "all"]
+    networks:
+      - t2_proxy
+    environment:
+      GIN_MODE: release # default is debug (more logs)
+      CROWDSEC_BOUNCER_API_KEY: $CROWDSEC_BOUNCER_TRAEFIK_API_KEY # sudo docker exec crowdsec cscli bouncers add traefik-bouncer
+      CROWDSEC_AGENT_HOST: crowdsec:8080 # CrowdSec host and port
+      CROWDSEC_BOUNCER_LOG_LEVEL: 2 # https://pkg.go.dev/github.com/rs/zerolog#readme-leveled-logging

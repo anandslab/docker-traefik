@@ -1,0 +1,28 @@
+services:
+  # qBittorrent - Torrent downloader
+  # Needs trailing / if using PathPrefixStrip
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["apps", "downloads", "all"]
+    network_mode: "service:gluetun"
+    # ports:
+    #   - "8081:8080" # Explosed via gluetun. 8081 because crowdsec is using port 8080
+    volumes:
+      - $DOCKERDIR/appdata/qbittorrent:/config
+      - $DOWNLOADSDIR:/data/downloads # Ensure that downloads folder is set to /data/downloads in qBittorrent
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      UMASK_SET: 002
+    healthcheck: # https://github.com/qdm12/gluetun/issues/641#issuecomment-933856220
+      test: "curl -sf https://example.com  || exit 1"
+      interval: 1m
+      timeout: 10s
+      retries: 1
+    labels: # Traefik labels added via glueten
+      - "deunhealth.restart.on.unhealthy=true"

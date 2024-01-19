@@ -1,0 +1,20 @@
+services:
+  # Plex Meta Manager - Automatic Metadata Manager for Plex
+  plexmm:
+    image: lscr.io/linuxserver/plex-meta-manager:latest
+    container_name: plexmm
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    profiles: ["media", "all"]
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      PMM_CONFIG: /config/config.yml #optional
+      PMM_TIME: 03:00 #optional
+      PMM_RUN: "True" #optional
+      PMM_TEST: "False" #optional
+      PMM_NO_MISSING: "False" #optional
+    volumes:
+      - $DOCKERDIR/appdata/plex-meta-manager:/config

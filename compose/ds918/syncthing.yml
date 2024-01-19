@@ -1,0 +1,33 @@
+services:
+  # SyncThing - Keep folders in Sync
+  syncthing:
+    image: lscr.io/linuxserver/syncthing
+    container_name: syncthing
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    # profiles: ["core", "all"]
+    networks:
+      - t2_proxy
+    ports:
+      - "8384:8384"
+      - "22000:22000/tcp"
+      - "22000:22000/udp"
+      - "21027:21027/udp"
+    volumes:
+      - /volume1:/data/volume1
+      - $DOCKERDIR/appdata/syncthing:/config
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.syncthing-rtr.entrypoints=https"
+      - "traefik.http.routers.syncthing-rtr.rule=Host(`stnas.$DOMAINNAME_HOME_SYNOLOGY`)"
+      ## Middlewares
+      - "traefik.http.routers.syncthing-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.syncthing-rtr.service=syncthing-svc"
+      - "traefik.http.services.syncthing-svc.loadbalancer.server.port=8384"

@@ -1,0 +1,23 @@
+services:
+  # Autoindex - Simple Directory Index (for Sitespeed.io Results)
+  sitespeed:
+    container_name: sitespeed
+    image: dceoy/nginx-autoindex:latest
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["apps", "all"]
+    networks:
+      - t2_proxy
+    volumes:
+      - $EXTDRIVE/ssd/sitespeed:/var/lib/nginx/html:ro # Location you want to index
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.sitespeed-rtr.entrypoints=https"
+      - "traefik.http.routers.sitespeed-rtr.rule=Host(`sitespeed.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.sitespeed-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.sitespeed-rtr.service=sitespeed-svc"
+      - "traefik.http.services.sitespeed-svc.loadbalancer.server.port=80"

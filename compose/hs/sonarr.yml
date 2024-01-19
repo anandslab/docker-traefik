@@ -1,0 +1,42 @@
+services:
+  # Sonarr - TV Shows Management
+  # Set url_base in sonarr settings if using PathPrefix
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:develop
+    container_name: sonarr
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    profiles: ["media", "arrs", "all"]
+    networks:
+      - t2_proxy
+    ports:
+      - "8989:8989"
+    volumes:
+      - $DOCKERDIR/appdata/sonarr:/config
+      - $DATADIR/data/media/shows:/data/shows1
+      - $DATADIR/data2/media/shows:/data/shows2
+      - $DOWNLOADSDIR:/data/downloads 
+      - "/etc/localtime:/etc/localtime:ro"
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers Auth Bypass
+      - "traefik.http.routers.sonarr-rtr-bypass.entrypoints=https"
+      #- "traefik.http.routers.sonarr-rtr-bypass.rule=Host(`sonarr.$DOMAINNAME_CLOUD_SERVER`) && (Headers(`X-Api-Key`, `$SONARR_API_KEY`) || Query(`apikey`, `$SONARR_API_KEY`))"
+      - "traefik.http.routers.sonarr-rtr-bypass.rule=Host(`sonarr.$DOMAINNAME_CLOUD_SERVER`) && Headers(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
+      - "traefik.http.routers.sonarr-rtr-bypass.priority=100"
+      ## HTTP Routers Auth
+      - "traefik.http.routers.sonarr-rtr.entrypoints=https"
+      - "traefik.http.routers.sonarr-rtr.rule=Host(`sonarr.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.sonarr-rtr.priority=99"
+      ## Middlewares
+      - "traefik.http.routers.sonarr-rtr-bypass.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.sonarr-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.sonarr-rtr.service=sonarr-svc"
+      - "traefik.http.routers.sonarr-rtr-bypass.service=sonarr-svc"
+      - "traefik.http.services.sonarr-svc.loadbalancer.server.port=8989"

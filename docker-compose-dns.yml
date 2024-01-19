@@ -1,0 +1,41 @@
+version: "3.9"
+
+########################### ANAND'S ENVIRONMENT
+
+# Here are my 5 Docker Hosts:
+# - Home Server (hs) - Proxmox LXC with Ubuntu Server 22.04
+# - Media / Database Server (mds) - Proxmox LXC with Ubuntu Server 22.04
+# - Web Server (ws) - Digital Ocean VPS with Ubuntu Server 22.04
+# - Synology (ds918) - Synology DS918+ 
+# - DNS / AdBlock Server (dns) - Raspberry Pi 4B with Raspberry Pi OS
+
+########################### THIS COMPOSE FILE
+# - DNS / AdBlock Server (dns) - Raspberry Pi 4B with Raspberry Pi OS
+# - Prefix/suffix "dns" refers to the above host
+# - Docker version 24.0.7, build afdd53b
+# - Docker Compose version v2.21.0
+
+########################### NETWORKS
+# You may customize the network subnets (192.168.x.0/24) below as you please.
+
+networks:
+  rpi4b:
+    name: rpi4b
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.101.0/24
+  default:
+    driver: bridge
+
+include:
+  ########################### SERVICES
+  # PREFIX dns = DNS / AdBlock Server
+  
+  # AD-BLOCKING
+  - compose/$HOSTNAME/adguardhome.yml
+  - compose/$HOSTNAME/adguardhome-sync.yml
+  # DNS RESOLVER
+  - compose/$HOSTNAME/unbound.yml
+  # VPN
+  #- compose/$HOSTNAME/wg-easy.yml

@@ -1,0 +1,95 @@
+version: "3.9"
+
+########################### ANAND'S ENVIRONMENT
+# Here are my 5 Docker Hosts:
+# - Home Server (hs) - Proxmox LXC with Ubuntu Server 22.04
+# - Media / Database Server (mds) - Proxmox LXC with Ubuntu Server 22.04
+# - Web Server (ws) - Digital Ocean VPS with Ubuntu Server 22.04
+# - Synology (ds918) - Synology DS918+ 
+# - DNS / AdBlock Server (dns) - Raspberry Pi 4B with Raspberry Pi OS
+
+########################### THIS COMPOSE FILE
+# - Web Server (ws) - Digital Ocean VPS with Ubuntu Server 22.04
+# - Prefix/suffix "ws" refers to the above host
+# - Docker version 24.0.7, build afdd53b
+# - Docker Compose version v2.21.0
+
+########################### NETWORKS
+# You may customize the network subnets (192.168.x.0/24) below as you please.
+
+networks:
+  t2_proxy:
+    name: t2_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.90.0/24
+  default:
+    driver: bridge
+  socket_proxy:
+    name: socket_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.91.0/24
+
+########################### SECRETS
+
+secrets:
+  htpasswd:
+    file: $DOCKERDIR/secrets/htpasswd
+  cf_email:
+    file: $DOCKERDIR/secrets/cf_email
+  cf_api_key:
+    file: $DOCKERDIR/secrets/cf_api_key
+  cf_token:
+    file: $DOCKERDIR/secrets/cf_token
+  traefik_forward_auth:
+    file: $DOCKERDIR/secrets/traefik_forward_auth
+  mysql_root_password:
+    file: $SECRETSDIR/mysql_root_password
+  authelia_jwt_secret:
+    file: $SECRETSDIR/authelia_jwt_secret
+  authelia_session_secret:
+    file: $SECRETSDIR/authelia_session_secret
+  authelia_storage_mysql_password:
+    file: $SECRETSDIR/authelia_storage_mysql_password
+  authelia_notifier_smtp_password:
+    file: $SECRETSDIR/authelia_notifier_smtp_password
+  authelia_duo_api_secret_key:
+    file: $SECRETSDIR/authelia_duo_api_secret_key
+
+include:
+  ########################### SERVICES
+  # PREFIX ws = Web Server
+  # HOSTNAME=ws - defined in .env
+
+  # CORE
+  - compose/$HOSTNAME/traefik.yml
+  - compose/$HOSTNAME/socket-proxy.yml
+  - compose/$HOSTNAME/oauth.yml
+  - compose/$HOSTNAME/portainer.yml
+  # SECURITY
+  - compose/$HOSTNAME/crowdsec.yml
+  - compose/$HOSTNAME/traefik-bouncer.yml
+  - compose/$HOSTNAME/cloudflare-bouncer.yml
+  # DATABASES
+  - compose/$HOSTNAME/mariadb.yml
+  - compose/$HOSTNAME/redis.yml
+  # FRONTEND
+  - compose/$HOSTNAME/autoindex.yml
+  - compose/$HOSTNAME/phpmyadmin.yml
+  - compose/$HOSTNAME/whoami.yml
+  # WEB
+  - compose/$HOSTNAME/nginx.yml
+  - compose/$HOSTNAME/php7.yml
+  # MONITORING
+  - compose/$HOSTNAME/node-exporter.yml
+  - compose/$HOSTNAME/glances.yml
+  # FILE MANAGEMENT
+  - compose/$HOSTNAME/vscode.yml
+  # NETWORK
+  - compose/$HOSTNAME/wg-easy.yml
+  # MAINTENANCE
+  - compose/$HOSTNAME/docker-gc.yml
+  - compose/$HOSTNAME/certdumper.yml

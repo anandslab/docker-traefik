@@ -1,0 +1,21 @@
+services:
+  # PHP - Hypertext Preprocessor
+  php7:
+    container_name: php7
+    image: php:7.4-fpm-custom
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["core", "all"]
+    networks:
+      - t2_proxy
+    build:
+      context: $DOCKERDIR/custom/
+      dockerfile: Dockerfile-php7
+    user: $PUID:$PGID # allows upgrading WP and plugins
+    volumes:
+      - $DOCKERDIR/appdata/sites/shb/html:/var/www/html/shb
+      - $DOCKERDIR/appdata/sites/shb/beta:/var/www/html/beta
+      - $DOCKERDIR/appdata/php/php7:/usr/local/etc/php
+      - $DOCKERDIR/appdata/sites/khub/html:/var/www/html/khub
+      - $DOCKERDIR/appdata/sites/dash/html:/var/www/html/dash

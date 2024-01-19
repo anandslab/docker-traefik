@@ -1,79 +1,78 @@
 # This is my current / up-to-date list of bash aliases.
 # This is the exact same file that is on all of my hosts - synced using Synthing.
-# Aliases will automatically adapt slightly based on the host. 
+
+# Rename shared/config/bash_aliases.env.example and use it as a starter
 
 # SOURCE ENVIRONMENTAL VARIABLES FOR BASH_ALIASES
-# Sensitive information goes into the .env file - this allows me to share my bash aliases with the community
-# Rename shared/config/bash_aliases.env.example and use it as a starter
-source ~/.bash_aliases.env
-alias myprompt='export PS1="AnandSHB> " '
+source $HOME/docker/shared/config/bash_aliases.env # at this point, this file only has domain names for various hosts.
 
-# DOCKER COMMON - All docker commands start with "d"
-alias dstop='sudo docker stop $(docker ps -a -q)'
-alias dstopall='sudo docker stop $(sudo docker ps -aq)'
-alias drm='sudo docker rm $(docker ps -a -q)'
-alias dprunevol='sudo docker volume prune'
-alias dprunesys='sudo docker system prune -a'
-alias ddelimages='sudo docker rmi $(docker images -q)'
-alias derase='dstopcont ; drmcont ; ddelimages ; dvolprune ; dsysprune'
-alias dprune='ddelimages ; dprunevol ; dprunesys'
-alias dexec='sudo docker exec -ti'
-alias dps='sudo docker ps -a'
-alias dpss='sudo docker ps -a --format "table {{.Names}}\t{{.State}}\t{{.Status}}\t{{.Image}}" | (sed -u 1q; sort)'
-alias ddf='sudo docker system df'
-alias dlogs='sudo docker logs -tf --tail="50" '
-alias dp600='sudo chown -R root:root /home/$BA_USERNAME/docker/secrets ; sudo chmod -R 600 /home/$BA_USERNAME/docker/secrets ; sudo chown -R root:root /home/$BA_USERNAME/docker/.env ; sudo chmod -R 600 /home/$BA_USERNAME/docker/.env'
-alias dp777='sudo chown -R $BA_USERNAME:$BA_USERNAME /home/$BA_USERNAME/docker/secrets ; sudo chmod -R 777 /home/$BA_USERNAME/docker/secrets ; sudo chown -R $BA_USERNAME:$BA_USERNAME /home/$BA_USERNAME/docker/.env ; sudo chmod -R 777 /home/$BA_USERNAME/docker/.env'
-# depends on having jq installed, but makes it so much easier. https://github.com/htpcBeginner/docker-traefik/commit/d827c85565767c761e100a133088135cba5c3ffa
-alias dips="sudo docker ps -q | xargs -n 1 docker inspect --format '{{json .}}' | jq -rs 'map(.Name,.NetworkSettings.Networks[].IPAddress) | .[]'"
-dip() {
-  sudo docker inspect --format '{{json .}}' "$1" | jq -rs 'map(.NetworkSettings.Networks[].IPAddress) | .[]'
-}
+# CHANGE TO CUSTOM BASH PROMPT
+username="AnandSHB" # or use $USER
+export PS1="[\e[0;32m$username\e[0m@\e[0;33m\H\e[0m: \e[0;36m\w\e[0m]\$ "
 
-alias dcrun2='sudo docker compose --profile all -f /home/$BA_USERNAME/docker/$COMPOSE_FILE'
+# DOCKER - All Docker commands start with "d" AND Docker Compose commands start with "dc"
+alias dstop='sudo docker stop $(sudo docker ps -a -q)' # usage: dstop container_name
+alias dstopall='sudo docker stop $(sudo docker ps -aq)' # stop all containers
+alias drm='sudo docker rm $(sudo docker ps -a -q)' # usage: drm container_name
+alias dprunevol='sudo docker volume prune' # remove unused volumes
+alias dprunesys='sudo docker system prune -a' # remove unsed docker data
+alias ddelimages='sudo docker rmi $(sudo docker images -q)' # remove unused docker images
+alias derase='dstopcont ; drmcont ; ddelimages ; dvolprune ; dsysprune' # WARNING: removes everything! 
+alias dprune='ddelimages ; dprunevol ; dprunesys' # remove unused data, volumes, and images (perfect for safe clean up)
+alias dexec='sudo docker exec -ti' # usage: dexec container_name (to access container terminal)
+alias dps='sudo docker ps -a' # running docker processes
+alias dpss='sudo docker ps -a --format "table {{.Names}}\t{{.State}}\t{{.Status}}\t{{.Image}}" | (sed -u 1q; sort)' # running docker processes as nicer table
+alias ddf='sudo docker system df' # docker data usage (/var/lib/docker)
+alias dlogs='sudo docker logs -tf --tail="50" ' # usage: dlogs container_name
+alias dlogsize='sudo du -ch $(sudo docker inspect --format='{{.LogPath}}' $(sudo docker ps -qa)) | sort -h' # see the size of docker containers
+alias dips="sudo docker ps -q | xargs -n 1 sudo docker inspect -f '{{.Name}}%tab%{{range .NetworkSettings.Networks}}{{.IPAddress}}%tab%{{end}}' | sed 's#%tab%#\t#g' | sed 's#/##g' | sort | column -t -N NAME,IP\(s\) -o $'\t'"
 
-# DOCKER COMPOSE FILE BY HOSTNAME
-# I am sure there is a better way than using $HOSTNAME - if you do, feel free to share/contribute
-case $HOSTNAME in
-    home-server)
-      alias traefiklogs='tail -f /home/$BA_USERNAME/docker/logs/cloudserver/traefik/traefik.log'
-      ;;
-    web-server)
-      alias traefiklogs='tail -f /home/$BA_USERNAME/docker/logs/webserver/traefik/traefik.log'
-      ;;
-    ds918) 
-      alias dcrun2='sudo docker-compose -f /volume1/docker/docker-compose-t2-synology.yml'
-      ;;
-    *)
-esac
+alias dp600='sudo chown -R root:root $HOME/docker/secrets ; sudo chmod -R 600 $HOME/docker/secrets ; sudo chown -R root:root $HOME/docker/.env ; sudo chmod -R 600 $HOME/docker/.env' # re-lock permissions
+alias dp777='sudo chown -R $USER:$USER $HOME/docker/secrets ; sudo chmod -R 777 $HOME/docker/secrets ; sudo chown -R $USER:$USER $HOME/docker/.env ; sudo chmod -R 777 $HOME/docker/.env' # open permissions for editing
 
 # DOCKER COMPOSE TRAEFIK 2 - All docker-compose commands start with "dc" 
-alias dclogs2='dcrun2 logs -tf --tail="50" '
-alias dcup2='dcrun2 up -d --build --remove-orphans'
-alias dcdown2='dcrun2 down --remove-orphans'
-alias dcrec2='dcrun2 up -d --force-recreate --remove-orphans'
-alias dcstop2='dcrun2 stop'
-alias dcrestart2='dcrun2 restart '
-alias dcstart2='dcrun2 start '
-alias dcpull2='dcrun2 pull'
-alias startcore='sudo docker compose --profile core -f /home/$BA_USERNAME/docker/$COMPOSE_FILE start'
-alias createcore='sudo docker compose --profile core -f /home/$BA_USERNAME/docker/$COMPOSE_FILE up -d --build --remove-orphans'
-alias stopcore='sudo docker compose --profile core -f /home/$BA_USERNAME/docker/$COMPOSE_FILE stop'
-alias stopmedia='sudo docker compose --profile media -f /home/$BA_USERNAME/docker/$COMPOSE_FILE stop'
-alias createmedia='sudo docker compose --profile media -f /home/$BA_USERNAME/docker/$COMPOSE_FILE up -d --build --remove-orphans'
-alias startmedia='sudo docker compose --profile media -f /home/$BA_USERNAME/docker/$COMPOSE_FILE start'
-alias stopdownloads='sudo docker compose --profile downloads -f /home/$BA_USERNAME/docker/$COMPOSE_FILE stop'
-alias createdownloads='sudo docker compose --profile downloads -f /home/$BA_USERNAME/docker/$COMPOSE_FILE up -d --build --remove-orphans'
-alias startdownloads='sudo docker compose --profile downloads -f /home/$BA_USERNAME/docker/$COMPOSE_FILE start'
-alias stoparrs='sudo docker compose --profile arrs -f /home/$BA_USERNAME/docker/$COMPOSE_FILE stop'
-alias startarrs='sudo docker compose --profile arrs -f /home/$BA_USERNAME/docker/$COMPOSE_FILE start'
-alias createarrs='sudo docker compose --profile arrs -f /home/$BA_USERNAME/docker/$COMPOSE_FILE up -d --build --remove-orphans'
-alias stopdbs='sudo docker compose --profile dbs -f /home/$BA_USERNAME/docker/$COMPOSE_FILE stop'
-alias createdbs='sudo docker compose --profile dbs -f /home/$BA_USERNAME/docker/$COMPOSE_FILE up -d --build --remove-orphans'
-alias startdbs='sudo docker compose --profile dbs -f /home/$BA_USERNAME/docker/$COMPOSE_FILE start'
+case $HOSTNAME in
+    ds918) # synology at this point uses an old version of docker. Therefore, 'docker-compose' instead of 'docker compose'
+      alias dcrun='sudo docker-compose -f $HOME/docker/docker-compose-$HOSTNAME.yml' # /volume1/docker symlinked to /var/services/homes/user/docker
+      ;;
+    *)
+      alias dcrun='sudo docker compose --profile all -f $HOME/docker/docker-compose-$HOSTNAME.yml'
+      ;;
+esac
+
+alias dclogs='dcrun logs -tf --tail="50" ' # usage: dclogs container_name
+alias dcup='dcrun up -d --build --remove-orphans' # up the stack
+alias dcdown='dcrun down --remove-orphans' # down the stack
+alias dcrec='dcrun up -d --force-recreate --remove-orphans' # usage: dcrec container_name
+alias dcstop='dcrun stop' # usage: dcstop container_name
+alias dcrestart='dcrun restart ' # usage: dcrestart container_name
+alias dcstart='dcrun start ' # usage: dcstart container_name
+alias dcpull='dcrun pull' # usage: dcpull to pull all new images or dcpull container_name
+alias traefiklogs='tail -f $HOME/docker/logs/$HOSTNAME/traefik/traefik.log' # tail traefik logs
+
+# Manage "core" services as defined by profiles in docker compose
+alias startcore='sudo docker compose --profile core -f $HOME/docker/docker-compose-$HOSTNAME.yml start'
+alias createcore='sudo docker compose --profile core -f $HOME/docker/docker-compose-$HOSTNAME.yml up -d --build --remove-orphans'
+alias stopcore='sudo docker compose --profile core -f $HOME/docker/docker-compose-$HOSTNAME.yml stop'
+# Manage "media" services as defined by profiles in docker compose
+alias stopmedia='sudo docker compose --profile media -f $HOME/docker/docker-compose-$HOSTNAME.yml stop'
+alias createmedia='sudo docker compose --profile media -f $HOME/docker/docker-compose-$HOSTNAME.yml up -d --build --remove-orphans'
+alias startmedia='sudo docker compose --profile media -f $HOME/docker/docker-compose-$HOSTNAME.yml start'
+# Manage "diwkiads" services as defined by profiles in docker compose
+alias stopdownloads='sudo docker compose --profile downloads -f $HOME/docker/docker-compose-$HOSTNAME.yml stop'
+alias createdownloads='sudo docker compose --profile downloads -f $HOME/docker/docker-compose-$HOSTNAME.yml up -d --build --remove-orphans'
+alias startdownloads='sudo docker compose --profile downloads -f $HOME/docker/docker-compose-$HOSTNAME.yml start'
+# Manage Starr apps as defined by profiles in docker compose
+alias stoparrs='sudo docker compose --profile arrs -f $HOME/docker/docker-compose-$HOSTNAME.yml stop'
+alias startarrs='sudo docker compose --profile arrs -f $HOME/docker/docker-compose-$HOSTNAME.yml start'
+alias createarrs='sudo docker compose --profile arrs -f $HOME/docker/docker-compose-$HOSTNAME.yml up -d --build --remove-orphans'
+# Manage "dbs" (database) services as defined by profiles in docker compose
+alias stopdbs='sudo docker compose --profile dbs -f $HOME/docker/docker-compose-$HOSTNAME.yml stop'
+alias createdbs='sudo docker compose --profile dbs -f $HOME/docker/docker-compose-$HOSTNAME.yml up -d --build --remove-orphans'
+alias startdbs='sudo docker compose --profile dbs -f $HOME/docker/docker-compose-$HOSTNAME.yml start'
 
 # CROWDSEC
-alias cscli='dcrun2 exec -t crowdsec cscli'
+alias cscli='dcrun exec -t crowdsec cscli'
 alias csdecisions='cscli decisions list'
 alias csalerts='cscli alerts list'
 alias csinspect='cscli alerts inspect -d'
@@ -97,34 +96,14 @@ alias csbrestart='dcrec2 traefik-bouncer ; csfbrestart'
 # WEB STACK
 alias webrs='dcrec2 php7 redis nginx'
 
-# MONITORING STACK
-alias dcmlogs2='dcrun2 logs -tf --tail="50" $(cat /home/$BA_USERNAME/docker/scripts/monitoring-services.txt)'
-alias dcmrec2='dcrun2 up -d --force-recreate $(cat /home/$BA_USERNAME/docker/scripts/monitoring-services.txt)'
-alias dcmstop2='dcrun2 stop $(cat /home/$BA_USERNAME/docker/scripts/monitoring-services.txt)'
-
 # DOCKER TRAEFIK 1 SWARM
 alias dslogs='sudo docker service logs -tf --tail="50"'
 alias dsps='sudo docker stack ps zstack'
 alias dsse='sudo docker stack services zstack'
 alias dsls='sudo docker stack ls'
 alias dsrm='sudo docker stack rm'
-alias dsup='sudo docker stack deploy --compose-file /home/$BA_USERNAME/docker/docker-compose-swarm.yml zstack'
+alias dsup='sudo docker stack deploy --compose-file $HOME/docker/docker-compose-swarm.yml zstack'
 alias dshelp='echo "dslogs dsps dsse dsls dsrm dsup"'
-
-# MOSQUITTO
-alias mossub="mosquitto_sub -v -u $BA_MOSQUITTO_USERNAME -P $BA_MOSQUITTO_PASSWORD -h $BA_MOSQUITTO_HOST -p 1883 -t '#'"
-
-# PiHole
-alias pidis='bash /home/$BA_USERNAME/server/scripts/pihole-disable.sh'
-alias pien='bash /home/$BA_USERNAME/server/scripts/pihole-enable.sh'
-alias pi10='bash /home/$BA_USERNAME/server/scripts/pihole-10.sh'
-alias piup='bash /home/$BA_USERNAME/server/scripts/pihole-update.sh'
-alias rpi3up='bash /home/$BA_USERNAME/server/scripts/rpi3-update.sh'
-alias rpi0up='bash /home/$BA_USERNAME/server/scripts/rpi0-update.sh'
-
-# VNC
-alias vnc1='vncserver -geometry 1270x720 -depth 24'
-alias vnckill1='vncserver -kill :1'
 
 # COMPRESSION
 alias untargz='tar --same-owner -zxvf'
@@ -144,7 +123,7 @@ alias .5='cd ../../../../..'
 
 # SYNC AND COPY
 alias scp='scp -r'
-alias rsynce='sudo rsync -avzh --progress --force --delete --exclude-from /home/$BA_USERNAME/docker/shared/config/rsync-exclude'
+alias rsynce='sudo rsync -avzh --progress --force --delete --exclude-from $HOME/docker/shared/config/rsync-exclude'
 alias rsyncne='sudo rsync -avzh --progress --force --delete'
 alias cpn='cp --verbose' # native copy
 alias cp='sudo rsync -avzh --info=progress2' # copy files with rsync
@@ -181,13 +160,12 @@ alias usage10='du -hsx * | sort -rh | head -10' # Gives you what is using the mo
 
 # BASH
 alias baupdate='. ~/.bashrc'
-alias baedit='nano /home/$BA_USERNAME/.bash_aliases'
-alias bacopy='sudo cp /home/$BA_USERNAME/.bash_aliases* /root/'
-alias badomain='echo $BA_DOMAINNAME' # for troubleshooting
+alias baedit='nano $HOME/.bash_aliases'
+alias bacopy='sudo cp $HOME/.bash_aliases* /root/'
 
 # GIT AND SITE MANAGEMENT
-alias gcpush='echo "Usage: gcpush ../commits/date.txt" ; cd /home/$BA_USERNAME/docker ; bash scripts/doccheck.sh'
-alias gpush='cd /home/$BA_USERNAME/docker ; git push'
+alias gcpush='echo "Usage: gcpush ../commits/date.txt" ; cd $HOME/docker ; bash scripts/doccheck.sh' # To push my files to docker-traefik repo
+alias gpush='cd $HOME/docker ; git push'
 alias ggraph='git log --all --decorate --oneline --graph'
 
 # MAIL SERVER TESTING
@@ -288,7 +266,7 @@ alias restartdocker='sudo synosystemctl restart pkgctl-Docker'
 # MISCELLANEOUS
 alias wget='wget -c'
 alias nano='sudo nano -iSw$'
-alias scxterm='bash /home/$BA_USERNAME/docker/scripts/xterm.sh'
+alias scxterm='bash $HOME/docker/scripts/xterm.sh'
 
 # SYSTEM MONITORING
 alias meminfo='free -m -l -t' # memory usage
@@ -301,23 +279,39 @@ alias gpumeminfo='grep -i --color memory /var/log/Xorg.0.log' # get GPU ram on d
 alias free='free -h'
 
 # RCLONE
-alias rcdlogs='tail -f /home/$BA_USERNAME/docker/logs/cloudserver/rclone-drive.log'
-alias rcclogs='tail -f /home/$BA_USERNAME/docker/logs/cloudserver/rclone-crypt.log'
-alias rcupmedia='bash /home/$BA_USERNAME/docker/scripts/cloudserver/upload-media-now.sh'
-alias rcupmedialogs='tail -f /home/$BA_USERNAME/docker/logs/cloudserver/upload-media-now.log'
-alias rcupdump='bash /home/$BA_USERNAME/docker/scripts/cloudserver/upload-dump.sh'
-alias rcupdumplogs='tail -f /home/$BA_USERNAME/docker/logs/cloudserver/upload-dump.log'
-alias rcrestart='sudo bash /home/$BA_USERNAME/docker/scripts/rclone-restart.sh'
-alias rcstop='sudo bash /home/$BA_USERNAME/docker/scripts/rclone-stop.sh'
-alias rcstart='sudo bash /home/$BA_USERNAME/docker/scripts/rclone-start.sh'
-alias rcstatus='sudo bash /home/$BA_USERNAME/docker/scripts/rclone-status.sh'
+alias rcdlogs='tail -f $HOME/docker/logs/cloudserver/rclone-drive.log'
+alias rcclogs='tail -f $HOME/docker/logs/cloudserver/rclone-crypt.log'
+alias rcupmedia='bash $HOME/docker/scripts/cloudserver/upload-media-now.sh'
+alias rcupmedialogs='tail -f $HOME/docker/logs/cloudserver/upload-media-now.log'
+alias rcupdump='bash $HOME/docker/scripts/cloudserver/upload-dump.sh'
+alias rcupdumplogs='tail -f $HOME/docker/logs/cloudserver/upload-dump.log'
+alias rcrestart='sudo bash $HOME/docker/scripts/rclone-restart.sh'
+alias rcstop='sudo bash $HOME/docker/scripts/rclone-stop.sh'
+alias rcstart='sudo bash $HOME/docker/scripts/rclone-start.sh'
+alias rcstatus='sudo bash $HOME/docker/scripts/rclone-status.sh'
 alias rcps="ps -ef | grep '/usr/bin/rclone sync\|/usr/bin/rclone copy\|/usr/bin/rclone move'" # see running rclone copy sync or move
 
 # YT-DLP
 alias ytupdate='yt-dlp -U'
 alias ytlist='yt-dlp --list-formats'
 alias ytdump='yt-dlp --dump-json'
-alias ytdv='yt-dlp --config-location /home/$BA_USERNAME/docker/appdata/yt-dlp/yt-dlp-video.conf'
-alias ytdvc='yt-dlp --cookies "/home/$BA_USERNAME/docker/appdata/yt-dlp/cookies.txt" --config-location /home/$BA_USERNAME/docker/appdata/yt-dlp/yt-dlp-video.conf'
-alias ytda='yt-dlp --config-location /home/$BA_USERNAME/docker/appdata/yt-dlp/yt-dlp-audio.conf'
-alias ytdac='yt-dlp --cookies "/home/$BA_USERNAME/docker/appdata/yt-dlp/cookies.txt" --config-location /home/$BA_USERNAME/docker/appdata/yt-dlp/yt-dlp-audio.conf'
+alias ytdv='yt-dlp --config-location $HOME/docker/appdata/yt-dlp/yt-dlp-video.conf'
+alias ytdvc='yt-dlp --cookies "$HOME/docker/appdata/yt-dlp/cookies.txt" --config-location $HOME/docker/appdata/yt-dlp/yt-dlp-video.conf'
+alias ytda='yt-dlp --config-location $HOME/docker/appdata/yt-dlp/yt-dlp-audio.conf'
+alias ytdac='yt-dlp --cookies "$HOME/docker/appdata/yt-dlp/cookies.txt" --config-location $HOME/docker/appdata/yt-dlp/yt-dlp-audio.conf'
+
+# Auto-Traefik
+alias sshagent='eval "$(ssh-agent -s)" ; ssh-add $HOME/auto-traefik/.git/auto_traefik_github'
+alias atpush='sshagent ; git add -A ; git commit -m "updates" ; git push'
+
+# PiHole
+alias pidis='bash $HOME/server/scripts/pihole-disable.sh'
+alias pien='bash $HOME/server/scripts/pihole-enable.sh'
+alias pi10='bash $HOME/server/scripts/pihole-10.sh'
+alias piup='bash $HOME/server/scripts/pihole-update.sh'
+alias rpi3up='bash $HOME/server/scripts/rpi3-update.sh'
+alias rpi0up='bash $HOME/server/scripts/rpi0-update.sh'
+
+# VNC
+alias vnc1='vncserver -geometry 1270x720 -depth 24'
+alias vnckill1='vncserver -kill :1'

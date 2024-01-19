@@ -1,0 +1,32 @@
+services:
+  # Client for Notifiarr.com
+  notifiarr:
+    image: golift/notifiarr
+    container_name: notifiarr
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    profiles: ["media", "all"]
+    networks:
+      - t2_proxy
+      # t2_proxy:
+      #   ipv4_address: 192.168.90.3 # You can specify a static IP
+    ports:
+      - "5454:5454"
+    volumes:
+      - $DOCKERDIR/appdata/notifiarr:/config
+      - /var/run/utmp:/var/run/utmp
+      - /etc/machine-id:/etc/machine-id
+    environment:
+      DN_API_KEY: $NOTIFIARR_API_KEY
+      DN_AUTO_UPDATE: off
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers Auth
+      - "traefik.http.routers.notifiarr-rtr.entrypoints=https"
+      - "traefik.http.routers.notifiarr-rtr.rule=Host(`notifiarr.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.notifiarr-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.notifiarr-rtr.service=notifiarr-svc"
+      - "traefik.http.services.notifiarr-svc.loadbalancer.server.port=5454"

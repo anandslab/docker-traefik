@@ -1,0 +1,95 @@
+version: "3.9"
+
+########################### ANAND'S ENVIRONMENT
+
+# Here are my 5 Docker Hosts:
+# - Home Server (hs) - Proxmox LXC with Ubuntu Server 22.04
+# - Media / Database Server (mds) - Proxmox LXC with Ubuntu Server 22.04
+# - Web Server (ws) - Digital Ocean VPS with Ubuntu Server 22.04
+# - Synology (ds918) - Synology DS918+
+# - DNS / AdBlock Server (dns) - Raspberry Pi 4B with Raspberry Pi OS
+
+########################### THIS COMPOSE FILE
+# - Synology (ds918) - Synology DS918+
+# - Prefix/suffix "ds918" refers to the above host
+# - Docker version 20.10.23, build 876964a
+# - Docker Compose version v2.23.3
+
+########################### NETWORKS
+# You may customize the network subnets (192.168.x.0/24) below as you please.
+
+networks:
+  t2_proxy:
+    name: t2_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.90.0/24
+  default:
+    driver: bridge
+  socket_proxy:
+    name: socket_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.91.0/24
+  dockervlan:
+    name: dockervlan
+    driver: macvlan
+    driver_opts:
+      parent: eth1 # using ifconfig
+    ipam:
+      config:
+        - subnet: "192.168.1.0/24"
+          ip_range: "192.168.1.25/32"
+          gateway: "192.168.1.1"
+
+########################### SECRETS
+
+secrets:
+  htpasswd:
+    file: $DOCKERDIR/secrets/htpasswd
+  cf_email:
+    file: $DOCKERDIR/secrets/cf_email
+  cf_api_key:
+    file: $DOCKERDIR/secrets/cf_api_key
+  cf_token:
+    file: $DOCKERDIR/secrets/cf_token
+  traefik_forward_auth:
+    file: $DOCKERDIR/secrets/traefik_forward_auth
+  mysql_root_password:
+    file: $DOCKERDIR/secrets/mysql_root_password
+  plex_claim:
+    file: $DOCKERDIR/secrets/plex_claim
+
+# Docker Compose v2.20 or greater required to use "include"
+include:
+  ########################### SERVICES
+  # PREFIX ds918 = Synology DS918+ NAS
+  # HOSTNAME=ds918 - defined in .env
+
+  # CORE
+  - compose/$HOSTNAME/traefik.yml
+  - compose/$HOSTNAME/socket-proxy.yml
+  - compose/$HOSTNAME/oauth.yml
+  - compose/$HOSTNAME/portainer.yml
+  # NETWORK
+  - compose/$HOSTNAME/zerotier.yml
+  # - compose/$HOSTNAME/adguardhome.yml
+  # MEDIA
+  - compose/$HOSTNAME/plex.yml
+  - compose/$HOSTNAME/plex-sync.yml
+  - compose/$HOSTNAME/tdarr.yml
+  # FILE MANAGEMENT
+  # - compose/$HOSTNAME/rclone-gdrive.yml
+  # - compose/$HOSTNAME/rclone-gcrypt.yml
+  # - compose/$HOSTNAME/mergerfs.yml
+  - compose/$HOSTNAME/syncthing.yml
+  - compose/$HOSTNAME/vscode.yml
+  # MONITORING
+  - compose/$HOSTNAME/glances.yml
+  # - compose/$HOSTNAME/qdirstat.yml
+  # MAINTENANCE
+  - compose/$HOSTNAME/docker-gc.yml
+  - compose/$HOSTNAME/ddns-updater.yml
+  # - compose/$HOSTNAME/certdumper.yml

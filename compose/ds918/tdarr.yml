@@ -1,0 +1,49 @@
+services:
+  # Tdarr Server - Library Optimizer
+  tdarr:
+    image: ghcr.io/haveagitgat/tdarr:latest
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    container_name: tdarr
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    # profiles: ["media", "all"]
+    networks:
+      - t2_proxy
+    devices:
+      - /dev/dri:/dev/dri # for hardware transcoding
+    ports:
+      - 8265:8265 # webUI port
+      - 8266:8266 # server port
+    volumes:
+      - $DOCKERDIR/appdata/tdarr/server:/app/server
+      - $DOCKERDIR/appdata/tdarr/configs:/app/configs
+      - $DOCKERDIR/appdata/tdarr/logs:/app/logs
+      - $DOWNLOADSDIR/transcode/tdarr:/data/temp
+      - $ZDATADIR/Photos/zVideos:/data/zVideos-source:ro
+      - $DATADIR2/media/zvideos:/data/zVideos-destination
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      UMASK_SET: 002
+      serverIP: 0.0.0.0 # or hostname
+      serverPort: 8266
+      webUIPort: 8265
+      internalNode: true
+      inContainer: true
+      ffmpegVersion: 6
+      nodeName: tdarr-node-ds918
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.tdarr-rtr.entrypoints=https"
+      - "traefik.http.routers.tdarr-rtr.rule=Host(`tdarr.$DOMAINNAME_HOME_SYNOLOGY`)"
+      ## Middlewares
+      - "traefik.http.routers.tdarr-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.tdarr-rtr.service=tdarr-svc"
+      - "traefik.http.services.tdarr-svc.loadbalancer.server.port=8265"

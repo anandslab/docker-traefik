@@ -1,0 +1,15 @@
+services:
+  # CrowdSec Bouncer - Cloudflare
+  # sudo docker exec crowdsec cscli bouncer add cloudflare-bouncer
+  # Set max ip number right the first time (max 10000). Recreating container deletes all ips and readds them causing cloudflare 429 rate limiting.
+  cloudflare-bouncer:
+    image: crowdsecurity/cloudflare-bouncer
+    container_name: cloudflare-bouncer
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["core", "all"]
+    networks:
+      - t2_proxy
+    volumes:
+      - $DOCKERDIR/appdata/cloudflare-bouncer/cfg.yaml:/etc/crowdsec/bouncers/crowdsec-cloudflare-bouncer.yaml

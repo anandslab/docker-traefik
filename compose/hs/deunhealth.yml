@@ -1,0 +1,16 @@
+services:
+  # DeUnhealth - Restart your unhealthy containers safely (e.g. containers depending on VPN and VPN reconnects)
+  deunhealth:
+    image: qmcgaw/deunhealth
+    container_name: deunhealth
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["apps", "all"]    
+    networks:
+      - socket_proxy
+    environment:
+      LOG_LEVEL: info
+      HEALTH_SERVER_ADDRESS: 127.0.0.1:9999
+      TZ: $TZ
+      DOCKER_HOST: tcp://socket-proxy:2375

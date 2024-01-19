@@ -1,0 +1,56 @@
+version: "3.9"
+
+########################### ANAND'S ENVIRONMENT
+# Here are my 5 Docker Hosts:
+# - Home Server (hs) - Proxmox LXC with Ubuntu Server 22.04
+# - Media / Database Server (mds) - Proxmox LXC with Ubuntu Server 22.04
+# - Web Server (ws) - Digital Ocean VPS with Ubuntu Server 22.04
+# - Synology (ds918) - Synology DS918+ 
+# - DNS / AdBlock Server (dns) - Raspberry Pi 4B with Raspberry Pi OS
+
+########################### THIS COMPOSE FILE
+# - Media / Database Server (mds) - Proxmox LXC with Ubuntu Server 22.04
+# - Prefix/suffix "dns" refers to the above host
+# - Docker version 24.0.7, build afdd53b
+# - Docker Compose version v2.21.0
+
+########################### NETWORKS
+# You may customize the network subnets (192.168.x.0/24) below as you please.
+
+networks:
+  default:
+    driver: bridge
+  dockervlan:
+    name: dockervlan
+    driver: macvlan
+    driver_opts:
+      parent: eth0 # using ifconfig
+    ipam:
+      config:
+        - subnet: "192.168.1.0/24"
+          ip_range: "192.168.1.226/32"
+          gateway: "192.168.1.1"
+
+########################### SECRETS
+
+secrets:
+  plex_claim:
+    file: $DOCKERDIR/secrets/plex_claim
+  mysql_root_password:
+    file: $DOCKERDIR/secrets/mysql_root_password
+
+include:
+  ########################### SERVICES
+  # PREFIX mds = Media / Database Server
+  # HOSTNAME=mds - defined in .env
+
+  # MEDIA
+  - compose/$HOSTNAME/airsonic-advanced.yml
+  - compose/$HOSTNAME/jellyfin.yml
+  - compose/$HOSTNAME/plex.yml
+  # DATABASES
+  - compose/$HOSTNAME/prometheus.yml
+  - compose/$HOSTNAME/mariadb.yml
+  - compose/$HOSTNAME/influxdb.yml
+  # MONITORING
+  - compose/$HOSTNAME/node-exporter.yml

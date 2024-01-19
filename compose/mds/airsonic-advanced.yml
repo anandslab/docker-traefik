@@ -1,0 +1,23 @@
+services:
+  # Airsonic Advanced - Music Server
+  airsonic-advanced:
+    image: lscr.io/linuxserver/airsonic-advanced
+    container_name: airsonic-advanced
+    networks:
+      - default
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    profiles: ["media", "all"]
+    volumes:
+      - $DOCKERDIR/appdata/airsonic/podcasts:/data/podcasts
+      - $DOCKERDIR/appdata/airsonic/playlists:/data/playlists
+      - $DOCKERDIR/appdata/airsonic/config:/config
+      - $DATADIR/data/media/music:/data/music
+    ports:
+      - "4040:4040"
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      JAVA_OPTS: '-Dserver.forward-headers-strategy=native' # optional - if you use a reverse-proxy

@@ -1,0 +1,48 @@
+services:
+  # Rclone - Google Drive Mount
+  gcrypt:
+    container_name: gcrypt
+    image: rclone/rclone:latest
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:unconfined
+    restart: unless-stopped
+    # profiles: ["core", "all"]
+    networks:
+      - t2_proxy
+    cap_add:
+      - SYS_ADMIN
+    command:
+      "mount gcrypt: /data/gcrypt \
+      --use-mmap \
+      --allow-other \
+      --no-modtime \
+      --allow-non-empty \
+      --dir-cache-time=1000h \
+      --buffer-size=128M \
+      --uid=1026 \
+      --gid=100 \
+      --umask=002 \
+      --user-agent=ds918 \
+      --cache-dir=/data/cache/gcrypt \
+      --vfs-cache-mode=full \
+      --vfs-cache-max-age=336h \
+      --vfs-cache-max-size=512G \
+      --vfs-read-chunk-size-limit=2G \
+      --log-file /config/rclone/logs/gcrypt.log \
+      --log-level=NOTICE"
+      #--bwlimit 3M \
+      # 3M approxmimately equals 253 GB limit per day
+    devices:
+      - /dev/fuse
+    volumes:
+      - $DOCKERDIR/appdata/rclone:/config/rclone
+      - $DATADIR1/mnt/rclone/gcrypt:/data/gcrypt:shared
+      - $DATADIR1/mnt/rclone/cache/gcrypt:/data/cache/gcrypt
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - /etc/fuse.conf:/etc/fuse.conf:ro
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID

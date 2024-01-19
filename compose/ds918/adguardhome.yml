@@ -1,0 +1,25 @@
+services:
+  # AdGuard Home - DNS AdBlocking
+  adguardhome:
+    container_name: adguardhome
+    image: adguard/adguardhome
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    # profiles: ["core", "all"]
+    networks:
+      dockervlan:
+        ipv4_address: 192.168.1.25 # IP address inside defined range
+    ports:
+      - 53/udp 
+      - 67/udp 
+      - 68/tcp 
+      - 68/udp 
+      - 80/tcp 
+      - 443/tcp 
+      - 853/tcp 
+      - 3000/tcp 
+    volumes:
+      - $DOCKERDIR/appdata/adguard/conf:/opt/adguardhome/conf 
+      - $DOCKERDIR/appdata/adguard/work:/opt/adguardhome/work 
+      - $DOCKERDIR/shared/certs/$DOMAINNAME_HOME_SYNOLOGY:/certs

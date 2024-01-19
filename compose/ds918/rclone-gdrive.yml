@@ -1,0 +1,66 @@
+services:
+  # Rclone - Google Drive Mount
+  # https://github.com/openbridge/ob_bulkstash/issues/19
+  # https://github.com/romancin/rclonebrowser-docker
+  # https://hub.docker.com/r/d2dyno/rclone-gui
+  gdrive:
+    container_name: gdrive
+    image: rclone/rclone:latest
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:unconfined
+    restart: unless-stopped
+    # profiles: ["core", "all"]
+    networks:
+      - t2_proxy
+    cap_add:
+      - SYS_ADMIN
+    command:
+      "mount gdrive: /data/gdrive \
+      --use-mmap \
+      --allow-other \
+      --no-modtime \
+      --allow-non-empty \
+      --dir-cache-time=1000h \
+      --buffer-size=128M \
+      --umask=002 \
+      --uid=1026 \
+      --gid=100 \
+      --user-agent=ds918 \
+      --cache-dir=/data/cache/gdrive \
+      --vfs-cache-mode=full \
+      --vfs-cache-max-age=336h \
+      --vfs-cache-max-size=512G \
+      --vfs-read-chunk-size-limit=2G \
+      --log-file /config/rclone/logs/gdrive.log \
+      --rc \
+      --rc-web-gui \
+      --rc-addr :5572 \
+      --rc-user=$RCLONE_WEBUI_USER \
+      --rc-pass=$RCLONE_WEBUI_PASS \
+      --log-level=NOTICE"
+      #--bwlimit 150M \
+      #--bwlimit-file 40M \
+    devices:
+      - /dev/fuse
+    volumes:
+      - $DOCKERDIR/appdata/rclone:/config/rclone
+      - $DATADIR1/mnt/rclone/gdrive:/data/gdrive:shared
+      - $DATADIR1/mnt/rclone/cache/gdrive:/data/cache/gdrive
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - /etc/fuse.conf:/etc/fuse.conf:ro
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.rclone-drive-rtr.entrypoints=https"
+      - "traefik.http.routers.rclone-drive-rtr.rule=Host(`rclone.$DOMAINNAME_HOME_SYNOLOGY`)"
+      ## Middlewares
+      - "traefik.http.routers.rclone-drive-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.rclone-drive-rtr.service=rclone-drive-svc"
+      - "traefik.http.services.rclone-drive-svc.loadbalancer.server.port=5572"

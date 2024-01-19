@@ -1,0 +1,31 @@
+  # Unmanic - Library Optimizer
+  unmanic:
+    container_name: unmanic
+    image: josh5/unmanic:latest
+    privileged: true
+    ports:
+      - 8888:8888
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - LIBVA_DRIVER_NAME=i965
+      - LIBVA_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri
+      - TZ=$TZ
+    # devices:
+    #   - /dev/dri:/dev/dri # for hardware transcoding
+    volumes:
+      - $DOCKERDIR/appdata/unmanic:/config
+      - $DATADIR2/media/zvideos:/data/x265
+      - $ZDATADIR/Photos/zVideos/Test:/data/source
+      - $DATADIR2/media/zvideos:/data/transcode
+      - /dev/shm:/dev/shm
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.unmanic-rtr.entrypoints=https"
+      - "traefik.http.routers.unmanic-rtr.rule=Host(`unmaic.$DOMAINNAME_HOME_SYNOLOGY`)"
+      ## Middlewares
+      - "traefik.http.routers.unmanic-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.unmanic-rtr.service=vscode-svc"
+      - "traefik.http.services.unmanic-svc.loadbalancer.server.port=8888"

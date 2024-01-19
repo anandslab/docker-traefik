@@ -1,0 +1,19 @@
+services:
+  # Lidarr Exporter - Lidarr metrics for Prometheus
+  lidarr-exporter:
+    image: ghcr.io/onedr0p/exportarr:latest
+    container_name: lidarr-exporter
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    profiles: ["all", "media", "arrs"]
+    networks:
+      - t2_proxy
+    ports:
+      - "9709:9709"
+    environment:
+      PORT: 9709
+      URL: "http://lidarr:8686"
+      APIKEY: $LIDARR_API_KEY
+      ENABLE_ADDITIONAL_METRICS: TRUE
+    command: ["lidarr"]

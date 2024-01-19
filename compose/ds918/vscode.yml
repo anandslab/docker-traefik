@@ -1,0 +1,38 @@
+services:
+  # VSCode - VSCode Editing
+  vscode: 
+    image: lscr.io/linuxserver/code-server:latest 
+    container_name: vscode
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    # profiles: ["core", "all"]
+    networks:
+      - t2_proxy
+    ports:
+      - "8443:8443"
+    volumes:
+      - $DOCKERDIR:/data/docker
+      - $DOCKERDIR/appdata/vscode:/config
+      - $DATADIR1:/data/data
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      # DOCKER_HOST: tcp://socket-proxy:2375
+      # PASSWORD: $VSCODE_PASSWORD
+      # HASHED_PASSWORD: #optional
+      # SUDO_PASSWORD: password #optional
+      # SUDO_PASSWORD_HASH: #optional
+      # PROXY_DOMAIN: code-server.my.domain #optional
+      # DEFAULT_WORKSPACE: /config/data/User/Workspaces/AZ.code-workspace #optional
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.vscode-rtr.entrypoints=https"
+      - "traefik.http.routers.vscode-rtr.rule=Host(`code.$DOMAINNAME_HOME_SYNOLOGY`)"
+      ## Middlewares
+      - "traefik.http.routers.vscode-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.vscode-rtr.service=vscode-svc"
+      - "traefik.http.services.vscode-svc.loadbalancer.server.port=8443"

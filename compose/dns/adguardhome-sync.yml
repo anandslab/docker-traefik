@@ -1,0 +1,13 @@
+services:
+  # AdGuard Home Sync - Sync Settings between AdGuard Homes
+  adguardhome-sync:
+    image: lscr.io/linuxserver/adguardhome-sync:latest
+    container_name: adguardhome-sync
+    restart: unless-stopped
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      CONFIGFILE: /config/adguardhome-sync.yaml #optional
+    volumes:
+      - $DOCKERDIR/appdata/adguardhome-sync:/config

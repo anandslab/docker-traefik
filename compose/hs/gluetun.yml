@@ -1,0 +1,47 @@
+services:
+  # Gluetun - VPN Client for Docker Containers and More
+  # Gluetun only for use by torrent clients + on demand lan devices.
+  # Arr apps do not need VPN (not recommended), unless you have ISP/country restrictions.
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["core", "all"]
+    networks:
+      - t2_proxy
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    ports:
+      - "8081:8080" # Exposing qBittorrent through Docker Host LAN IP
+    # #   - 8888:8888/tcp # HTTP proxy
+    # #   - 8388:8388/tcp # Shadowsocks
+    # #   - 8388:8388/udp # Shadowsocks
+    volumes:
+      - $DOCKERDIR/appdata/gluetun:/gluetun
+    environment:
+      TZ: $TZ
+      # Wireguard
+      VPN_SERVICE_PROVIDER: surfshark
+      VPN_TYPE: wireguard
+      WIREGUARD_PRIVATE_KEY: $SURFSHARK_WG_PRIVATE_KEY
+      WIREGUARD_ADDRESSES: 10.14.0.2/16
+      SERVER_COUNTRIES: Netherlands
+      # # OpenVPN
+      # VPN_SERVICE_PROVIDER: nordvpn
+      # VPN_TYPE: openvpn
+      # OPENVPN_USER: $NORDVPN_USERNAME
+      # OPENVPN_PASSWORD: $NORDVPN_PASSWORD 
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.gluetun-qbittorrent-rtr.entrypoints=https"
+      - "traefik.http.routers.gluetun-qbittorrent-rtr.rule=Host(`qbit.$DOMAINNAME_CLOUD_SERVER`)" # qBittorrent
+      ## Middlewares
+      - "traefik.http.routers.gluetun-qbittorrent-rtr.middlewares=chain-oauth@file" # qBittorrent
+      ## HTTP Services
+      - "traefik.http.routers.gluetun-qbittorrent-rtr.service=gluetun-svc" # qBittorrent
+      - "traefik.http.services.gluetun-svc.loadbalancer.server.port=8080" # qBittorrent

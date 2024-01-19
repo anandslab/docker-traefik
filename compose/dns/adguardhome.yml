@@ -1,0 +1,22 @@
+services:
+  # AdGuard Home - DNS AdBlocking
+  adguardhome:
+    container_name: adguardhome
+    image: adguard/adguardhome
+    restart: unless-stopped
+    network_mode: host
+    # networks:
+    #   - rpi4b
+    # ports:
+    #   - 53:53/udp
+    #   - 67:67/udp 
+    #   - 68:68/tcp 
+    #   - 1068:68/udp # port conflict with Raspbery PI OS DHCPD https://github.com/AdguardTeam/AdGuardHome/issues/1049
+    #   - 81:80/tcp 
+    #   - 444:443/tcp 
+    #   - 853:853/tcp 
+    #   - 3000:3000/tcp 
+    volumes:
+      - $DOCKERDIR/appdata/adguardhome/conf:/opt/adguardhome/conf
+      - $DOCKERDIR/appdata/adguardhome/work:/opt/adguardhome/work
+      # - $DOCKERDIR/shared/certs/$DOMAINNAME_SHB:/certs # optional: if you have your own SSL certs

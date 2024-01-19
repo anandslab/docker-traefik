@@ -1,0 +1,126 @@
+version: "3.9"
+
+########################### ANAND'S ENVIRONMENT
+# Here are my 5 Docker Hosts:
+# - Home Server (hs) - Proxmox LXC with Ubuntu Server 22.04
+# - Media / Database Server (mds) - Proxmox LXC with Ubuntu Server 22.04
+# - Web Server (ws) - Digital Ocean VPS with Ubuntu Server 22.04
+# - Synology (ds918) - Synology DS918+ 
+# - DNS / AdBlock Server (dns) - Raspberry Pi 4B with Raspberry Pi OS
+
+########################### THIS COMPOSE FILE
+# - Home Server (hs) - Proxmox LXC with Ubuntu Server 22.04
+# - Prefix/suffix "hs" refers to the above host
+# - Docker version 24.0.7, build afdd53b
+# - Docker Compose version v2.21.0
+
+########################### NETWORKS
+# You may customize the network subnets (192.168.x.0/24) below as you please.
+
+networks:
+  t2_proxy:
+    name: t2_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.90.0/24
+  default:
+    driver: bridge
+  socket_proxy:
+    name: socket_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.91.0/24
+
+########################### SECRETS
+
+secrets:
+  htpasswd:
+    file: $DOCKERDIR/secrets/htpasswd
+  cf_email:
+    file: $DOCKERDIR/secrets/cf_email
+  cf_api_key:
+    file: $DOCKERDIR/secrets/cf_api_key
+  cf_token:
+    file: $DOCKERDIR/secrets/cf_token
+  traefik_forward_auth:
+    file: $DOCKERDIR/secrets/traefik_forward_auth
+  mysql_root_password:
+    file: $DOCKERDIR/secrets/mysql_root_password
+  authelia_jwt_secret:
+    file: $DOCKERDIR/secrets/authelia_jwt_secret
+  authelia_session_secret:
+    file: $DOCKERDIR/secrets/authelia_session_secret
+  authelia_storage_mysql_password:
+    file: $DOCKERDIR/secrets/authelia_storage_mysql_password
+  authelia_notifier_smtp_password:
+    file: $DOCKERDIR/secrets/authelia_notifier_smtp_password
+  authelia_duo_api_secret_key:
+    file: $DOCKERDIR/secrets/authelia_duo_api_secret_key
+  authelia_storage_encryption_key:
+    file: $DOCKERDIR/secrets/authelia_storage_encryption_key
+  guac_db_name:
+    file: $DOCKERDIR/secrets/guac_db_name
+  guac_mysql_user:
+    file: $DOCKERDIR/secrets/guac_mysql_user
+  guac_mysql_password:
+    file: $DOCKERDIR/secrets/guac_mysql_password
+
+include:
+  ########################### SERVICES
+  # PREFIX hs = Home Server
+  # HOSTNAME=hs - defined in .env
+
+  # CORE
+  - compose/$HOSTNAME/traefik.yml
+  - compose/$HOSTNAME/socket-proxy.yml
+  - compose/$HOSTNAME/oauth.yml
+  - compose/$HOSTNAME/portainer.yml
+  - compose/$HOSTNAME/dockge.yml
+  # SECURITY
+  - compose/$HOSTNAME/crowdsec.yml
+  - compose/$HOSTNAME/traefik-bouncer.yml
+  # FRONTEND
+  - compose/$HOSTNAME/autoindex.yml
+  - compose/$HOSTNAME/homepage.yml
+  - compose/$HOSTNAME/phpmyadmin.yml
+  - compose/$HOSTNAME/sitespeed.yml
+  - compose/$HOSTNAME/whoami.yml
+  # DOWNLOADERS
+  # - compose/$HOSTNAME/jdownloader.yml
+  - compose/$HOSTNAME/qbittorrent.yml
+  - compose/$HOSTNAME/sabnzbd.yml
+  # PVRS
+  - compose/$HOSTNAME/sonarr.yml
+  - compose/$HOSTNAME/radarr.yml
+  # - compose/$HOSTNAME/lidarr.yml
+  # COMPLEMENTARY APPS
+  - compose/$HOSTNAME/prowlarr.yml
+  - compose/$HOSTNAME/notifiarr.yml
+  # - compose/$HOSTNAME/plexmm.yml
+  - compose/$HOSTNAME/tautulli.yml
+  # - compose/$HOSTNAME/bazarr.yml
+  # - compose/$HOSTNAME/picard.yml
+  # MONITORING
+  - compose/$HOSTNAME/grafana.yml
+  - compose/$HOSTNAME/uptime-kuma.yml
+  - compose/$HOSTNAME/dozzle.yml
+  # - compose/$HOSTNAME/radarr-exporter.yml
+  # - compose/$HOSTNAME/sonarr-exporter.yml
+  # - compose/$HOSTNAME/lidarr-exporter.yml
+  # - compose/$HOSTNAME/prowlarr-exporter.yml
+  # - compose/$HOSTNAME/sabnzbd-exporter.yml
+  - compose/$HOSTNAME/node-exporter.yml
+  # ADMIN
+  - compose/$HOSTNAME/guacamole.yml
+  - compose/$HOSTNAME/it-tools.yml
+  # UTILITIES
+  - compose/$HOSTNAME/firefox.yml
+  # FILE MANAGEMENT
+  - compose/$HOSTNAME/vscode.yml
+  # NETWORK
+  - compose/$HOSTNAME/gluetun.yml
+  # MAINTENANCE
+  - compose/$HOSTNAME/docker-gc.yml
+  - compose/$HOSTNAME/deunhealth.yml

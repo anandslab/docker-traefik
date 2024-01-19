@@ -1,0 +1,39 @@
+services:
+  # Tautulli - Plex statistics and monitoring
+  # Set HTTP Root in Tautulli settings if using PathPrefix
+  tautulli:
+    image: lscr.io/linuxserver/tautulli:latest
+    container_name: tautulli
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    profiles: ["media", "all"]
+    networks:
+      - t2_proxy
+    ports:
+      - "8181:8181"
+    volumes:
+      - $DOCKERDIR/appdata/tautulli/config:/config
+      - $DOCKERDIR/appdata/plexms/Library/Application Support/Plex Media Server/Logs:/logs:ro # For tautulli Plex log viewer
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers Auth Bypass
+      - "traefik.http.routers.tautulli-rtr-bypass.entrypoints=https"
+      #- "traefik.http.routers.tautulli-rtr-bypass.rule=Host(`tautulli.$DOMAINNAME_CLOUD_SERVER`) && (Headers(`X-Api-Key`, `$TAUTULLI_API_KEY`) || Query(`apikey`, `$TAUTULLI_API_KEY`))"
+      - "traefik.http.routers.tautulli-rtr-bypass.rule=Host(`tautulli.$DOMAINNAME_CLOUD_SERVER`) && Headers(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
+      - "traefik.http.routers.tautulli-rtr-bypass.priority=100"
+      ## HTTP Routers
+      - "traefik.http.routers.tautulli-rtr.entrypoints=https"
+      - "traefik.http.routers.tautulli-rtr.rule=Host(`tautulli.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.tautulli-rtr.priority=99"
+      ## Middlewares
+      - "traefik.http.routers.tautulli-rtr-bypass.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.tautulli-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.tautulli-rtr.service=tautulli-svc"
+      - "traefik.http.routers.tautulli-rtr-bypass.service=tautulli-svc"
+      - "traefik.http.services.tautulli-svc.loadbalancer.server.port=8181"

@@ -1,0 +1,19 @@
+services:
+  # Radarr Exporter - Radarr metrics for Prometheus
+  radarr-exporter:
+    image: ghcr.io/onedr0p/exportarr:latest
+    container_name: radarr-exporter
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    profiles: ["all", "media", "arrs"]
+    networks:
+      - t2_proxy
+    ports:
+      - "9707:9707"
+    environment:
+      PORT: 9707
+      URL: "http://radarr:7878"
+      APIKEY: $RADARR_API_KEY
+      ENABLE_ADDITIONAL_METRICS: TRUE
+    command: ["radarr"]

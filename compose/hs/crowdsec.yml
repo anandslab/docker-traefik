@@ -1,0 +1,27 @@
+services:
+  # CrowdSec - Open-source & collaborative security IPS
+  crowdsec:
+    image: crowdsecurity/crowdsec
+    container_name: crowdsec
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["core", "all"]
+    ports:
+      - "8080:8080"
+      - "$ZEROTIER_IP_CLOUDSERVER:6060:6060" # Exposing metrics via Zerotier IP
+    environment:
+      COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/iptables crowdsecurity/linux fulljackz/proxmox"
+      GID: "${GID-1000}"
+      CUSTOM_HOSTNAME: home-server
+      DISABLE_LOCAL_API: "true" # Only after successfully registering and validating remote agent below.
+      # For the following, check local_api_credentials.yaml after cscli lapi register (secondary machine) and cscli machine validate (on primary machine)
+      AGENT_USERNAME: $CROWDSEC_AGENT_USERNAME 
+      AGENT_PASSWORD: $CROWDSEC_AGENT_PASSWORD 
+      LOCAL_API_URL: $CROWDSEC_LOCAL_API_URL 
+    volumes:
+      - $DOCKERDIR/logs/cloudserver:/logs/cloudserver:ro
+      - /var/log:/var/log:ro
+      - $EXTDRIVE/zbox/var/log:/logs/zbox:ro
+      - $DOCKERDIR/appdata/crowdsec/data:/var/lib/crowdsec/data
+      - $DOCKERDIR/appdata/crowdsec/config:/etc/crowdsec

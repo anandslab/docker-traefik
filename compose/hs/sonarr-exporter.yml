@@ -1,0 +1,19 @@
+services:
+  # Sonarr Exporter - Sonarr metrics for Prometheus
+  sonarr-exporter:
+    image: ghcr.io/onedr0p/exportarr:latest
+    container_name: sonarr-exporter
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    profiles: ["all", "media", "arrs"]
+    networks:
+      - t2_proxy
+    ports:
+      - "9708:9708"
+    environment:
+      PORT: 9708
+      URL: "http://sonarr:8989"
+      APIKEY: $SONARR_API_KEY
+      ENABLE_ADDITIONAL_METRICS: TRUE
+    command: ["sonarr"]

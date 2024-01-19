@@ -1,0 +1,27 @@
+services:
+  # Cloudflare DDNS - Dynamic DNS Updater
+  ddns-updater:
+    image: qmcgaw/ddns-updater
+    container_name: ddns-updater
+    restart: unless-stopped
+    network_mode: bridge
+    ports:
+      - 8000:8000/tcp
+    volumes:
+      - $DOCKERDIR/appdata/ddns-updater:/updater/data # Owned by UID 1000
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      PERIOD: 12h
+      UPDATE_COOLDOWN_PERIOD: 5m
+      PUBLICIP_DNS_TIMEOUT: 3s
+      HTTP_TIMEOUT: 10s
+      # Web UI
+      LISTENING_PORT: 8000
+      # Backup
+      BACKUP_PERIOD: 96h # 0 to disable
+      BACKUP_DIRECTORY: /updater/data/backups
+      # Other
+      LOG_LEVEL: info
+      SHOUTRRR_ADDRESSES: $DISCORD_SHOUTRRR_ADDRESS

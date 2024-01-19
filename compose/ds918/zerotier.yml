@@ -1,0 +1,17 @@
+services:
+  # ZeroTier-One - Private Network over Internet
+  zerotier:
+    image: zerotier/zerotier-synology:latest
+    container_name: zerotier
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    # profiles: ["core", "all"]
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    devices:
+      - /dev/net/tun
+    volumes:
+      - $DOCKERDIR/appdata/zerotier:/var/lib/zerotier-one

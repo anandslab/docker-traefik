@@ -1,0 +1,30 @@
+services:
+  # Dockge - Docker Compose Manager
+  dockge:
+    image: louislam/dockge
+    container_name: dockge
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["core", "all"]
+    # ports:
+    #   - "5001:5001"
+    networks:
+      - t2_proxy
+      - socket_proxy
+    volumes:
+      - $DOCKERDIR/appdata/dockge:/app/data
+      - $USERDIR/test:/opt/stacks
+    environment:
+      - DOCKGE_STACKS_DIR=/opt/stacks
+      - DOCKER_HOST=tcp://socket-proxy:2375
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.dockge-rtr.entrypoints=https"
+      - "traefik.http.routers.dockge-rtr.rule=Host(`dockge.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.dockge-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.dockge-rtr.service=dockge-svc"
+      - "traefik.http.services.dockge-svc.loadbalancer.server.port=5001"

@@ -1,0 +1,27 @@
+  # Tdarr Node - Transcoder Node
+  tdarr-node1:
+    image: haveagitgat/tdarr_node:latest
+    container_name: tdarr-node1
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    # profiles: ["media", "all"]
+    networks:
+      - t2_proxy
+
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      UMASK_SET: 002
+      nodeID: Node1
+      nodeIP: tdarr-node1 # or hostname
+      nodePort: 8267
+      serverIP: tdarr # or hostname
+      serverPort: 8266
+    volumes:
+      - $DOCKERDIR/appdata/tdarr/configs:/app/configs
+      - $DOCKERDIR/appdata/tdarr/logs:/app/logs
+      - $DOWNLOADSDIR/transcode/tdarr:/data/temp
+      - $ZDATADIR/Photos/zVideos:/data/media:ro
+      - $DATADIR2/media/zvideos:/data/output

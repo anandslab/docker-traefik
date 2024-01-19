@@ -1,0 +1,33 @@
+  # Readarr - Books management
+  # Set url_base in readarr settings if using PathPrefix
+  readarr:
+    image: hotio/readarr:nightly
+    container_name: readarr
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    profiles: ["media","arrs", "all"]
+    networks:
+      - t2_proxy
+    ports:
+      - "8787:8787"
+    volumes:
+      - $DOCKERDIR/appdata/readarr:/config
+      - $DATADIR:/data
+      - "/etc/localtime:/etc/localtime:ro"
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      UMASK: 002
+      #ARGS: ""
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers Auth
+      - "traefik.http.routers.readarr-rtr.entrypoints=https"
+      - "traefik.http.routers.readarr-rtr.rule=Host(`readarr.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.readarr-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.readarr-rtr.service=readarr-svc"
+      - "traefik.http.services.readarr-svc.loadbalancer.server.port=8787"

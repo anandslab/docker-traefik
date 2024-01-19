@@ -1,0 +1,15 @@
+services:
+  # CrowdSec Bouncer - Traefik
+  traefik-bouncer:
+    image: fbonalair/traefik-crowdsec-bouncer
+    container_name: traefik-bouncer
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["core", "all"]
+    networks:
+      - t2_proxy
+    environment:
+      GIN_MODE: release # default is debug (more logs)
+      CROWDSEC_BOUNCER_API_KEY: $CROWDSEC_BOUNCER_TRAEFIK_API_KEY
+      CROWDSEC_AGENT_HOST: $CROWDSEC_LAPI_HOST:$CROWDSEC_LAPI_PORT # CrowdSec host and port

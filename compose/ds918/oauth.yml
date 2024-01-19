@@ -1,0 +1,43 @@
+services:
+  # Google OAuth - Single Sign On using OAuth 2.0
+  # https://www.smarthomebeginner.com/google-oauth-with-traefik-docker/
+  # Also possible to forward all authentication requests to external service. See middlewares-oauth-external and chain-oauth-external.
+  oauth:
+    container_name: oauth
+    image: thomseddon/traefik-forward-auth:latest
+    # image: thomseddon/traefik-forward-auth:2.1-arm # Use this image with Raspberry Pi
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    #profiles: ["core", "all"]
+    networks:
+      - t2_proxy
+    # Allow apps to bypass OAuth. Radarr example below will bypass OAuth if API key is present in the request (eg. from NZB360 mobile app).
+    # While this is one way, the recommended way is to bypass authentication using Traefik labels shown in some of the apps later.
+    # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
+    # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
+    environment:
+      - CONFIG=/config
+      - COOKIE_DOMAIN=$DOMAINNAME_HOME_SYNOLOGY
+      - INSECURE_COOKIE=false
+      - AUTH_HOST=oauth.$DOMAINNAME_HOME_SYNOLOGY
+      - URL_PATH=/_oauth
+      - LOG_LEVEL=warn
+      - LOG_FORMAT=text
+      - LIFETIME=86400 # 1 day
+      - DEFAULT_ACTION=auth
+      - DEFAULT_PROVIDER=google
+    secrets:
+      - source: traefik_forward_auth
+        target: /config
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.oauth-rtr.tls=true"
+      - "traefik.http.routers.oauth-rtr.entrypoints=https"
+      - "traefik.http.routers.oauth-rtr.rule=Host(`oauth.$DOMAINNAME_HOME_SYNOLOGY`)"
+      ## Middlewares
+      - "traefik.http.routers.oauth-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.oauth-rtr.service=oauth-svc"
+      - "traefik.http.services.oauth-svc.loadbalancer.server.port=4181"
