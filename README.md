@@ -1,3 +1,4 @@
+#### UPDATE IN PROGRESS ### 
 # Description
 
 This is the updated docker-compose repo of all the media, home, and web server apps described in the following guides on our website:
@@ -220,10 +221,10 @@ The apps I use are scattered around in several different docker-compose files. C
 
 I use bash_aliases to simplify starting and stopping containers/stack. Included in the repo is an example of bash_aliases I use (replace USER with your Linux username). Here are some example alias commands:
 
-- <strong>dcup2</strong> - Start Docker Traefik 2 stack
-- <strong>dcdown2</strong> - Stop Docker Traefik 2 stack
-- <strong>dcrec2</strong> - Start or recreate a specific service
-- <strong>dcstop2</strong> - Stop a specific service
-- <strong>dcrestart2</strong> - Restart a specific service
-- <strong>dclogs2</strong> - See real-time logs for the corresponding stack or service
-- <strong>dcpull2</strong> - Pull new images for the corresponding stack or service
+- <strong>dcup</strong> - Start Docker Traefik 2 stack
+- <strong>dcdown</strong> - Stop Docker Traefik 2 stack
+- <strong>dcrec</strong> - Start or recreate a specific service
+- <strong>dcstop</strong> - Stop a specific service
+- <strong>dcrestart</strong> - Restart a specific service
+- <strong>dclogs</strong> - See real-time logs for the corresponding stack or service
+- <strong>dcpull</strong> - Pull new images for the corresponding stack or service
