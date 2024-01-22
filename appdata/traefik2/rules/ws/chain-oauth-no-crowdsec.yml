@@ -1,0 +1,10 @@
+http:
+  middlewares:
+    chain-oauth-no-crowdsec:
+      chain:
+        middlewares:
+          - middlewares-rate-limit
+          - middlewares-https-redirectscheme
+          - middlewares-secure-headers-wp
+          - middlewares-oauth
+          - middlewares-compress

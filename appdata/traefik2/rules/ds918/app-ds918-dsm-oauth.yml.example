@@ -1,0 +1,17 @@
+http:
+  routers:
+    synology-rtr:
+      rule: "Host(`dsm.{{env "DOMAINNAME_DS918"}}`)"
+      entryPoints:
+        - https
+      middlewares:
+        - chain-oauth
+      service: synology-svc
+      tls:
+        certResolver: dns-cloudflare
+        options: tls-opts@file
+  services:
+    synology-svc:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.254:5000"

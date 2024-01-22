@@ -13,7 +13,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.whoami-rtr.entrypoints=https"
-      - "traefik.http.routers.whoami-rtr.rule=Host(`whoami.$DOMAINNAME_SHB`)"
+      - "traefik.http.routers.whoami-rtr.rule=Host(`whoami.$DOMAINNAME_WS`)"
       ## Middlewares
       - "traefik.http.routers.whoami-rtr.middlewares=chain-oauth@file"
       ## HTTP Services

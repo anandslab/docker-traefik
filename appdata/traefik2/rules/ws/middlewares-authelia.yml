@@ -1,0 +1,9 @@
+http:
+  middlewares:
+    middlewares-authelia:
+      forwardAuth:
+        address: "http://authelia:9091/api/verify?rd=https://authelia.{{env "DOMAINNAME_WS"}}"
+        trustForwardHeader: true
+        authResponseHeaders:
+          - "Remote-User"
+          - "Remote-Groups"

@@ -38,12 +38,8 @@ networks:
 secrets:
   htpasswd:
     file: $DOCKERDIR/secrets/htpasswd
-  cf_email:
-    file: $DOCKERDIR/secrets/cf_email
-  cf_api_key:
-    file: $DOCKERDIR/secrets/cf_api_key
-  cf_token:
-    file: $DOCKERDIR/secrets/cf_token
+  cf_dns_api_token:
+    file: $DOCKERDIR/secrets/cf_dns_api_token
   traefik_forward_auth:
     file: $DOCKERDIR/secrets/traefik_forward_auth
   mysql_root_password:
@@ -98,8 +94,6 @@ include:
   # COMPLEMENTARY APPS
   - compose/$HOSTNAME/prowlarr.yml
   - compose/$HOSTNAME/notifiarr.yml
-  # - compose/$HOSTNAME/plexmm.yml
-  - compose/$HOSTNAME/tautulli.yml
   # - compose/$HOSTNAME/bazarr.yml
   # - compose/$HOSTNAME/picard.yml
   # MONITORING

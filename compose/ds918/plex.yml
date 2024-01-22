@@ -34,14 +34,14 @@ services:
       PLEX_CLAIM_FILE: /run/secrets/plex_claim
       PLEX_UID: $PUID
       PLEX_GID: $PGID
-      ADVERTISE_IP: "http://$SERVER_IP1:32400/,http://$SERVER_IP2:32400,https://splex.$DOMAINNAME_CLOUD_SERVER,https://splex.$DOMAINNAME_HOME_SYNOLOGY,http://$ZEROTIER_IP_SYNOLOGY:32400/"
+      ADVERTISE_IP: "http://$SERVER_IP1:32400/,http://$SERVER_IP2:32400,https://splex.$DOMAINNAME_HS,https://splex.$DOMAINNAME_DS918,http://$ZEROTIER_IP_SYNOLOGY:32400/"
     secrets:
       - plex_claim
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.plex-rtr.entrypoints=https"
-      - "traefik.http.routers.plex-rtr.rule=Host(`splex.$DOMAINNAME_HOME_SYNOLOGY`)"
+      - "traefik.http.routers.plex-rtr.rule=Host(`splex.$DOMAINNAME_DS918`)"
       ## Middlewares
       - "traefik.http.routers.plex-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services

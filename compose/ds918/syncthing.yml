@@ -25,7 +25,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.syncthing-rtr.entrypoints=https"
-      - "traefik.http.routers.syncthing-rtr.rule=Host(`stnas.$DOMAINNAME_HOME_SYNOLOGY`)"
+      - "traefik.http.routers.syncthing-rtr.rule=Host(`stnas.$DOMAINNAME_DS918`)"
       ## Middlewares
       - "traefik.http.routers.syncthing-rtr.middlewares=chain-oauth@file"
       ## HTTP Services

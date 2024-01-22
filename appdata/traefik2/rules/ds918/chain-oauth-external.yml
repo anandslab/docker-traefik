@@ -1,0 +1,11 @@
+http:
+  middlewares:
+    chain-oauth-external:
+      chain:
+        middlewares:
+          - middlewares-rate-limit
+          - middlewares-https-redirectscheme
+          - middlewares-secure-headers
+          - middlewares-oauth-external
+          - middlewares-compress
+

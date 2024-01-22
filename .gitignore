@@ -79,12 +79,21 @@ appdata/traefik2/rules/toml/*
 !appdata/traefik2/rules/ds918
 appdata/traefik2/rules/ds918/*
 !appdata/traefik2/rules/ds918/*.example
+!appdata/traefik2/rules/ds918/tls-opts.yml
+!appdata/traefik2/rules/ds918/middlewares-*.yml
+!appdata/traefik2/rules/ds918/chain-*.yml
 !appdata/traefik2/rules/hs
 appdata/traefik2/rules/hs/*
 !appdata/traefik2/rules/hs/*.example
 !appdata/traefik2/rules/hs/tls-opts.yml
-!appdata/traefik2/rules/hs/middlewares.yml
-!appdata/traefik2/rules/hs/middlewares-chains.yml
+!appdata/traefik2/rules/hs/middlewares-*.yml
+!appdata/traefik2/rules/hs/chain-*.yml
+!appdata/traefik2/rules/ws
+appdata/traefik2/rules/ws/*
+!appdata/traefik2/rules/ws/*.example
+!appdata/traefik2/rules/ws/tls-opts.yml
+!appdata/traefik2/rules/ws/middlewares-*.yml
+!appdata/traefik2/rules/ws/chain-*.yml
 
 !appdata/authelia
 appdata/authelia/*

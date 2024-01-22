@@ -22,7 +22,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.homepage-rtr.entrypoints=https"
-      - "traefik.http.routers.homepage-rtr.rule=Host(`$DOMAINNAME_CLOUD_SERVER`,`www.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.homepage-rtr.rule=Host(`$DOMAINNAME_HS`,`www.$DOMAINNAME_HS`)"
       ## Middlewares
       - "traefik.http.routers.homepage-rtr.middlewares=chain-oauth@file"
       ## HTTP Services

@@ -58,7 +58,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.rclone-drive-rtr.entrypoints=https"
-      - "traefik.http.routers.rclone-drive-rtr.rule=Host(`rclone.$DOMAINNAME_HOME_SYNOLOGY`)"
+      - "traefik.http.routers.rclone-drive-rtr.rule=Host(`rclone.$DOMAINNAME_DS918`)"
       ## Middlewares
       - "traefik.http.routers.rclone-drive-rtr.middlewares=chain-oauth@file"
       ## HTTP Services

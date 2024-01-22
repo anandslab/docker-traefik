@@ -24,7 +24,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers Auth
       - "traefik.http.routers.notifiarr-rtr.entrypoints=https"
-      - "traefik.http.routers.notifiarr-rtr.rule=Host(`notifiarr.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.notifiarr-rtr.rule=Host(`notifiarr.$DOMAINNAME_HS`)"
       ## Middlewares
       - "traefik.http.routers.notifiarr-rtr.middlewares=chain-oauth@file"
       ## HTTP Services

@@ -28,7 +28,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.qdirstat-rtr.entrypoints=https"
-      - "traefik.http.routers.qdirstat-rtr.rule=Host(`qdir.$DOMAINNAME_HOME_SYNOLOGY`)"
+      - "traefik.http.routers.qdirstat-rtr.rule=Host(`qdir.$DOMAINNAME_DS918`)"
       ## Middlewares
       - "traefik.http.routers.qdirstat-rtr.middlewares=chain-oauth@file"
       ## HTTP Services

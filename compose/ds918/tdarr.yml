@@ -24,7 +24,7 @@ services:
       - $DOCKERDIR/appdata/tdarr/logs:/app/logs
       - $DOWNLOADSDIR/transcode/tdarr:/data/temp
       - $ZDATADIR/Photos/zVideos:/data/zVideos-source:ro
-      - $DATADIR2/media/zvideos:/data/zVideos-destination
+      - $DATADIR1/media/zvideos:/data/zVideos-destination
     environment:
       TZ: $TZ
       PUID: $PUID
@@ -41,7 +41,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.tdarr-rtr.entrypoints=https"
-      - "traefik.http.routers.tdarr-rtr.rule=Host(`tdarr.$DOMAINNAME_HOME_SYNOLOGY`)"
+      - "traefik.http.routers.tdarr-rtr.rule=Host(`tdarr.$DOMAINNAME_DS918`)"
       ## Middlewares
       - "traefik.http.routers.tdarr-rtr.middlewares=chain-oauth@file"
       ## HTTP Services

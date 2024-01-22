@@ -1,7 +1,7 @@
 http:
   routers:
     haos-rtr:
-      rule: "Host(`haos.{{env "DOMAINNAME_CLOUD_SERVER"}}`)" 
+      rule: "Host(`haos.{{env "DOMAINNAME_HS"}}`)" 
       entryPoints:
         - https
       middlewares:

@@ -11,7 +11,7 @@ services:
     # command: --restart-containers container1,container2,container3
     volumes:
       - $DOCKERDIR/appdata/traefik2/acme:/traefik:ro
-      - $DOCKERDIR/shared/certs/$DOMAINNAME_SHB:/output:rw
+      - $DOCKERDIR/shared/certs/$DOMAINNAME_WS:/output:rw
       # - /var/run/docker.sock:/var/run/docker.sock:ro # Only needed if restarting containers (use Docker Socket Proxy instead)
     environment:
-      DOMAIN: $DOMAINNAME_SHB
+      DOMAIN: $DOMAINNAME_WS

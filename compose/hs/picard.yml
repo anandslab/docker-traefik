@@ -26,7 +26,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.picard-rtr.entrypoints=https"
-      - "traefik.http.routers.picard-rtr.rule=Host(`picard.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.picard-rtr.rule=Host(`picard.$DOMAINNAME_HS`)"
       ## Middlewares
       - "traefik.http.routers.picard-rtr.middlewares=chain-oauth@file"
       ## HTTP Services

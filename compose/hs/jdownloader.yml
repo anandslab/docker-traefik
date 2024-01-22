@@ -28,7 +28,7 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.jdownloader-rtr.entrypoints=https"
-      - "traefik.http.routers.jdownloader-rtr.rule=Host(`jdown.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.jdownloader-rtr.rule=Host(`jdown.$DOMAINNAME_HS`)"
       ## Middlewares
       - "traefik.http.routers.jdownloader-rtr.middlewares=chain-oauth@file"
       ## HTTP Services

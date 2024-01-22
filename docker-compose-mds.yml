@@ -48,6 +48,9 @@ include:
   - compose/$HOSTNAME/airsonic-advanced.yml
   - compose/$HOSTNAME/jellyfin.yml
   - compose/$HOSTNAME/plex.yml
+  - compose/$HOSTNAME/plex-image-cleanup.yml
+  # - compose/$HOSTNAME/plex-meta-manager.yml
+  - compose/$HOSTNAME/tautulli.yml
   # DATABASES
   - compose/$HOSTNAME/prometheus.yml
   - compose/$HOSTNAME/mariadb.yml

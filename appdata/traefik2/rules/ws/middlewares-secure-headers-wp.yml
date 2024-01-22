@@ -1,0 +1,13 @@
+http:
+  middlewares:
+    middlewares-secure-headers-wp:
+      headers:
+        hostsProxyHeaders:
+          - "X-Forwarded-Host"
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        #frameDeny: true # Popups like plugin details etc. wont't open with this. 
+        customFrameOptionsValue: "allow-from https:{{env "DOMAINNAME_WS"}}" 
+        contentTypeNosniff: true
+        browserXssFilter: true

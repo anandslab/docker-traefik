@@ -1,0 +1,4 @@
+http:
+  middlewares:
+    middlewares-compress:
+      compress: {}

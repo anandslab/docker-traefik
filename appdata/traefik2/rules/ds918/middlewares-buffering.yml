@@ -1,0 +1,9 @@
+http:
+  middlewares:
+    middlewares-buffering:
+      buffering:
+        maxResponseBodyBytes: 2000000
+        maxRequestBodyBytes: 10485760  
+        memRequestBodyBytes: 2097152  
+        memResponseBodyBytes: 2097152
+        retryExpression: "IsNetworkError() && Attempts() <= 2"

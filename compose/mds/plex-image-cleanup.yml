@@ -1,0 +1,10 @@
+services:
+  pic:
+    image: meisnate12/plex-image-cleanup
+    container_name: pic
+    environment:
+      - TZ=$TZ #optional
+    volumes:
+      - $DOCKERDIR/appdata/plex-image-cleanup:/config
+      - $DOCKERDIR/appdata/plex/Library/Application Support/Plex Media Server:/plex
+    restart: unless-stopped

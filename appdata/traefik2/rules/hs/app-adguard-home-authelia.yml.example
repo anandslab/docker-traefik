@@ -1,11 +1,11 @@
 http:
   routers:
     adguard-rtr:
-      rule: "Host(`ag.{{env "DOMAINNAME_CLOUD_SERVER"}}`)"
+      rule: "Host(`ag.{{env "DOMAINNAME_HS"}}`)"
       entryPoints:
         - https
       middlewares:
-        - chain-oauth
+        - chain-authelia
       service: adguard-svc
       tls:
         certResolver: dns-cloudflare

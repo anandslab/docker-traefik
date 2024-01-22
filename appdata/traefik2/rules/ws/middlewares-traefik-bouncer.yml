@@ -1,0 +1,6 @@
+http:
+  middlewares:
+    middlewares-traefik-bouncer:
+      forwardAuth:
+        address: "http://traefik-bouncer:8080/api/v1/forwardAuth" # Make sure you have the traefik-bouncer service in docker-compose.yml
+        trustForwardHeader: true
