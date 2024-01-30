@@ -16,7 +16,6 @@ version: "3.9"
 
 ########################### NETWORKS
 # You may customize the network subnets (192.168.x.0/24) below as you please.
-
 networks:
   default:
     driver: bridge
@@ -32,7 +31,6 @@ networks:
           gateway: "192.168.1.1"
 
 ########################### SECRETS
-
 secrets:
   plex_claim:
     file: $DOCKERDIR/secrets/plex_claim

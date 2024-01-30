@@ -11,11 +11,11 @@ services:
       - t2_proxy
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.whoami-rtr.entrypoints=https"
+      # HTTP Routers
+      - "traefik.http.routers.whoami-rtr.entrypoints=websecure"
       - "traefik.http.routers.whoami-rtr.rule=Host(`whoami.$DOMAINNAME_HS`)"
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.whoami-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.whoami-rtr.service=whoami-svc"
       - "traefik.http.services.whoami-svc.loadbalancer.server.port=80"

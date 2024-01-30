@@ -31,12 +31,12 @@ services:
         target: /config
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers
+      # HTTP Routers
       - "traefik.http.routers.oauth-rtr.tls=true"
-      - "traefik.http.routers.oauth-rtr.entrypoints=https"
+      - "traefik.http.routers.oauth-rtr.entrypoints=websecure"
       - "traefik.http.routers.oauth-rtr.rule=Host(`oauth.$DOMAINNAME_WS`)"
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.oauth-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.oauth-rtr.service=oauth-svc"
       - "traefik.http.services.oauth-svc.loadbalancer.server.port=4181"

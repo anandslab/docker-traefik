@@ -5,7 +5,6 @@ http:
         middlewares:
           - middlewares-traefik-bouncer # leave this out if you are not using CrowdSec
           - middlewares-rate-limit
-          - middlewares-https-redirectscheme
           - middlewares-secure-headers
           - middlewares-oauth-external
           #- middlewares-compress

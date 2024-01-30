@@ -21,11 +21,11 @@ services:
       - TZ=$TZ
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.portainer-rtr.entrypoints=https"
+      # HTTP Routers
+      - "traefik.http.routers.portainer-rtr.entrypoints=websecure"
       - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME_HS`)"
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.portainer-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.portainer-rtr.service=portainer-svc"
       - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"

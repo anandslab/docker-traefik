@@ -3,7 +3,7 @@ http:
     unifi-rtr:
       rule: "Host(`unifi.{{env "DOMAINNAME_HS"}}`)"
       entryPoints:
-        - https
+        - websecure
       middlewares:
         - chain-authelia
       service: unifi-svc

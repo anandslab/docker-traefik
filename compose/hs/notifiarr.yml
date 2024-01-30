@@ -22,11 +22,11 @@ services:
       DN_AUTO_UPDATE: off
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers Auth
-      - "traefik.http.routers.notifiarr-rtr.entrypoints=https"
+      # HTTP Routers Auth
+      - "traefik.http.routers.notifiarr-rtr.entrypoints=websecure"
       - "traefik.http.routers.notifiarr-rtr.rule=Host(`notifiarr.$DOMAINNAME_HS`)"
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.notifiarr-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.notifiarr-rtr.service=notifiarr-svc"
       - "traefik.http.services.notifiarr-svc.loadbalancer.server.port=5454"

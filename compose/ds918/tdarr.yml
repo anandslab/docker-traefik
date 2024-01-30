@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     # profiles: ["media", "all"]
     networks:
-      - t2_proxy
+      - traefik_proxy
     devices:
       - /dev/dri:/dev/dri # for hardware transcoding
     ports:
@@ -39,11 +39,11 @@ services:
       nodeName: tdarr-node-ds918
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers
+      # HTTP Routers
       - "traefik.http.routers.tdarr-rtr.entrypoints=https"
       - "traefik.http.routers.tdarr-rtr.rule=Host(`tdarr.$DOMAINNAME_DS918`)"
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.tdarr-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.tdarr-rtr.service=tdarr-svc"
       - "traefik.http.services.tdarr-svc.loadbalancer.server.port=8265"

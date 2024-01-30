@@ -19,11 +19,11 @@ services:
       - mysql_root_password
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.phpmyadmin-rtr.entrypoints=https"
+      # HTTP Routers
+      - "traefik.http.routers.phpmyadmin-rtr.entrypoints=websecure"
       - "traefik.http.routers.phpmyadmin-rtr.rule=Host(`pma.$DOMAINNAME_WS`)"
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.phpmyadmin-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.phpmyadmin-rtr.service=phpmyadmin-svc"
       - "traefik.http.services.phpmyadmin-svc.loadbalancer.server.port=80"

@@ -26,13 +26,13 @@ services:
       - guac_mysql_password
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.guacamole-rtr.entrypoints=https"
+      # HTTP Routers
+      - "traefik.http.routers.guacamole-rtr.entrypoints=websecure"
       - "traefik.http.routers.guacamole-rtr.rule=Host(`guac.$DOMAINNAME_HS`)"
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.guacamole-rtr.middlewares=chain-oauth@file,add-guacamole"
       - "traefik.http.middlewares.add-guacamole.addPrefix.prefix=/guacamole"
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.guacamole-rtr.service=guacamole-svc"
       - "traefik.http.services.guacamole-svc.loadbalancer.server.port=8080"
 

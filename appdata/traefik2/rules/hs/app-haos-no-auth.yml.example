@@ -3,7 +3,7 @@ http:
     haos-rtr:
       rule: "Host(`haos.{{env "DOMAINNAME_HS"}}`)" 
       entryPoints:
-        - https
+        - websecure
       middlewares:
         - chain-no-auth
       service: haos-svc

@@ -20,11 +20,11 @@ services:
       - DOCKER_HOST=tcp://socket-proxy:2375
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.dockge-rtr.entrypoints=https"
+      # HTTP Routers
+      - "traefik.http.routers.dockge-rtr.entrypoints=websecure"
       - "traefik.http.routers.dockge-rtr.rule=Host(`dockge.$DOMAINNAME_HS`)"
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.dockge-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.dockge-rtr.service=dockge-svc"
       - "traefik.http.services.dockge-svc.loadbalancer.server.port=5001"

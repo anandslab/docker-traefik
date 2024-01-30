@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     # profiles: ["core", "all"]
     networks:
-      - t2_proxy
+      - traefik_proxy
     cap_add:
       - SYS_ADMIN
     command:
@@ -56,11 +56,11 @@ services:
       PGID: $PGID
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers
+      # HTTP Routers
       - "traefik.http.routers.rclone-drive-rtr.entrypoints=https"
       - "traefik.http.routers.rclone-drive-rtr.rule=Host(`rclone.$DOMAINNAME_DS918`)"
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.rclone-drive-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.rclone-drive-rtr.service=rclone-drive-svc"
       - "traefik.http.services.rclone-drive-svc.loadbalancer.server.port=5572"

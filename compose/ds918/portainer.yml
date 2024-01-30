@@ -8,7 +8,7 @@ services:
     restart: unless-stopped
     # profiles: ["core", "all"]
     networks:
-      - t2_proxy
+      - traefik_proxy
       - socket_proxy
     # command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
     command: -H tcp://socket-proxy:2375
@@ -21,11 +21,11 @@ services:
       - TZ=$TZ
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers
+      # HTTP Routers
       - "traefik.http.routers.portainer-rtr.entrypoints=https"
       - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME_DS918`)"
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.portainer-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.portainer-rtr.service=portainer-svc"
       - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"

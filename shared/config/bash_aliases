@@ -147,8 +147,8 @@ alias srmt='sudo trash-put'
 # FILE SIZE AND STORAGE
 alias fdisk='sudo fdisk -l'
 alias uuid='sudo vol_id -u'
-alias ls='ls -F --color=auto'
-alias ll='ls -alh --color=auto'
+alias ls='ls -F --color=auto --group-directories-first'
+alias ll='ls -alh --color=auto --group-directories-first'
 alias lt='ls --human-readable --color=auto --size -1 -S --classify' # file size sorted
 alias lsr='ls --color=auto -t -1' # recently modified
 alias mnt='mount | grep -E ^/dev | column -t' # show mounted drives

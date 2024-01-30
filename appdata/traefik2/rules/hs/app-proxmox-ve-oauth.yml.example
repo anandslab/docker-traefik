@@ -3,7 +3,7 @@ http:
     proxmox-rtr:
       rule: "Host(`pve.{{env "DOMAINNAME_HS"}}`)"
       entryPoints:
-        - https
+        - websecure
       middlewares:
         - chain-oauth
       service: proxmox-svc

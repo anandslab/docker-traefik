@@ -14,11 +14,11 @@ services:
       - $DOCKERDIR/appdata/uptime-kuma:/app/data
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.uptime-kuma-rtr.entrypoints=https"
+      # HTTP Routers
+      - "traefik.http.routers.uptime-kuma-rtr.entrypoints=websecure"
       - "traefik.http.routers.uptime-kuma-rtr.rule=Host(`kuma.$DOMAINNAME_HS`)"
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.uptime-kuma-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.uptime-kuma-rtr.service=uptime-kuma-svc"
       - "traefik.http.services.uptime-kuma-svc.loadbalancer.server.port=3001"

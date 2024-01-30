@@ -8,7 +8,7 @@ services:
     restart: unless-stopped
     # profiles: ["core", "all"]
     networks:
-      - t2_proxy
+      - traefik_proxy
     ports:
       - "8384:8384"
       - "22000:22000/tcp"
@@ -23,11 +23,11 @@ services:
       PGID: $PGID
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers
+      # HTTP Routers
       - "traefik.http.routers.syncthing-rtr.entrypoints=https"
       - "traefik.http.routers.syncthing-rtr.rule=Host(`stnas.$DOMAINNAME_DS918`)"
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.syncthing-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.syncthing-rtr.service=syncthing-svc"
       - "traefik.http.services.syncthing-svc.loadbalancer.server.port=8384"

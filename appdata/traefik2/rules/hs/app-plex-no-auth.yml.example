@@ -3,7 +3,7 @@ http:
     splex-rtr:
       rule: "Host(`splex.{{env "DOMAINNAME_HS"}}`)"
       entryPoints:
-        - https
+        - websecure
       middlewares:
         - chain-oauth
       service: splex-svc

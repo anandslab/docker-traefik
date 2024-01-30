@@ -2,7 +2,7 @@ tcp:
   routers:
     synology-traefik-rtr:
       entryPoints:
-        - "https"
+        - websecure
       rule: "HostSNIRegexp(`{{env "DOMAINNAME_DS918"}}`, `{subdomain:[a-z]+}.{{env "DOMAINNAME_DS918"}}`)"
       service: synology-traefik-svc
       tls:

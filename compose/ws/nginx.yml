@@ -23,25 +23,25 @@ services:
       - $DOCKERDIR/appdata/sites/khub/html:/var/www/html/khub
       - $DOCKERDIR/appdata/sites/dash/html:/var/www/html/dash
     secrets:
-      - htpasswd
+      - basic_auth_credentials
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers SHB (WordPress) Auth
-      - "traefik.http.routers.nginx-shb-auth-rtr.entrypoints=https"
+      # HTTP Routers SHB (WordPress) Auth
+      - "traefik.http.routers.nginx-shb-auth-rtr.entrypoints=websecure"
       - "traefik.http.routers.nginx-shb-auth-rtr.rule=Host(`www.$DOMAINNAME_WS`) && Path(`/wp-login.php`)" # crowdsec
       - "traefik.http.routers.nginx-shb-auth-rtr.priority=100"
-      ## HTTP Routers SHB (WordPress) Bypass
-      - "traefik.http.routers.nginx-shb-rtr.entrypoints=https"
+      # HTTP Routers SHB (WordPress) Bypass
+      - "traefik.http.routers.nginx-shb-rtr.entrypoints=websecure"
       - "traefik.http.routers.nginx-shb-rtr.rule=Host(`$DOMAINNAME_WS`) || Host(`www.$DOMAINNAME_WS`)" # no crowdsec
       - "traefik.http.routers.nginx-shb-rtr.priority=99"
-      ## HTTP Routers SHB Beta (WordPress)
-      - "traefik.http.routers.nginx-shb-beta-rtr.entrypoints=https"
+      # HTTP Routers SHB Beta (WordPress)
+      - "traefik.http.routers.nginx-shb-beta-rtr.entrypoints=websecure"
       - "traefik.http.routers.nginx-shb-beta-rtr.rule=Host(`beta.$DOMAINNAME_WS`)"
-      ## HTTP Routers DASH (non-WordPress)
-      - "traefik.http.routers.nginx-dash-rtr.entrypoints=https"
+      # HTTP Routers DASH (non-WordPress)
+      - "traefik.http.routers.nginx-dash-rtr.entrypoints=websecure"
       - "traefik.http.routers.nginx-dash-rtr.rule=Host(`dash.$DOMAINNAME_WS`)" # crowdsec
-      ## HTTP Routers KHUB (non-WordPress)
-      - "traefik.http.routers.nginx-khub-rtr.entrypoints=https"
+      # HTTP Routers KHUB (non-WordPress)
+      - "traefik.http.routers.nginx-khub-rtr.entrypoints=websecure"
       - "traefik.http.routers.nginx-khub-rtr.rule=Host(`$DOMAINNAME_KHUB`) || Host(`www.$DOMAINNAME_KHUB`)"
       # Redirect shb non-www to www middleware
       - "traefik.http.middlewares.shb-redirect.redirectregex.regex=^https?://$DOMAINNAME_WS/(.*)"
@@ -51,13 +51,13 @@ services:
       - "traefik.http.middlewares.khub-redirect.redirectregex.regex=^https?://$DOMAINNAME_KHUB/(.*)"
       - "traefik.http.middlewares.khub-redirect.redirectregex.replacement=https://www.$DOMAINNAME_KHUB/$${1}"
       - "traefik.http.middlewares.khub-redirect.redirectregex.permanent=true"
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.nginx-khub-rtr.middlewares=khub-redirect,chain-no-auth@file"
       - "traefik.http.routers.nginx-shb-rtr.middlewares=shb-redirect,chain-no-auth-wp@file" # no crowdsec
       - "traefik.http.routers.nginx-shb-auth-rtr.middlewares=shb-redirect,chain-no-auth-crowdsec-wp@file" # crowdsec 
       - "traefik.http.routers.nginx-dash-rtr.middlewares=chain-oauth@file"
       - "traefik.http.routers.nginx-shb-beta-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.nginx-shb-rtr.service=nginx-svc"
       - "traefik.http.routers.nginx-shb-auth-rtr.service=nginx-svc"
       - "traefik.http.routers.nginx-khub-rtr.service=nginx-svc"

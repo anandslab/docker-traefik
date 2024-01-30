@@ -1,55 +1,54 @@
-#### UPDATE IN PROGRESS ### 
 # Description
 
-This is the updated docker-compose repo of all the media, home, and web server apps described in the following guides on our website:
+This is the updated docker-compose repo of all the media, home, and web server apps described on SmartHomeBeginner.com. 
 
-- [Docker Media Server Ubuntu: Compose for 23 Awesome Apps](https://www.smarthomebeginner.com/docker-media-server-2022/)
-- [Ultimate Traefik Docker Compose Guide [2022] with LetsEncrypt](https://www.smarthomebeginner.com/traefik-docker-compose-guide-2022/)
-- [WordPress on Docker with Nginx, Traefik, LE SSL, Security, and Speed](https://www.smarthomebeginner.com/wordpress-on-docker-traefik/)
+## Docker Server Series:
+
+### Ubuntu/Debian:
+
+<ol>
+<li><a href="https://www.smarthomebeginner.com/ultimate-docker-server-1-os-preparation/">Ultimate Docker Server: Getting Started with OS Preparation</a> <span style="color:#50C878">[2024]</span></li>
+<li><a href="https://www.smarthomebeginner.com/docker-media-server-2024/">Docker Media Server Ubuntu/Debian with 60+ Awesome Apps</a> <span style="color:#50C878">[2024]</span></li>
+<li>Nginx Proxy Manager Docker Compose Guide: Simplest Reverse Proxy <span style="color:#ffa400">[coming soon]</span></li>
+<li><a href="https://www.smarthomebeginner.com/traefik-docker-compose-guide-2024/">Ultimate Traefik Docker Compose Guide: LE, SSL, Reverse Proxy</a> <span style="color:#50C878">[2024]</span></li>
+<li><a href="https://www.smarthomebeginner.com/docker-authelia-tutorial/">Authelia Docker Compose Guide: Secure 2-Factor Authentication</a> <span style="color:#ffa400">[2024 Update in Progress]</span></li>
+<li><a href="https://www.smarthomebeginner.com/traefik-forward-auth-google-oauth-2022/">Google OAuth Docker Compose Guide: Multi-Factor Authentication</a> <span style="color:#ffa400">[2024 Update in Progress]</span></li>
+<li><a href="https://www.smarthomebeginner.com/traefik-docker-security-best-practices/">Docker Security Practices for Homelab: Secrets, Firewall, and more</a></li>
+<li><a href="https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/">Cloudflare Settings for Docker Traefik Stacks</a></li>
+<li>Implementing a Backup System for Docker Traefik Stack <span style="color:#ffa400">[coming soon]</span></li>
+<li><a href="https://www.smarthomebeginner.com/auto-traefik/">Automate the Whole Process with Auto-Traefik Script</a></li>
+</ol>
+
+### Synology:
 - [Ultimate Synology NAS Docker Compose Media Server 2022](https://www.smarthomebeginner.com/synology-nas-docker-media-server-2022/)
+
+### Web Server:
+- [WordPress on Docker with Nginx, Traefik, LE SSL, Security, and Speed](https://www.smarthomebeginner.com/wordpress-on-docker-traefik/)
+
+### Automate the Process:
+
+- [Auto-Traefik: Dead Simple Traefik Reverse Proxy Automator for Docker](https://www.smarthomebeginner.com/auto-traefik/) [[VIDEO](https://www.youtube.com/watch?v=ePBLJTyRgdQ&list=PL1Hno7tIbSWViTyCXl9xNdXXU-1bVxIFD)]
 
 # Support My Work
 
 Documenting, writing guides, and keeping this repo update-to-date takes hundreds of hours of work. Please consider supporting my work to show your appreciation. 
 
-# Did this Repo help you?
-- Become a patron and show us your strongest support. 
+## Did this Repo help you?
 
-<div style="text-align:center;margin:20px"><a href="https://www.patreon.com/smarthomebeginner" target="_blank" rel="nofollow noopener noreferrer"><img src="https://www.smarthomebeginner.com/images/2022/05/become-a-patreon.jpg" alt="" width="434" height="102" /></a></div>
+<div style="text-align:center;margin:20px"><a href="https://www.smarthomebeginner.com/auto-traefik/" target="_bank">Become a Member</a></div>
 
-- Please consider buying us a coffee (or two) as a token of appreciation.
 
-<div style="text-align:center;margin:20px"><a href="https://www.buymeacoffee.com/smarthomebeginr" target="_blank" rel="nofollow noopener noreferrer"><img src="https://www.smarthomebeginner.com/images/2020/04/coffee.png" alt="" width="340" height="77" /></a></div>
-
-# Join our Community
+## Join our Community
 
 <div style="text-align:center;margin:20px"><a href="https://www.smarthomebeginner.com/discord-github" target="_blank" rel="nofollow noopener noreferrer"><img src="https://www.smarthomebeginner.com/images/2022/05/join-discord-300x75.png" alt="" width="300" height="75" /></a></div>
 
 - Do you need support or just want to chat with like-minded people. Join our discord. 
 - The authors will try our best to help but support is not guaranteed. But you will find others who might have went through what you are going through and may be willing to pay it forward and help. 
 
-<div style="padding:20px;border: 3px solid red;">
-<h3>IMPORTANT</h3>
-If you are going to start from scratch using this repo, be prepared to be patient and start slow. There are so many details to pay attention to. First start with the basic Docker Media Server guide linked above (with Nginx Proxy Manager instead of Traefik). 
+# Supporting Guides
 
-When you are ready to upgrade to Traefik or prefer Traefik over Nginx Proxy Manager, I strongly suggest getting Traefik and Traefik dashboard up and running before adding any other app. 
+## Security:
 
-Go step-by-step. If you bite too big of a piece, I guarantee you will choke.
-
-</div>
-
-<strong>Supporting Guides:</strong>
-
-- [How to Install Docker and Docker Compose on Ubuntu 22.04 LTS](https://www.smarthomebeginner.com/install-docker-on-ubuntu-22-04/) [[VIDEO](https://youtu.be/nwFh4JBGD_0)]
-- [How to Install Docker and Docker Compose on Ubuntu 20.04 LTS](https://www.smarthomebeginner.com/install-docker-on-ubuntu-20-04/)
-- [Cloudflare Settings for Traefik Docker: DDNS, CNAMEs, & Tweaks](https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/)
-- [Ultimate Docker to Podman Migration Guide: It's NOT difficult](https://www.smarthomebeginner.com/docker-to-podman-migration-guide/)
-- [Nextcloud Docker with Traefik Reverse Proxy for Beginners](https://www.smarthomebeginner.com/traefik-docker-nextcloud/)
-
-<strong>Security Guides:</strong>
-
-- [Google OAuth 2 MFA Protection for Docker](https://www.smarthomebeginner.com/traefik-forward-auth-google-oauth-2022/)
-- [Authelia MFA Protection for Docker](https://www.smarthomebeginner.com/docker-authelia-tutorial/)
 - [Traefik Docker Security Best Practices](https://www.smarthomebeginner.com/traefik-docker-security-best-practices/)
 - [Crowdsec Docker Compose Guide Part 1: Powerful IPS with Firewall Bouncer](https://www.smarthomebeginner.com/crowdsec-docker-compose-1-fw-bouncer/)
 - [CrowdSec Docker Part 2: Improved IPS with Cloudflare Bouncer](https://www.smarthomebeginner.com/crowdsec-cloudflare-bouncer/)
@@ -58,51 +57,47 @@ Go step-by-step. If you bite too big of a piece, I guarantee you will choke.
 
 For security, I implemented CrowdSec multi-server setup in 2022. From the stats, it is blocking/mitigating well over 600 intrusion attempts per day on my servers. I will cover this in a separate guide later but you will find the docker-compose CrowdSec, Traefik Bouncer, and Cloudflare Bouncer Bouncers in my repo already.
 
-### Obsolete Posts (for educational purposes):
+## Others:
 
-The following posts have been updated/replaced by the posts linked above:
+- [How to Install Docker and Docker Compose on Ubuntu 22.04 LTS](https://www.smarthomebeginner.com/install-docker-on-ubuntu-22-04/) [[VIDEO](https://youtu.be/nwFh4JBGD_0)]
+- [Cloudflare Settings for Traefik Docker: DDNS, CNAMEs, & Tweaks](https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/)
+- [Ultimate Docker to Podman Migration Guide: It's NOT difficult](https://www.smarthomebeginner.com/docker-to-podman-migration-guide/)
+- [Nextcloud Docker with Traefik Reverse Proxy for Beginners](https://www.smarthomebeginner.com/traefik-docker-nextcloud/)
 
-- [Docker Media Server with Traefik 2 Reverse Proxy](https://www.smarthomebeginner.com/traefik-2-docker-tutorial/)
-- [Docker Media Server without Reverse Proxy ](https://www.smarthomebeginner.com/docker-home-media-server-2018-basic/)
-- [Docker Media Server with Traefik 1 Reverse Proxy](https://www.smarthomebeginner.com/traefik-reverse-proxy-tutorial-for-docker/)
-- [Synology Docker Media Server with Traefik, Docker Compose, and Cloudflare](https://www.smarthomebeginner.com/synology-docker-media-server/)
+# Understanding This Repository
 
-### Description of Compose Files in this Repo
+## My Setup
 
-- docker-compose-t2.yml - this is my main stack with most apps/services (home aserver), including Traefik
-- docker-compose-npm.yml - this is the basic media server stack with Nginx Proxy Manager instead of Traefik
-- docker-compose-t2-web.yml - web server specific stack for WordPress and non-WordPress sites with Nginx and Traefik
-- docker-compose-t2-synology.yml - apps/services that I run on Synology NAS using Docker Compose for Homelab use
+I have 5 docker hosts. I sync all my Docker stacks using Syncthing and push the files to GitHub so I can share with the community. 
 
-<div style="padding:20px;border: 3px solid red;">
-Please note that docker-compose files in the <strong>archives</strong> folder is not actively maintained. They may need updates/rework.
-</div>
+- **_docker-compose-hs.yml:_** Docker Compose for <u>Home Server</u> on Ubuntu Server Proxmox LXC Container.
+- **_docker-compose-mds.yml:_** Docker Compose for <u>Media/Database Server</u> on Ubuntu Server Proxmox LXC Container.
+- **_docker-compose-dns.yml:_** Docker Compose for <u>AdBlock/ DNS Server</u> on Raspberry Pi 4B.
+- **_docker-compose-ws.yml:_** Docker Compose for <u>Web Server</u> on Digital Ocean VPS, which powers this website.
+- **_docker-compose-ds918.yml:_** Docker Compose for <u>Synology DS918+</u> NAS.
+
+Syncing also allows me to have a backup of one system's configuration file in all the other hosts. For this reason, where applicable, I segregate or name files/folders with their hostname (for example: **_hs_** for Home Server).
 
 Almost any app/service from the docker-compose files listed above can be copy-pasted to any other compose file in this repo.
 
-## MY SETUP
-
-- Home Server (docker-compose-t2.yml) - Ubuntu 22.04 Proxmox LXC Container on AMD Ryzen 7 4800u ASROCK 4x4 Box 
-- Media Server (docker-compose-t2-media-db.yml) - Ubuntu 22.04 Proxmox LXC Container on AMD Ryzen 7 4800u ASROCK 4x4 Box 
-- Web Server (docker-compose-t2-web.yml) - Digital Ocean VPS (2 cores and 2 GB RAM)
-- Synology (docker-compose-t2-synology.yml) - Synology DS918+ NAS.
-
-I use Syncthing to keep certain key files synched between various systems.
+## Archives
+Files and folders inside _archives_ are not actively maintained. But they may still provide a good starting point. 
 
 ## What apps are included in this stack?
 
 The apps I use are scattered around in several different docker-compose files. Click the links below for specific installation guides.
 
- Some apps are used in more than one host and some on only one. 
+Some apps are used in more than one host and some on only one. 
+
+**This is not an exhaustive list**
 
 ### FRONTENDS
 
 - Traefik - Reverse Proxy
 - Nginx Proxy Manager - Reverse Proxy 
 - Docker Socket Proxy - Secure Proxy for Docker API
-- Traefik Custom Error Pages
-- OAuth - Google OAuth 2 Forward Authentication
-- Authelia - Private Forward Authentication
+- [OAuth](https://www.smarthomebeginner.com/traefik-forward-auth-google-oauth-2022/) - Google OAuth 2 Forward Authentication
+- [Authelia](https://www.smarthomebeginner.com/docker-authelia-tutorial/) - Private Forward Authentication
 - [Portainer](https://www.smarthomebeginner.com/portainer-docker-compose-guide/) - Container Management
 - Organizr - Dashboard for Apps
 - Heimdall - Dashboard for Apps
@@ -115,8 +110,9 @@ The apps I use are scattered around in several different docker-compose files. C
 - Home Assistant Core - Home Automation
 - HA-Dockermon - Manage Docker containers in Home Assistant
 - Mosquitto - MQTT Broker
-- MotionEye - Video Surveillance
-- ZoneMinder - Video Surveillance
+- [MotionEye](https://www.smarthomebeginner.com/motioneye-docker-guide/) - Video Surveillance
+- [Frigate](https://www.smarthomebeginner.com/frigate-docker-guide/) - Video Surveillance
+- [ZoneMinder](https://www.smarthomebeginner.com/zoneminder-docker-guide/) - Video Surveillance
 - MiFlora - MiFlora MQTT Daemon (MiFlora Plant Sensors)
 
 ### DATABASE
@@ -127,7 +123,7 @@ The apps I use are scattered around in several different docker-compose files. C
 - Postgres - Database
 - [Grafana](https://www.smarthomebeginner.com/grafana-docker-compose-guide/) - Graphical data visualization for InfluxDB data
 - Varken - Monitor Plex, Sonarr, Radarr, and Other Data
-- Redis - Key value store
+- [Redis](https://www.smarthomebeginner.com/redis-docker-compose-example/) - Key value store
 - Redis Commander - Redis management
 
 ### DOWNLOADERS
@@ -136,7 +132,7 @@ The apps I use are scattered around in several different docker-compose files. C
 - TransmissionBT with VPN - Torrent Downloader.
 - SABnzbd - Binary newsgrabber, NZB downloader
 - Nzbget - Binary newsgrabber, NZB downloader
-- qBittorrent with Wireguard VPN from [Surfshark](https://bit.ly/shb-surfshark) - Torrent downloader
+- [qBittorrent](https://www.smarthomebeginner.com/gluetun-docker-guide/) with Wireguard VPN from [Surfshark](https://bit.ly/shb-surfshark) - Torrent downloader
 
 ### INDEXERS
 
@@ -154,7 +150,7 @@ The apps I use are scattered around in several different docker-compose files. C
 
 ### MEDIA SERVER
 
-- AirSonic - Music Server
+- AirSonic Advanced - Music Server
 - NaviDrome - Music Server
 - FunkWhale - Music Server
 - Calibre - Ebook/Audiobook Server
@@ -181,10 +177,10 @@ The apps I use are scattered around in several different docker-compose files. C
 
 ### UTILITIES
 
-- Firefox - Web Broswer
+- Firefox - Web Broswerstack
 - Glances - System Information
 - APCUPSD - APC UPS Management
-- Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser
+- [Guacamole](https://www.smarthomebeginner.com/install-guacamole-on-docker/) - Remote desktop, SSH, on Telnet on any HTML5 Browser
 - Guacamole Daemon - Needed for Guacamole
 - [Dozzle](https://www.smarthomebeginner.com/dozzle-docker-compose-guide/) - Docker logs viewer
 - qDirStat - Directory Statistics
@@ -199,8 +195,8 @@ The apps I use are scattered around in several different docker-compose files. C
 - UniFi Controller - Controller for Ubiquiti UniFi Network Gear
 - Rclone - Mount Cloud/Google Drive
 - MergerFS - Merge local and remote file systems
-- Gluetun - VPN client for docker containers and more
-- DeUnhealth - Auto restart containers on VPN restart
+- [Gluetun](https://www.smarthomebeginner.com/gluetun-docker-guide/) - VPN client for docker containers and more
+- [DeUnhealth](https://www.smarthomebeginner.com/gluetun-docker-guide/) - Auto restart containers on VPN restart
 - [AdGuard Home](https://www.smarthomebeginner.com/adguard-home-docker-compose-guide/) - DNS Sinkhole / Ad-blocker
 
 ### WEB
@@ -217,14 +213,23 @@ The apps I use are scattered around in several different docker-compose files. C
 - Cloudflare Companion - Automatic CNAME creation for services
 - WhoAmI - For testing.
 
-## Starting and Stopping
+## Bash Aliases 
 
-I use bash_aliases to simplify starting and stopping containers/stack. Included in the repo is an example of bash_aliases I use (replace USER with your Linux username). Here are some example alias commands:
+I use bash_aliases to simplify starting and stopping containers/stack. Included in the repo is an example of bash_aliases I use (replace USER with your Linux username). 
 
-- <strong>dcup</strong> - Start Docker Traefik 2 stack
-- <strong>dcdown</strong> - Stop Docker Traefik 2 stack
-- <strong>dcrec</strong> - Start or recreate a specific service
-- <strong>dcstop</strong> - Stop a specific service
-- <strong>dcrestart</strong> - Restart a specific service
-- <strong>dclogs</strong> - See real-time logs for the corresponding stack or service
-- <strong>dcpull</strong> - Pull new images for the corresponding stack or service
+Download it to a known location (e.g. /home/user/docker/shared/config/). Then add the following code block to `.bashrc` file in the user's home folder.
+
+```
+if [ -f "$HOME/docker/shared/config/bash_aliases" ]; then
+    . $HOME/docker/shared/config/bash_aliases
+fi
+```
+Here are some example alias commands:
+
+- `dcup` - Start Docker Traefik 2 stack
+- `dcdown` - Stop Docker Traefik 2 stack
+- `dcrec` - Start or recreate a specific service or the full stack
+- `dcstop` - Stop a specific service or the full stack
+- `dcrestart` - Restart a specific service or the full stack
+- `dclogs` - See real-time logs for the corresponding stack or service
+- `dcpull` - Pull new images for the corresponding stack or service

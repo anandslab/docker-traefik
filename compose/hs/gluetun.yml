@@ -37,11 +37,11 @@ services:
       # OPENVPN_PASSWORD: $NORDVPN_PASSWORD 
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.gluetun-qbittorrent-rtr.entrypoints=https"
+      # HTTP Routers
+      - "traefik.http.routers.gluetun-qbittorrent-rtr.entrypoints=websecure"
       - "traefik.http.routers.gluetun-qbittorrent-rtr.rule=Host(`qbit.$DOMAINNAME_HS`)" # qBittorrent
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.gluetun-qbittorrent-rtr.middlewares=chain-oauth@file" # qBittorrent
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.gluetun-qbittorrent-rtr.service=gluetun-svc" # qBittorrent
       - "traefik.http.services.gluetun-svc.loadbalancer.server.port=8080" # qBittorrent

@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     # profiles: ["core", "all"]
     networks:
-      - t2_proxy
+      - traefik_proxy
     cap_add:
       - SYS_ADMIN
     command:

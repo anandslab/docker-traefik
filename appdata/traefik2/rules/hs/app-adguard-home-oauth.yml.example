@@ -3,7 +3,7 @@ http:
     adguard-rtr:
       rule: "Host(`ag.{{env "DOMAINNAME_HS"}}`)"
       entryPoints:
-        - https
+        - websecure
       middlewares:
         - chain-oauth
       service: adguard-svc

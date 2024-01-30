@@ -17,14 +17,7 @@ version: "3.9"
 
 ########################### NETWORKS
 # You may customize the network subnets (192.168.x.0/24) below as you please.
-
 networks:
-  t2_proxy:
-    name: t2_proxy
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 192.168.90.0/24
   default:
     driver: bridge
   socket_proxy:
@@ -33,6 +26,12 @@ networks:
     ipam:
       config:
         - subnet: 192.168.91.0/24
+  t2_proxy:
+    name: t2_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.90.0/24
   dockervlan:
     name: dockervlan
     driver: macvlan
@@ -45,10 +44,9 @@ networks:
           gateway: "192.168.1.1"
 
 ########################### SECRETS
-
 secrets:
-  htpasswd:
-    file: $DOCKERDIR/secrets/htpasswd
+  basic_auth_credentials:
+    file: $DOCKERDIR/secrets/basic_auth_credentials
   cf_dns_api_token:
     file: $DOCKERDIR/secrets/cf_dns_api_token
   traefik_forward_auth:

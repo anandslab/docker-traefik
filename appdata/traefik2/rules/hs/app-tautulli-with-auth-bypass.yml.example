@@ -4,7 +4,7 @@ http:
       rule: "Host(`tautulli.{{env "DOMAINNAME_HS"}}`)"
       priority: 99
       entryPoints:
-        - https
+        - websecure
       middlewares:
         - chain-oauth
       service: tautulli-svc
@@ -13,7 +13,7 @@ http:
       rule: "Host(`tautulli.$DOMAINNAME_HS`) && (Headers(`X-Api-Key`, `$TAUTULLI_API_KEY`) || Query(`apikey`, `$TAUTULLI_API_KEY`))" 
       priority: 100
       entryPoints:
-        - https
+        - websecure
       middlewares:
         - chain-no-auth
       service: tautulli-svc

@@ -8,7 +8,7 @@ services:
     restart: unless-stopped
     # profiles: ["media", "all"]
     networks:
-      - t2_proxy
+      - traefik_proxy
     ports:
       - "32400:32400/tcp"
       - "3005:3005/tcp"
@@ -39,11 +39,11 @@ services:
       - plex_claim
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers
+      # HTTP Routers
       - "traefik.http.routers.plex-rtr.entrypoints=https"
       - "traefik.http.routers.plex-rtr.rule=Host(`splex.$DOMAINNAME_DS918`)"
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.plex-rtr.middlewares=chain-no-auth@file"
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.plex-rtr.service=plex-svc"
       - "traefik.http.services.plex-svc.loadbalancer.server.port=32400"

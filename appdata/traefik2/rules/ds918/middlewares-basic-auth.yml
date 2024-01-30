@@ -4,5 +4,5 @@ http:
       basicAuth:
         # users:
         #   - "user:$apsdfswWvC/6.$E3FtsfTntPC0wVJ7IUVtX1"
-        usersFile: "/run/secrets/htpasswd" #be sure to mount the volume through docker-compose.yml
+        usersFile: "/run/secrets/basic_auth_credentials" 
         realm: "Traefik 2 Basic Auth"

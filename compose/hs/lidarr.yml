@@ -22,19 +22,19 @@ services:
       PGID: $PGID
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers Auth Bypass
-      - "traefik.http.routers.lidarr-rtr-bypass.entrypoints=https"
+      # HTTP Routers Auth Bypass
+      - "traefik.http.routers.lidarr-rtr-bypass.entrypoints=websecure"
       #- "traefik.http.routers.lidarr-rtr-bypass.rule=Host(`lidarr.$DOMAINNAME_HS`) && (Headers(`X-Api-Key`, `$LIDARR_API_KEY`) || Query(`apikey`, `$LIDARR_API_KEY`))"
       - "traefik.http.routers.lidarr-rtr-bypass.rule=Host(`lidarr.$DOMAINNAME_HS`) && Headers(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
       - "traefik.http.routers.lidarr-rtr-bypass.priority=100"
-      ## HTTP Routers Auth
-      - "traefik.http.routers.lidarr-rtr.entrypoints=https"
+      # HTTP Routers Auth
+      - "traefik.http.routers.lidarr-rtr.entrypoints=websecure"
       - "traefik.http.routers.lidarr-rtr.rule=Host(`lidarr.$DOMAINNAME_HS`)"
       - "traefik.http.routers.lidarr-rtr.priority=99"
-      ## Middlewares
+      # Middlewares
       - "traefik.http.routers.lidarr-rtr-bypass.middlewares=chain-no-auth@file"
       - "traefik.http.routers.lidarr-rtr.middlewares=chain-oauth@file"
-      ## HTTP Services
+      # HTTP Services
       - "traefik.http.routers.lidarr-rtr.service=lidarr-svc"
       - "traefik.http.routers.lidarr-rtr-bypass.service=lidarr-svc"
       - "traefik.http.services.lidarr-svc.loadbalancer.server.port=8686"
