@@ -35,8 +35,7 @@ Documenting, writing guides, and keeping this repo update-to-date takes hundreds
 
 ## Did this Repo help you?
 
-<div style="text-align:center;margin:20px"><a href="https://www.smarthomebeginner.com/auto-traefik/" target="_bank">Become a Member</a></div>
-
+<div style="text-align:center;margin:20px"><a href="https://www.smarthomebeginner.com/membership-account/memberships-products-services/" target="_blank" rel="nofollow noopener noreferrer"><img src="https://www.smarthomebeginner.com/images/2024/01/become-a-member.png" alt="" width="258" height="76" /></a></div>
 
 ## Join our Community
 
