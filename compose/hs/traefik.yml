@@ -9,7 +9,7 @@ services:
     profiles: ["core", "all"]
     networks:
       t3_proxy:
-        ipv4_address: 192.168.93.254 # You can specify a static IP
+        ipv4_address: 192.168.90.254 # You can specify a static IP
       socket_proxy:
     command: # CLI arguments
       - --global.checkNewVersion=true

@@ -8,8 +8,8 @@ services:
     profiles: ["core", "all"]
     networks:
       - t3_proxy
-    # ports:
-    #   - 8080:8080
+    ports:
+      - 8090:8080
     volumes:
       - $DOCKERDIR/appdata/scrutiny:/opt/scrutiny/config
     labels:
