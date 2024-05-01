@@ -2,7 +2,7 @@ services:
   # Traefik 2 - Reverse Proxy
   traefik:
     container_name: traefik
-    image: traefik:2.10
+    image: traefik:2.11
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -24,7 +24,7 @@ services:
       - --api=true
       - --api.dashboard=true
       # - --api.insecure=true
-      #- --ping=true
+      # - --ping=true
       # - --serversTransport.insecureSkipVerify=true
       # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
       - --entrypoints.websecure.forwardedHeaders.trustedIPs=$CLOUDFLARE_IPS,$LOCAL_IPS
@@ -40,7 +40,8 @@ services:
       - --providers.docker.endpoint=tcp://socket-proxy:2375 # Enable for Socket Proxy. Disable otherwise.
       - --providers.docker.exposedByDefault=false
       - --providers.docker.network=t2_proxy 
-      - --providers.docker.swarmMode=false
+      # - --providers.docker.swarmMode=false # Traefik v2 Swarm
+      # - --providers.swarm.endpoint=tcp://127.0.0.1:2377 # Traefik v3 Swarm
       - --entrypoints.websecure.http.tls=true
       - --entrypoints.websecure.http.tls.options=tls-opts@file
       # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services

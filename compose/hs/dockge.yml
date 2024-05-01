@@ -6,11 +6,11 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
-    profiles: ["core", "all"]
+    profiles: ["apps", "all"]
     # ports:
     #   - "5001:5001"
     networks:
-      - t2_proxy
+      - t3_proxy
       - socket_proxy
     volumes:
       - $DOCKERDIR/appdata/dockge:/app/data

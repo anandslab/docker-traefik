@@ -8,7 +8,7 @@ services:
     restart: unless-stopped
     profiles: ["apps", "all"]
     networks:
-      - t2_proxy
+      - t3_proxy
     volumes:
       - $EXTDRIVE/ssd/sitespeed:/var/lib/nginx/html:ro # Location you want to index
     labels:

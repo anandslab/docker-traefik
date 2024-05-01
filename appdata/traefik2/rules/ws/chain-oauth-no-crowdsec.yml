@@ -6,4 +6,3 @@ http:
           - middlewares-rate-limit
           - middlewares-secure-headers-wp
           - middlewares-oauth
-          - middlewares-compress

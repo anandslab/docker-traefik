@@ -4,11 +4,13 @@
 # Rename shared/config/bash_aliases.env.example and use it as a starter
 
 # SOURCE ENVIRONMENTAL VARIABLES FOR BASH_ALIASES
-source $HOME/docker/shared/config/bash_aliases.env # at this point, this file only has domain names for various hosts.
+if [[ -f "$HOME/docker/shared/config/bash_aliases.env" ]]; then
+  source $HOME/docker/shared/config/bash_aliases.env 
+fi 
 
 # CHANGE TO CUSTOM BASH PROMPT
 username="AnandSHB" # or use $USER
-export PS1="[\e[0;32m$username\e[0m@\e[0;33m\H\e[0m: \e[0;36m\w\e[0m]\$ "
+export PS1='[\e[0;32m\u\e[0m@\e[0;33m\H\e[0m: \e[0;36m\w\e[0m]\$ '
 
 # DOCKER - All Docker commands start with "d" AND Docker Compose commands start with "dc"
 alias dstop='sudo docker stop $(sudo docker ps -a -q)' # usage: dstop container_name
@@ -94,7 +96,7 @@ alias tailcsfb='sudo tail -f /var/log/crowdsec-firewall-bouncer.log'
 alias csbrestart='dcrec2 traefik-bouncer ; csfbrestart'
 
 # WEB STACK
-alias webrs='dcrec2 php7 redis nginx'
+alias webrs='dcrec php7 redis nginx'
 
 # DOCKER TRAEFIK 1 SWARM
 alias dslogs='sudo docker service logs -tf --tail="50"'
@@ -158,10 +160,11 @@ alias diskusage='df -hl --total | grep total' # Gets the total disk usage on you
 alias partusage='df -hlT --exclude-type=tmpfs --exclude-type=devtmpfs' # Shows the individual partition usages without the temporary memory values
 alias usage10='du -hsx * | sort -rh | head -10' # Gives you what is using the most space. Both directories and files. Varies on current directory
 
-# BASH
+# BASH ALIASES
 alias baupdate='. ~/.bashrc'
 alias baedit='nano $HOME/.bash_aliases'
 alias bacopy='sudo cp $HOME/.bash_aliases* /root/'
+alias baget='curl -s https://raw.githubusercontent.com/htpcBeginner/docker-traefik/master/shared/config/bash_aliases -o /$HOME/.bash_aliases >/dev/null 2>&1'
 
 # GIT AND SITE MANAGEMENT
 alias gcpush='echo "Usage: gcpush ../commits/date.txt" ; cd $HOME/docker ; bash scripts/doccheck.sh' # To push my files to docker-traefik repo

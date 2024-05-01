@@ -1,0 +1,42 @@
+services:
+  # Kasm - Remote Workspaces
+  kasm:
+    image: lscr.io/linuxserver/kasm:latest
+    container_name: kasm
+    # privileged: true
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:unconfined
+      - seccomp:unconfined 
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    restart: unless-stopped
+    profiles: ["apps", "all"]
+    networks:
+      - t3_proxy
+    ports:
+      - 3001:3000
+      - 4443:443
+    volumes:
+      - $DOCKERDIR/appdata/kasm/data:/opt
+      - $DOCKERDIR/appdata/kasm/profiles:/profiles #optional
+      - /dev/input:/dev/input #optional
+      - /run/udev/data:/run/udev/data #optional
+    environment:
+      TZ: $TZ
+      KASM_PORT: 443
+      # DOCKER_HUB_USERNAME: USER #optional
+      # DOCKER_HUB_PASSWORD: PASS #optional
+      # DOCKER_MTU: 1500 #optional
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.kasm-rtr.entrypoints=websecure"
+      - "traefik.http.routers.kasm-rtr.rule=Host(`kasm.$DOMAINNAME_HS`)"
+      # Middlewares
+      - "traefik.http.routers.kasm-rtr.middlewares=chain-oauth@file"
+      # HTTP Services
+      - "traefik.http.routers.kasm-rtr.service=kasm-svc"
+      - "traefik.http.services.kasm-svc.loadbalancer.server.port=3000"
+

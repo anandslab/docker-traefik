@@ -1,0 +1,51 @@
+services:
+  # Firefly III - Personal Finance Manager
+  firefly:
+    image: fireflyiii/core:latest
+    container_name: firefly
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["apps", "all"]
+    networks:
+      - t3_proxy
+    ports:
+      - 8088:8080
+    volumes:
+      - $DOCKERDIR/appdata/firefly:/var/www/html/storage/upload
+    env_file: $DOCKERDIR/appdata/firefly/firefly.env
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.firefly-rtr.entrypoints=websecure"
+      - "traefik.http.routers.firefly-rtr.rule=Host(`firefly.$DOMAINNAME_HS`)"
+      # Middlewares
+      - "traefik.http.routers.firefly-rtr.middlewares=chain-oauth@file"
+      # HTTP Services
+      - "traefik.http.routers.firefly-rtr.service=firefly-svc"
+      - "traefik.http.services.firefly-svc.loadbalancer.server.port=8080"
+
+  importer:
+    image: fireflyiii/data-importer:latest
+    container_name: firefly_importer
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    profiles: ["apps", "all"]
+    networks:
+      - t3_proxy
+    ports:
+      - '8089:8080'
+    depends_on:
+      - firefly
+    env_file: $DOCKERDIR/appdata/firefly/importer.env
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.firefly-importer-rtr.entrypoints=websecure"
+      - "traefik.http.routers.firefly-importer-rtr.rule=Host(`importer.$DOMAINNAME_HS`)"
+      # Middlewares
+      - "traefik.http.routers.firefly-importer-rtr.middlewares=chain-oauth@file"
+      # HTTP Services
+      - "traefik.http.routers.firefly-importer-rtr.service=firefly-importer-svc"
+      - "traefik.http.services.firefly-importer-svc.loadbalancer.server.port=8080"

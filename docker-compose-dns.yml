@@ -1,5 +1,3 @@
-version: "3.9"
-
 ########################### ANAND'S ENVIRONMENT
 
 # Here are my 5 Docker Hosts:
@@ -19,23 +17,48 @@ version: "3.9"
 # You may customize the network subnets (192.168.x.0/24) below as you please.
 
 networks:
-  rpi4b:
-    name: rpi4b
+  default:
+    driver: bridge
+  socket_proxy:
+    name: socket_proxy
     driver: bridge
     ipam:
       config:
-        - subnet: 192.168.101.0/24
-  default:
+        - subnet: 192.168.91.0/24
+  t2_proxy:
+    name: t2_proxy
     driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.90.0/24
+
+########################### SECRETS
+secrets:
+  basic_auth_credentials:
+    file: $DOCKERDIR/secrets/basic_auth_credentials
+  cf_dns_api_token:
+    file: $DOCKERDIR/secrets/cf_dns_api_token
+  traefik_forward_auth:
+    file: $DOCKERDIR/secrets/traefik_forward_auth
 
 include:
   ########################### SERVICES
   # PREFIX dns = DNS / AdBlock Server
-  
+
+  # CORE
+  - compose/$HOSTNAME/socket-proxy.yml
+  - compose/$HOSTNAME/traefik.yml
+  # - compose/$HOSTNAME/oauth.yml 
   # AD-BLOCKING
-  - compose/$HOSTNAME/adguardhome.yml
-  - compose/$HOSTNAME/adguardhome-sync.yml
+  #- compose/$HOSTNAME/adguardhome.yml
+  #- compose/$HOSTNAME/adguardhome-sync.yml
   # DNS RESOLVER
-  - compose/$HOSTNAME/unbound.yml
+  #- compose/$HOSTNAME/unbound.yml
   # VPN
-  #- compose/$HOSTNAME/wg-easy.yml
+  # - compose/$HOSTNAME/wg-easy.yml
+  # MONITORING
+  # - compose/$HOSTNAME/glances.yml
+  # MAINTENANCE
+  # - compose/$HOSTNAME/docker-gc.yml # not available for arm
+  - compose/$HOSTNAME/ddns-updater.yml
+  # - compose/$HOSTNAME/certdumper.yml

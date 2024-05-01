@@ -1,0 +1,24 @@
+http:
+  routers:
+    tautulli-rtr:
+      rule: "Host(`tautulli.{{env "DOMAINNAME_HS"}}`)"
+      priority: 99
+      entryPoints:
+        - websecure
+      middlewares:
+        - chain-oauth
+      service: tautulli-svc
+    tautulli-rtr-bypass:
+      # rule: "Host(`tautulli.$DOMAINNAME_HS`) && Headers(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
+      rule: "Host(`tautulli.$DOMAINNAME_HS`) && (Headers(`X-Api-Key`, `$TAUTULLI_API_KEY`) || Query(`apikey`, `$TAUTULLI_API_KEY`))" 
+      priority: 100
+      entryPoints:
+        - websecure
+      middlewares:
+        - chain-no-auth
+      service: tautulli-svc
+  services:
+    tautulli-svc:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.111:8181"

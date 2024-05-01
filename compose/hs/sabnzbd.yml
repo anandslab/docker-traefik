@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     profiles: ["apps", "downloads", "all"]
     networks:
-      - t2_proxy
+      - t3_proxy
     ports:
       - "8084:8080"
     volumes:
@@ -26,7 +26,7 @@ services:
       # HTTP Routers Auth Bypass
       - "traefik.http.routers.sabnzbd-rtr-bypass.entrypoints=websecure"
       # - "traefik.http.routers.sabnzbd-rtr-bypass.rule=Host(`sabnzbd.$DOMAINNAME_HS`) && Query(`apikey`, `$SABNZBD_API_KEY`)"
-      - "traefik.http.routers.sabnzbd-rtr-bypass.rule=Host(`sabnzbd.$DOMAINNAME_HS`) && Headers(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
+      - "traefik.http.routers.sabnzbd-rtr-bypass.rule=Host(`sabnzbd.$DOMAINNAME_HS`) && Header(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
       - "traefik.http.routers.sabnzbd-rtr-bypass.priority=100"
       # HTTP Routers Auth
       - "traefik.http.routers.sabnzbd-rtr.entrypoints=websecure"

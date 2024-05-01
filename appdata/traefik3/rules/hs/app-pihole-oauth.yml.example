@@ -1,0 +1,21 @@
+http:
+  routers:
+    pihole-rtr:
+      rule: "Host(`pihole.{{env "DOMAINNAME_HS"}}`)" 
+      entryPoints:
+        - websecure
+      middlewares:
+        - chain-oauth
+        - pihole-add-admin
+      service: pihole-svc
+      tls:
+        certResolver: dns-cloudflare
+  middlewares:
+    pihole-add-admin:
+      addPrefix: 
+        prefix: "/admin"
+  services:
+    pihole-svc:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.26:80"  # or whatever your external host's IP:port is 

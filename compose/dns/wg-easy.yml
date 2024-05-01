@@ -4,6 +4,7 @@
   #   image: weejewel/wg-easy
   #   container_name: wg-easy
   #   restart: unless-stopped
+      # profiles: ["core", "all"]
   #   network_mode: host
   #   # networks:
   #   #   - rpi4b

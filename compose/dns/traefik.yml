@@ -1,0 +1,104 @@
+services:
+  # Traefik 2 - Reverse Proxy
+  traefik:
+    container_name: traefik
+    image: traefik:2.10
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    #profiles: ["core", "all"]
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.254 # You can specify a static IP
+      socket_proxy:
+    command: # CLI arguments
+      - --global.checkNewVersion=true
+      - --global.sendAnonymousUsage=true
+      - --entrypoints.http.address=:80
+      - --entrypoints.https.address=:443
+      - --entrypoints.traefik.address=:8080
+      # - --entrypoints.ping.address=:8081
+      - --entrypoints.http.http.redirections.entrypoint.to=https
+      - --entrypoints.http.http.redirections.entrypoint.scheme=https
+      - --entrypoints.http.http.redirections.entrypoint.permanent=true
+      - --api=true
+      - --api.dashboard=true
+      - --api.insecure=true
+      #- --ping=true
+      # - --serversTransport.insecureSkipVerify=true
+      # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
+      - --entrypoints.https.forwardedHeaders.trustedIPs=$CLOUDFLARE_IPS,$LOCAL_IPS
+      - --log=true
+      - --log.filePath=/logs/traefik.log
+      - --log.level=INFO # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --accessLog=true
+      - --accessLog.filePath=/logs/access.log
+      - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
+      - --accessLog.filters.statusCodes=204-299,400-499,500-599
+      - --providers.docker=true
+      # - --providers.docker.endpoint=unix:///var/run/docker.sock # Disable for Socket Proxy. Enable otherwise.
+      - --providers.docker.endpoint=tcp://socket-proxy:2375 # Enable for Socket Proxy. Disable otherwise.
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.network=t2_proxy # Previously t2_proxy
+      - --providers.docker.swarmMode=false
+      - --entrypoints.https.http.tls=true
+      - --entrypoints.https.http.tls.options=tls-opts@file
+      # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services
+      - --entrypoints.https.http.tls.certresolver=dns-cloudflare
+      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME_DNS
+      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME_DNS
+      - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory
+      - --providers.file.watch=true # Only works on top level files in the rules folder
+      - --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # LetsEncrypt Staging Server - uncomment when testing
+      - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.delayBeforeCheck=90 # To delay DNS check and reduce LE hitrate
+      # - --metrics.prometheus=true
+      # - --metrics.prometheus.buckets=0.1,0.3,1.2,5.0
+    #healthcheck:
+    #  test: ["CMD", "traefik", "healthcheck", "--ping"]
+    #  interval: 5s
+    #  retries: 3
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+      # - target: 8080 # need to enable --api.insecure=true
+      #   published: 8080
+      #   protocol: tcp
+      #   mode: host
+    volumes:
+      - $DOCKERDIR/appdata/traefik2/rules/$HOSTNAME:/rules # Dynamic File Provider directory
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Enable if not using Socket Proxy
+      - $DOCKERDIR/appdata/traefik2/acme/acme.json:/acme.json # Certs File 
+      - $DOCKERDIR/logs/$HOSTNAME/traefik:/logs # Traefik logs
+    environment:
+      - TZ=$TZ
+      - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token   
+      - HTPASSWD_FILE=/run/secrets/basic_auth_credentials # HTTP Basic Auth Credentials
+      - DOMAINNAME_DNS
+      - DOMAINNAME_HS
+    secrets:
+      - cf_dns_api_token
+      - basic_auth_credentials
+    labels:
+      #- "autoheal=true"
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.traefik-rtr.entrypoints=https"
+      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME_DNS` )"
+      # Services - API
+      - "traefik.http.routers.traefik-rtr.service=api@internal"
+      # Healthcheck/ping
+      #- "traefik.http.routers.ping.rule=Host(`traefik.$DOMAINNAME_DNS`) && Path(`/ping`)"
+      #- "traefik.http.routers.ping.tls=true"
+      #- "traefik.http.routers.ping.service=ping@internal"
+      # Middlewares
+      - "traefik.http.routers.traefik-rtr.middlewares=chain-basic-auth@file"
+      #- "traefik.http.routers.traefik-rtr.middlewares=chain-oauth@file"

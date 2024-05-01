@@ -9,7 +9,7 @@ services:
     restart: "no"
     profiles: ["media", "arrs", "all"]
     networks:
-      - t2_proxy
+      - t3_proxy
     ports:
       - "8989:8989"
     volumes:
@@ -26,8 +26,8 @@ services:
       - "traefik.enable=true"
       # HTTP Routers Auth Bypass
       - "traefik.http.routers.sonarr-rtr-bypass.entrypoints=websecure"
-      #- "traefik.http.routers.sonarr-rtr-bypass.rule=Host(`sonarr.$DOMAINNAME_HS`) && (Headers(`X-Api-Key`, `$SONARR_API_KEY`) || Query(`apikey`, `$SONARR_API_KEY`))"
-      - "traefik.http.routers.sonarr-rtr-bypass.rule=Host(`sonarr.$DOMAINNAME_HS`) && Headers(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
+      #- "traefik.http.routers.sonarr-rtr-bypass.rule=Host(`sonarr.$DOMAINNAME_HS`) && (Header(`X-Api-Key`, `$SONARR_API_KEY`) || Query(`apikey`, `$SONARR_API_KEY`))"
+      - "traefik.http.routers.sonarr-rtr-bypass.rule=Host(`sonarr.$DOMAINNAME_HS`) && Header(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
       - "traefik.http.routers.sonarr-rtr-bypass.priority=100"
       # HTTP Routers Auth
       - "traefik.http.routers.sonarr-rtr.entrypoints=websecure"

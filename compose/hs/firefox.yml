@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     profiles: ["apps", "all"]
     networks:
-      - t2_proxy
+      - t3_proxy
     # ports:
     #   - "$FIREFOX_PORT:5800"
     volumes:

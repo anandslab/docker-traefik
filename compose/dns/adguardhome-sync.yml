@@ -4,6 +4,7 @@ services:
     image: lscr.io/linuxserver/adguardhome-sync:latest
     container_name: adguardhome-sync
     restart: unless-stopped
+    profiles: ["core", "all", "dns"]
     environment:
       TZ: $TZ
       PUID: $PUID

@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     profiles: ["core", "all"]
     networks:
-      - t2_proxy
+      - t3_proxy
     cap_add:
       - NET_ADMIN
     devices:

@@ -1,0 +1,18 @@
+http:
+  routers:
+    adguard-rtr:
+      rule: "Host(`ag.{{env "DOMAINNAME_HS"}}`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - chain-oauth
+      service: adguard-svc
+      tls:
+        certResolver: dns-cloudflare
+        options: tls-opts@file
+  services:
+    adguard-svc:
+      loadBalancer:
+        servers:
+          - url: "http://ADGUARD-CLOUD-SERVER-IP:80"
+

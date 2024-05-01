@@ -7,4 +7,3 @@ http:
           - middlewares-rate-limit
           - middlewares-secure-headers
           - middlewares-basic-auth
-          - middlewares-compress

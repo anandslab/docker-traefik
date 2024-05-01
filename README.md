@@ -7,16 +7,21 @@ This is the updated docker-compose repo of all the media, home, and web server a
 ### Ubuntu/Debian:
 
 <ol>
-<li><a href="https://www.smarthomebeginner.com/ultimate-docker-server-1-os-preparation/">Ultimate Docker Server: Getting Started with OS Preparation</a> <span style="color:#50C878">[2024]</span></li>
+<li><a href="https://www.smarthomebeginner.com/ultimate-docker-server-1-os-preparation/">Ultimate Docker Server: Getting Started with OS Preparation</a> <span style="color:#6b5b95">[<a href="https://youtu.be/-ZSQdJ62r-Q" target="_blank" rel="noopener">VIDEO</a>]</span> <span style="color:#50C878">[2024]</span></li>
 <li><a href="https://www.smarthomebeginner.com/docker-media-server-2024/">Docker Media Server Ubuntu/Debian with 60+ Awesome Apps</a> <span style="color:#50C878">[2024]</span></li>
+<li>ZeroTier VPN Ubuntu, Docker, Synology, Windows: Secure on-the-go access <span style="color:#ffa400">[coming soon]</span></li>
 <li>Nginx Proxy Manager Docker Compose Guide: Simplest Reverse Proxy <span style="color:#ffa400">[coming soon]</span></li>
-<li><a href="https://www.smarthomebeginner.com/traefik-docker-compose-guide-2024/">Ultimate Traefik Docker Compose Guide: LE, SSL, Reverse Proxy</a> <span style="color:#50C878">[2024]</span></li>
-<li><a href="https://www.smarthomebeginner.com/docker-authelia-tutorial/">Authelia Docker Compose Guide: Secure 2-Factor Authentication</a> <span style="color:#ffa400">[2024 Update in Progress]</span></li>
-<li><a href="https://www.smarthomebeginner.com/traefik-forward-auth-google-oauth-2022/">Google OAuth Docker Compose Guide: Multi-Factor Authentication</a> <span style="color:#ffa400">[2024 Update in Progress]</span></li>
+<li>Traefik Reverse Proxy
+<ul>
+<li>Traefik v3: <a href="https://www.smarthomebeginner.com/traefik-v3-docker-compose-guide-2024/">Ultimate Traefik v3 Docker Compose Guide [2024]: LE, SSL, Reverse Proxy</a> <span style="color:#50C878">[2024]</span></li>
+<li>Traefik v2: <a href="https://www.smarthomebeginner.com/traefik-docker-compose-guide-2024/">Ultimate Traefik Docker Compose Guide: LE, SSL, Reverse Proxy</a> <span style="color:#50C878">[2024]</span></li>
+</ul>
+</li>
+<li><a href="https://www.smarthomebeginner.com/authelia-docker-compose-guide-2024/">Authelia Docker Compose Guide: Secure 2-Factor Authentication</a> <span style="color:#50C878">[2024]</span></li>
+<li><a href="https://www.smarthomebeginner.com/google-oauth-traefik-forward-auth-2024/">Google OAuth Docker Compose Guide: Multi-Factor Authentication</a> <span style="color:#50C878">[2024]</span></li>
 <li><a href="https://www.smarthomebeginner.com/traefik-docker-security-best-practices/">Docker Security Practices for Homelab: Secrets, Firewall, and more</a></li>
 <li><a href="https://www.smarthomebeginner.com/cloudflare-settings-for-traefik-docker/">Cloudflare Settings for Docker Traefik Stacks</a></li>
 <li>Implementing a Backup System for Docker Traefik Stack <span style="color:#ffa400">[coming soon]</span></li>
-<li><a href="https://www.smarthomebeginner.com/auto-traefik/">Automate the Whole Process with Auto-Traefik Script</a></li>
 </ol>
 
 ### Synology:

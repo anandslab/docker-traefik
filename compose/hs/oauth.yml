@@ -10,10 +10,10 @@ services:
     restart: unless-stopped
     profiles: ["core", "all"]
     networks:
-      - t2_proxy
+      - t3_proxy
     # Allow apps to bypass OAuth. Radarr example below will bypass OAuth if API key is present in the request (eg. from NZB360 mobile app).
     # While this is one way, the recommended way is to bypass authentication using Traefik labels shown in some of the -Arr apps in this file.
-    # command: --rule.radarr.action=allow --rule.radarr.rule="Headers(`X-Api-Key`, `$RADARR_API_KEY`)"
+    # command: --rule.radarr.action=allow --rule.radarr.rule="Header(`X-Api-Key`, `$RADARR_API_KEY`)"
     # command: --rule.sabnzbd.action=allow --rule.sabnzbd.rule="HeadersRegexp(`X-Forwarded-Uri`, `$SABNZBD_API_KEY`)"
     environment:
       - CONFIG=/config

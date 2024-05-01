@@ -1,18 +1,14 @@
 services:
   # Traefik 2 - Reverse Proxy
-  # touch (create empty files) traefik.log and acme/acme.json. Set acme.json permissions to 600.
-  # touch $DOCKERDIR/appdata/traefik2/acme/acme.json
-  # chmod 600 $DOCKERDIR/appdata/traefik2/acme/acme.json
-  # touch $DOCKERDIR/logs/synology//traefik.log
   traefik:
     container_name: traefik
-    image: traefik:2.10
+    image: traefik:2.11
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
     #profiles: ["core", "all"]
     networks:
-      traefik_proxy:
+      t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
       socket_proxy:
     command: # CLI arguments
@@ -43,17 +39,18 @@ services:
       # - --providers.docker.endpoint=unix:///var/run/docker.sock # Disable for Socket Proxy. Enable otherwise.
       - --providers.docker.endpoint=tcp://socket-proxy:2375 # Enable for Socket Proxy. Disable otherwise.
       - --providers.docker.exposedByDefault=false
-      - --providers.docker.network=traefik_proxy # Previously t2_proxy
-      - --providers.docker.swarmMode=false
+      - --providers.docker.network=t2_proxy 
+      # - --providers.docker.swarmMode=false # Traefik v2 Swarm
+      # - --providers.swarm.endpoint=tcp://127.0.0.1:2377 # Traefik v3 Swarm
       - --entrypoints.https.http.tls=true
       - --entrypoints.https.http.tls.options=tls-opts@file
       # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services
       - --entrypoints.https.http.tls.certresolver=dns-cloudflare
-      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME_DS918
-      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME_DS918
+      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME_DNS
+      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME_DNS
       - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory
       - --providers.file.watch=true # Only works on top level files in the rules folder
-      # - --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # LetsEncrypt Staging Server - uncomment when testing
+      - --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # LetsEncrypt Staging Server - uncomment when testing
       - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53
@@ -86,7 +83,8 @@ services:
       - TZ=$TZ
       - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token   
       - HTPASSWD_FILE=/run/secrets/basic_auth_credentials # HTTP Basic Auth Credentials
-      - DOMAINNAME_DS918
+      - DOMAINNAME_DNS
+      - DOMAINNAME_HS
     secrets:
       - cf_dns_api_token
       - basic_auth_credentials
@@ -95,13 +93,13 @@ services:
       - "traefik.enable=true"
       # HTTP Routers
       - "traefik.http.routers.traefik-rtr.entrypoints=https"
-      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME_DS918` )"
+      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME_DNS` )"
       # Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       # Healthcheck/ping
-      #- "traefik.http.routers.ping.rule=Host(`traefik.$DOMAINNAME_DS918`) && Path(`/ping`)"
+      #- "traefik.http.routers.ping.rule=Host(`traefik.$DOMAINNAME_DNS`) && Path(`/ping`)"
       #- "traefik.http.routers.ping.tls=true"
       #- "traefik.http.routers.ping.service=ping@internal"
       # Middlewares
+      - "traefik.http.routers.traefik-rtr.middlewares=chain-basic-auth@file"
       #- "traefik.http.routers.traefik-rtr.middlewares=chain-oauth@file"
-      - "traefik.http.routers.traefik-rtr.middlewares=chain-oauth@file"

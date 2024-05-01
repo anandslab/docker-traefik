@@ -8,14 +8,14 @@ services:
     restart: unless-stopped
     profiles: ["apps", "all"]
     networks:
-      - t2_proxy
+      - t3_proxy
     ports:
       - "3000:3000"
-    user: $PUID
+    user: "$PUID:$PGID"
     volumes:
       - $DOCKERDIR/appdata/grafana:/var/lib/grafana
     environment:
-      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel,cloudflare-app"
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel"
     labels:
       - "traefik.enable=true"
       # HTTP Routers

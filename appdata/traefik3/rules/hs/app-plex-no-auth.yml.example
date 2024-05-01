@@ -1,0 +1,17 @@
+http:
+  routers:
+    splex-rtr:
+      rule: "Host(`splex.{{env "DOMAINNAME_HS"}}`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - chain-oauth
+      service: splex-svc
+      tls:
+        certResolver: dns-cloudflare
+        options: tls-opts@file
+  services:
+    splex-svc:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.238:32400"

@@ -1,0 +1,22 @@
+http:
+  routers:
+    proxmox-rtr:
+      rule: "Host(`pve.{{env "DOMAINNAME_HS"}}`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - chain-oauth
+      service: proxmox-svc
+      tls:
+        certResolver: dns-cloudflare
+        options: tls-opts@file
+  services:
+    proxmox-svc:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: "pve"
+        servers:
+          - url: "https://192.168.1.100:8006/"
+  serversTransports:
+    pve:
+      insecureSkipVerify: true

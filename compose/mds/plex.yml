@@ -27,7 +27,7 @@ services:
       - $DATADIR/data/media:/data/media1
       - $DATADIR/data2/media:/data/media2
       # - $DATADIR/media:/data/media
-      - $EXTDIR/ssd/home-server/downloads:/data/downloads
+      - $EXTDIR/ssd/downloads:/data/downloads
       - /dev/shm:/data/transcode # Offload transcoding to RAM if you have enough RAM
     environment:
       TZ: $TZ
@@ -35,7 +35,7 @@ services:
       PLEX_CLAIM_FILE: /run/secrets/plex_claim
       PLEX_UID: $PUID
       PLEX_GID: $PGID
-      ADVERTISE_IP: "http://$MEDIASERVER_IP:32400/,http://$ZEROTIER_IP_MEDIASERVER:32400/,https://proxplex.$DOMAINNAME_CLOUD_SERVER"
-      ALLOWED_NETWORKS: $LOCAL_NETWORK
+      ADVERTISE_IP: "http://$MEDIASERVER_IP:32400/,http://$ZEROTIER_IP_MEDIASERVER:32400/,https://proxplex.$DOMAINNAME_HS"
+      ALLOWED_NETWORKS: $LOCAL_IPS
     secrets:
       - plex_claim

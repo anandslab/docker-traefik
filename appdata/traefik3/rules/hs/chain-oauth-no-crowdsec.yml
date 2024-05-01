@@ -1,0 +1,8 @@
+http:
+  middlewares:
+    chain-oauth-no-crowdsec:
+      chain:
+        middlewares:
+          - middlewares-rate-limit
+          - middlewares-secure-headers
+          - middlewares-oauth

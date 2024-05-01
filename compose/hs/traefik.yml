@@ -1,15 +1,15 @@
 services:
-  # Traefik 2 - Reverse Proxy
+  # Traefik 3 - Reverse Proxy
   traefik:
     container_name: traefik
-    image: traefik:2.10
+    image: traefik:3.0
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
     profiles: ["core", "all"]
     networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.254 # You can specify a static IP
+      t3_proxy:
+        ipv4_address: 192.168.93.254 # You can specify a static IP
       socket_proxy:
     command: # CLI arguments
       - --global.checkNewVersion=true
@@ -24,8 +24,8 @@ services:
       - --api=true
       - --api.dashboard=true
       # - --api.insecure=true
-      #- --ping=true
-      #- --serversTransport.insecureSkipVerify=true
+      # - --ping=true
+      # - --serversTransport.insecureSkipVerify=true
       # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
       - --entrypoints.websecure.forwardedHeaders.trustedIPs=$CLOUDFLARE_IPS,$LOCAL_IPS
       - --log=true
@@ -39,8 +39,9 @@ services:
       # - --providers.docker.endpoint=unix:///var/run/docker.sock # Disable for Socket Proxy. Enable otherwise.
       - --providers.docker.endpoint=tcp://socket-proxy:2375 # Enable for Socket Proxy. Disable otherwise.
       - --providers.docker.exposedByDefault=false
-      - --providers.docker.network=t2_proxy 
-      - --providers.docker.swarmMode=false
+      - --providers.docker.network=t3_proxy 
+      # - --providers.docker.swarmMode=false # Traefik v2 Swarm
+      # - --providers.swarm.endpoint=tcp://127.0.0.1:2377 # Traefik v3 Swarm
       - --entrypoints.websecure.http.tls=true
       - --entrypoints.websecure.http.tls.options=tls-opts@file
       # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services
@@ -89,16 +90,17 @@ services:
       #   protocol: tcp
       #   mode: host
     volumes:
-      - $DOCKERDIR/appdata/traefik2/rules/$HOSTNAME:/rules # Dynamic File Provider directory
+      - $DOCKERDIR/appdata/traefik3/rules/$HOSTNAME:/rules # Dynamic File Provider directory
       # - /var/run/docker.sock:/var/run/docker.sock:ro # Enable if not using Socket Proxy
-      - $DOCKERDIR/appdata/traefik2/acme/acme.json:/acme.json # Certs File 
+      - $DOCKERDIR/appdata/traefik3/acme/acme.json:/acme.json # Certs File 
       - $DOCKERDIR/logs/$HOSTNAME/traefik:/logs # Traefik logs
     environment:
       - TZ=$TZ
       - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token    
       - HTPASSWD_FILE=/run/secrets/basic_auth_credentials # HTTP Basic Auth Credentials
       - DOMAINNAME_HS # Passing the domain name to traefik container to be able to use the variable in rules. 
-      - DOMAINNAME_DS918
+      - DOMAINNAME_DS918 # 2nd Domain passthrough to Synology
+      - DOMAINNAME_AT # 3rd Domain passthrough to Auto-Traefik Development Host
     secrets:
       - cf_dns_api_token
       - basic_auth_credentials
@@ -115,7 +117,7 @@ services:
       #- "traefik.http.routers.ping.tls=true"
       #- "traefik.http.routers.ping.service=ping@internal"
       # Middlewares
-      #- "traefik.http.routers.traefik-rtr.middlewares=chain-no-auth@file" # For No Authentication
+      # - "traefik.http.routers.traefik-rtr.middlewares=chain-no-auth@file" # For No Authentication
       #- "traefik.http.routers.traefik-rtr.middlewares=chain-basic-auth@file" # For Basic HTTP Authentication
       - "traefik.http.routers.traefik-rtr.middlewares=chain-oauth@file" # For Google OAuth
       #- "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file" # For Authelia Authentication

@@ -9,7 +9,7 @@ services:
     restart: "no"
     profiles: ["media", "arrs", "all"]
     networks:
-      - t2_proxy
+      - t3_proxy
     ports:
       - "7878:7878"
     volumes:
@@ -26,8 +26,8 @@ services:
       - "traefik.enable=true"
       # HTTP Routers Auth Bypass
       - "traefik.http.routers.radarr-rtr-bypass.entrypoints=websecure"
-      #- "traefik.http.routers.radarr-rtr-bypass.rule=Host(`radarr.$DOMAINNAME_HS`) && (Headers(`X-Api-Key`, `$RADARR_API_KEY`) || Query(`apikey`, `$RADARR_API_KEY`))"
-      - "traefik.http.routers.radarr-rtr-bypass.rule=Host(`radarr.$DOMAINNAME_HS`) && Headers(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
+      #- "traefik.http.routers.radarr-rtr-bypass.rule=Host(`radarr.$DOMAINNAME_HS`) && (Header(`X-Api-Key`, `$RADARR_API_KEY`) || Query(`apikey`, `$RADARR_API_KEY`))"
+      - "traefik.http.routers.radarr-rtr-bypass.rule=Host(`radarr.$DOMAINNAME_HS`) && Header(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
       - "traefik.http.routers.radarr-rtr-bypass.priority=100"
       # HTTP Routers Auth
       - "traefik.http.routers.radarr-rtr.entrypoints=websecure"

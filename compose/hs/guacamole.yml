@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     profiles: ["apps", "all"]
     networks:
-      - t2_proxy
+      - t3_proxy
       - default
     ports:
       - "8083:8080"

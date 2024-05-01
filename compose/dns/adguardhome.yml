@@ -4,9 +4,10 @@ services:
     container_name: adguardhome
     image: adguard/adguardhome
     restart: unless-stopped
+    profiles: ["core", "all", "dns"]
     network_mode: host
     # networks:
-    #   - rpi4b
+    #   - default
     # ports:
     #   - 53:53/udp
     #   - 67:67/udp 
@@ -15,7 +16,7 @@ services:
     #   - 81:80/tcp 
     #   - 444:443/tcp 
     #   - 853:853/tcp 
-    #   - 3000:3000/tcp 
+    # #   - 3000:3000/tcp 
     volumes:
       - $DOCKERDIR/appdata/adguardhome/conf:/opt/adguardhome/conf
       - $DOCKERDIR/appdata/adguardhome/work:/opt/adguardhome/work

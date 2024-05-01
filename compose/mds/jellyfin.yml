@@ -22,5 +22,5 @@ services:
       - $DOCKERDIR/appdata/jellyfin:/config
       - $DATADIR/data/media:/data/media1
       - $DATADIR/data2/media:/data/media2
-      - $EXTDIR/ssd/home-server/downloads:/data/downloads
+      - $EXTDIR/ssd/downloads:/data/downloads
       - /dev/shm:/data/transcode # Offload transcoding to RAM if you have enough RAM

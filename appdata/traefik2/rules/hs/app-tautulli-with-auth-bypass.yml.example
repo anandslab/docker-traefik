@@ -9,8 +9,8 @@ http:
         - chain-oauth
       service: tautulli-svc
     tautulli-rtr-bypass:
-      # rule: "Host(`tautulli.$DOMAINNAME_HS`) && Headers(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
-      rule: "Host(`tautulli.$DOMAINNAME_HS`) && (Headers(`X-Api-Key`, `$TAUTULLI_API_KEY`) || Query(`apikey`, `$TAUTULLI_API_KEY`))" 
+      # rule: "Host(`tautulli.$DOMAINNAME_HS`) && Header(`traefik-auth-bypass-key`, `$TRAEFIK_AUTH_BYPASS_KEY`)" # Bypass Auth for LunaSea on iOS
+      rule: "Host(`tautulli.$DOMAINNAME_HS`) && (Header(`X-Api-Key`, `$TAUTULLI_API_KEY`) || Query(`apikey`, `$TAUTULLI_API_KEY`))" 
       priority: 100
       entryPoints:
         - websecure

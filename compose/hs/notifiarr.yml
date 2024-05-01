@@ -8,8 +8,8 @@ services:
     restart: "no"
     profiles: ["media", "all"]
     networks:
-      - t2_proxy
-      # t2_proxy:
+      - t3_proxy
+      # t3_proxy:
       #   ipv4_address: 192.168.90.3 # You can specify a static IP
     ports:
       - "5454:5454"
