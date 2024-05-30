@@ -167,7 +167,7 @@ alias bacopy='sudo cp $HOME/.bash_aliases* /root/'
 alias baget='curl -s https://raw.githubusercontent.com/htpcBeginner/docker-traefik/master/shared/config/bash_aliases -o /$HOME/.bash_aliases >/dev/null 2>&1'
 
 # GIT AND SITE MANAGEMENT
-alias gcpush='echo "Usage: gcpush ../commits/date.txt" ; cd $HOME/docker ; bash scripts/doccheck.sh' # To push my files to docker-traefik repo
+alias gcpush='echo "Usage: gcpush ../commits/date.txt" ; cd $HOME/docker ; bash scripts/github/doccheck.sh' # To push my files to docker-traefik repo
 alias gpush='cd $HOME/docker ; git push'
 alias ggraph='git log --all --decorate --oneline --graph'
 
@@ -293,6 +293,9 @@ alias rcstop='sudo bash $HOME/docker/scripts/rclone-stop.sh'
 alias rcstart='sudo bash $HOME/docker/scripts/rclone-start.sh'
 alias rcstatus='sudo bash $HOME/docker/scripts/rclone-status.sh'
 alias rcps="ps -ef | grep '/usr/bin/rclone sync\|/usr/bin/rclone copy\|/usr/bin/rclone move'" # see running rclone copy sync or move
+alias rcupdate="sudo -v ; curl https://rclone.org/install.sh | sudo bash" # update rclone
+alias rcpurge="kill -SIGHUP $(pidof rclone)" # purge rclone cache
+alias rcforget="rclone rc vfs/forget" # rclone forget via remote control
 
 # YT-DLP
 alias ytupdate='yt-dlp -U'

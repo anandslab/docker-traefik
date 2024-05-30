@@ -4,67 +4,62 @@
 # This script checks the required mounts every 5 seconds and as soon as required drives are mounted, it starts the "media" containers.
 
 # CHECKING FOR DRIVE MOUNTS
-num_drives=3
-drive1="/media/rclone/gdrive"
+num_drives=1 # number of mounts to check
+# Drive 1
+drive1="/media/rclone/ds918"
 drive1_seconds=0
 drive1_status=0
-drive2="/media/rclone/gcrypt"
-drive2_seconds=0
-drive2_status=0
-drive3="/media/ssd/home-server/media"
-drive3_seconds=0
-drive3_status=0
+# Drive 2 - not used
+# drive2="/media/ssd/media-server/media"
+# drive2_seconds=0
+# drive2_status=0
 
-# Variables set in /etc/environment
+# Variables set in /etc/environment - PRIMARY_DOMAIN and HOSTNAME
 source /etc/environment
-# PRIMARY_USER="username"
-# PRIMARY_DOMAIN="example.com"
-
 email_to="info@$PRIMARY_DOMAIN"
 email_from="$HOSTNAME@$PRIMARY_DOMAIN"
 
 mounted=0
 rounds=0
 
-while [ "$mounted" -ne "$num_drives" ]
-do
-	if mount | grep ${drive1} > /dev/null; then
-		if [[ "$drive1_status" -eq 0 ]]; then
-			mounted=$((mounted+1))
-			drive1_seconds=$((rounds * 5))
-			drive1_status=1
+while [[ "$mounted" -ne "$num_drives" ]]; do
+	# echo -e "round $rounds\n" # for testing
+	if [[ "$(systemctl is-active docker)" == "active" ]]; then
+		# Drive 1
+		if mount | grep ${drive1} > /dev/null; then
+			if [[ "$drive1_status" -eq 0 ]]; then
+				mounted=$((mounted+1))
+				drive1_seconds=$((rounds * 5))
+				drive1_status=1
+			fi
 		fi
-	fi
-	if mount | grep ${drive2} > /dev/null; then
-		if [[ "$drive2_status" -eq 0 ]]; then
-			mounted=$((mounted+1))
-			drive2_seconds=$((rounds * 5))
-			drive2_status=1
+		# Drive 2
+		# if mount | grep ${drive2} > /dev/null; then
+		# 	if [[ "$drive2_status" -eq 0 ]]; then
+		# 		mounted=$((mounted+1))
+		# 		drive2_seconds=$((rounds * 5))
+		# 		drive2_status=1
+		# 	fi
+		# fi
+		# Timeout if mounting is not successful after 15 min (180x5)
+		if [[ $rounds -eq 180 ]]; then
+		break
 		fi
+		sleep 5
+		rounds=$((rounds + 1))
 	fi
-	if mount | grep ${drive3} > /dev/null; then
-		if [[ "$drive3_status" -eq 0 ]]; then
-			mounted=$((mounted+1))
-			drive3_seconds=$((rounds * 5))
-			drive3_status=1
-		fi
-	fi
-	# Timeout if mounting is not successful after 15 min: 60 = 5 min
-    if [[ $rounds -eq 180 ]]; then
-      break
-    fi
-	sleep 5
-	rounds=$((rounds + 1))
-	echo -e "$rounds\n"
 done
 
 seconds=$((rounds * 5))
+# echo "seconds $seconds" # for testing
 
+# Send an email - SMTP relay required (e.g. ssmtp)
 if [[ "$mounted" -eq "$num_drives" ]]; then
-	echo -e "All drives mounted: \n\n - $drive1 in $drive1_seconds \n - $drive2 in $drive2_seconds \n - $drive3 in $drive3_seconds\n\nStarting media containers." | mail -s "[$HOSTNAME] Starting media containers" ${email_to} -aFrom:${email_from}
-	sudo docker compose --profile "media" -f /home/$PRIMARY_USER/docker/docker-compose-t2.yml up -d --build --remove-orphans
+	# echo "equal"
+	echo -e "### `date +'%Y-%m-%d %H:%M'` ### \n\n All drives mounted: \n\n - $drive1 in $drive1_seconds\n\nStarting media containers." | mail -s "[$HOSTNAME] Starting media containers" ${email_to} -aFrom:${email_from}
+	sudo docker compose --profile media -f /home/$PRIMARY_USER/docker/docker-compose-$HOSTNAME.yml up -d
 else
-	echo "not equal"
-	echo -e "Not all drives mounted after reboot: \n\n - $drive1 is $drive1_status \n - $drive2 is $drive2_status \n - $drive3 is $drive3_status\n\nTimed out after $seconds seconds." | mail -s "[$HOSTNAME] Mounted not equal to $num_drives." ${email_to} -aFrom:${email_from}
-	sudo docker compose --profile "media" -f /home/$PRIMARY_USER/docker/docker-compose-t2.yml down --remove-orphans
+	# echo "not equal"
+	echo -e "### `date +'%Y-%m-%d %H:%M'` ### \n\n Not all drives mounted after reboot: \n\n - $drive1 is $drive1_status\n\nTimed out after $seconds seconds." | mail -s "[$HOSTNAME] Mounted not equal to $num_drives." ${email_to} -aFrom:${email_from}
+	sudo docker compose --profile media -f /home/$PRIMARY_USER/docker/docker-compose-$HOSTNAME.yml down
 fi

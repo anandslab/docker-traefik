@@ -1,5 +1,0 @@
-#!/bin/bash
-
-stty rows 50 cols 250
-export TERM=xterm
-exec bash

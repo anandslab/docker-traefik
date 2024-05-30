@@ -2,7 +2,7 @@ services:
   # Authelia (Lite) - Self-Hosted Single Sign-On and Two-Factor Authentication
   authelia:
     container_name: authelia
-    image: authelia/authelia:4.37.5
+    image: authelia/authelia:4.38.8
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -16,9 +16,14 @@ services:
       - $DOCKERDIR/appdata/authelia:/config
     environment:
       - TZ=$TZ
-      - AUTHELIA_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
-      - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
+      - PUID=$PUID
+      - PGID=$PGID
+      - AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
       - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
+      - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
+      # - AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE=/run/secrets/authelia_storage_mysql_password
+      # - AUTHELIA_SESSION_REDIS_PASSWORD_FILE=/run/secrets/authelia_session_redis_password
+      # - AUTHELIA_DUO_API_SECRET_KEY_FILE=/run/secrets/authelia_duo_api_secret_key
     secrets:
       - authelia_jwt_secret
       - authelia_storage_encryption_key

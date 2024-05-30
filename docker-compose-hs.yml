@@ -112,13 +112,15 @@ include:
   - compose/$HOSTNAME/node-exporter.yml
   # ADMIN
   - compose/$HOSTNAME/guacamole.yml
-  - compose/$HOSTNAME/kasm.yml
+  # - compose/$HOSTNAME/kasm.yml
   - compose/$HOSTNAME/it-tools.yml
   # UTILITIES
   - compose/$HOSTNAME/firefox.yml
   - compose/$HOSTNAME/firefly.yml
   # FILE MANAGEMENT
   - compose/$HOSTNAME/vscode.yml
+  - compose/$HOSTNAME/makemkv.yml
+  - compose/$HOSTNAME/mkvtoolnix.yml
   # NETWORK
   - compose/$HOSTNAME/gluetun.yml
   # MAINTENANCE

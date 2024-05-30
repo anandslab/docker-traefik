@@ -48,8 +48,10 @@ services:
       - --entrypoints.websecure.http.tls.certresolver=dns-cloudflare
       - --entrypoints.websecure.http.tls.domains[0].main=$DOMAINNAME_HS
       - --entrypoints.websecure.http.tls.domains[0].sans=*.$DOMAINNAME_HS
-      # - --entrypoints.websecure.http.tls.domains[1].main=$DOMAINNAME_2 # Pulls main cert for second domain
-      # - --entrypoints.websecure.http.tls.domains[1].sans=*.$DOMAINNAME_2 # Pulls wildcard cert for second domain
+      - --entrypoints.websecure.http.tls.domains[1].main=$DOMAINNAME_1
+      - --entrypoints.websecure.http.tls.domains[1].sans=*.$DOMAINNAME_1
+      # - --entrypoints.websecure.http.tls.domains[2].main=$DOMAINNAME_2 # Pulls main cert for third domain
+      # - --entrypoints.websecure.http.tls.domains[2].sans=*.$DOMAINNAME_2 # Pulls wildcard cert for third domain
       - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory
       - --providers.file.watch=true # Only works on top level files in the rules folder
       # - --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # LetsEncrypt Staging Server - uncomment when testing
@@ -99,8 +101,8 @@ services:
       - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token    
       - HTPASSWD_FILE=/run/secrets/basic_auth_credentials # HTTP Basic Auth Credentials
       - DOMAINNAME_HS # Passing the domain name to traefik container to be able to use the variable in rules. 
-      - DOMAINNAME_DS918 # 2nd Domain passthrough to Synology
-      - DOMAINNAME_AT # 3rd Domain passthrough to Auto-Traefik Development Host
+      - DOMAINNAME_1 # Additional Domain variable passthrough to container
+      - DOMAINNAME_AT # Additional Domain variable passthrough to container
     secrets:
       - cf_dns_api_token
       - basic_auth_credentials

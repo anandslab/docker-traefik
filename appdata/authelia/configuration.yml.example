@@ -2,22 +2,33 @@
 #                   Authelia configuration                    #
 ###############################################################
 
-host: 0.0.0.0
-port: 9091
-log_level: warn
+server:
+  address: tcp://0.0.0.0:9091/
+  buffers:
+    read: 4096
+    write: 4096
+  endpoints:
+    enable_pprof: false
+    enable_expvars: false
+  disable_healthcheck: false
+  tls:
+    key: ""
+    certificate: ""
 
-# This secret can also be set using the env variables AUTHELIA_JWT_SECRET_FILE
-# I used this site to generate the secret: https://www.grc.com/passwords.htm
-# jwt_secret: SECRET_GOES_HERE # use docker secret file instead AUTHELIA_JWT_SECRET_FILE
+# https://www.authelia.com/configuration/miscellaneous/logging/
+log:
+  level: info
+  format: text
+  file_path: /config/authelia.log
+  keep_stdout: true
 
-# https://docs.authelia.com/configuration/miscellaneous.html#default-redirection-url
-default_redirection_url: https://authelia.example.com
-
+# https://www.authelia.com/configuration/second-factor/time-based-one-time-password/
 totp:
-  issuer: authelia.com
+  issuer: example.com
   period: 30
   skew: 1
 
+# AUTHELIA_DUO_PLACEHOLDER
 # Enable the following for Duo Push Notification support
 # https://www.authelia.com/docs/features/2fa/push-notifications.html
 #duo_api:
@@ -26,78 +37,90 @@ totp:
 #  # This secret can also be set using the env variables AUTHELIA_DUO_API_SECRET_KEY_FILE
 #  secret_key: # use docker secret file instead AUTHELIA_DUO_API_SECRET_KEY_FILE
 
+# https://www.authelia.com/reference/guides/passwords/
 authentication_backend:
+  password_reset:
+    disable: false
+  refresh_interval: 5m
   file:
-    path: /config/users_database.yml
-    # customize passwords based on https://docs.authelia.com/configuration/authentication/file.html
+    path: /config/users.yml
     password:
       algorithm: argon2id
       iterations: 1
       salt_length: 16
       parallelism: 8
-      memory: 1024 # blocks this much of the RAM. Tune this.
+      memory: 256 # blocks this much of the RAM
 
-# https://docs.authelia.com/configuration/access-control.html
+# https://www.authelia.com/overview/authorization/access-control/
 access_control:
   default_policy: deny
   rules:
-    # Rules applied to everyone
-    - domain: authelia.example.com
-      policy: bypass
-#    - domain: radarr.example.com
-#      policy: bypass
-#      subject: "group:admins"
-#      resources:
-#      - "^/api/.*$"      
-#    - domain: "*.example.com"
-#      policy: one_factor
-    - domain: "*.example.com"
-      policy: two_factor
-    - domain: "example.com"
+    # - domain:
+    #     - "*.example.com"
+    #     - "example.com"
+    #   policy: bypass
+    #   networks: # bypass authentication for local networks
+    #     - 10.0.0.0/8
+    #     - 192.168.0.0/16
+    #     - 172.16.0.0/12
+    - domain:
+        - "*.example.com"
+        - "example.com"
       policy: two_factor
 
+# https://www.authelia.com/configuration/session/introduction/
 session:
   name: authelia_session
-  # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET_FILE
-  # Used a different secret, but the same site as jwt_secret above.
-  # secret: SECRET_GOES_HERE # use docker secret file instead AUTHELIA_SESSION_SECRET_FILE
-  expiration: 3600 # 1 hour
-  inactivity: 300 # 5 minutes
-  domain: example.com # Should match whatever your root protected domain is
+  same_site: lax
+  expiration: 7h
+  inactivity: 5m
+  remember_me: 1M
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://authelia.example.com'
+      default_redirection_url: 'https://example.com'
+  # AUTHELIA_REDIS_PLACEHOLDER
+  # Optional. Can improve performance on a busy system. If not enabled, session info is stored in memory.
+  # redis:
+  #   host: redis
+  #   port: 6379
+  #   This secret can also be set using the env variables AUTHELIA_SESSION_REDIS_PASSWORD_FILE
+  #   password: REDIS_PASSWORD
 
-# Optional. Can improve performance on a busy system. If not enabled, session info is stored in memory.
-#  redis:
-#    host: redis
-#    port: 6379
-    # This secret can also be set using the env variables AUTHELIA_SESSION_REDIS_PASSWORD_FILE
-    # password: authelia
 
+# https://www.authelia.com/configuration/security/regulation/
 regulation:
   max_retries: 3
-  find_time: 120
-  ban_time: 300
-
+  find_time: 10m
+  ban_time: 12h
+  
+# https://www.authelia.com/configuration/storage/introduction/
 storage:
-# For local storage, uncomment lines below and comment out mysql. https://docs.authelia.com/configuration/storage/sqlite.html
-#  local:
-#    path: /config/db.sqlite3
-  mysql:
-  # MySQL allows running multiple authelia instances. Create database and enter details below.
-    host: MYSQL_HOST
-    port: 3306
-    database: authelia
-    username: DBUSERNAME
-    # Password can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
-    # password: use docker secret file instead AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE
+  # For local storage, uncomment lines below and comment out mysql. https://docs.authelia.com/configuration/storage/sqlite.html
+  # This is good for the beginning. If you have a busy site then switch to other databases.
+  local:
+   path: /config/db.sqlite3
+  # mysql:
+  #   # https://www.authelia.com/configuration/storage/mysql/
+  #   # MySQL allows running multiple authelia instances. Create database and enter details below.
+  #   address: 'tcp://127.0.0.1:3306'
+  #   port: 3306
+  #   database: authelia
+  #   username: DBUSERNAME
+  #   # Password can also be set using a secret: https://www.authelia.com/configuration/methods/secrets/#environment-variables
+  #   # password: DBPASSWORD
+  # encryption_key: 'a_very_important_secret' # Can also be set using a secret: AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE 
 
+# https://www.authelia.com/configuration/notifications/introduction/
 notifier:
-  smtp:
-    username: SMTP_USERNAME
-    # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
-    # password: # use docker secret file instead AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
-    host: SMTP_HOST
-    port: 587 #465
-    sender: SENDER_EMAIL
-  # For testing purpose, notifications can be sent in a file. Be sure map the volume in docker-compose.
-#  filesystem:
-#    filename: /tmp/authelia/notification.txt
+  disable_startup_check: false
+  # For testing purposes, notifications can be sent in a file. Be sure to map the volume in docker-compose.
+  filesystem:
+    filename: /config/notifications.txt
+  # smtp:
+  #   username: SMTP_USERNAME
+  #   # This secret can also be set using secret: https://www.authelia.com/configuration/methods/secrets/#environment-variables
+  #   # password: SMTP_PASSWORD 
+  #   host: SMTP_HOST
+  #   port: 587 #465
+  #   sender: SENDER_EMAIL

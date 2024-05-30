@@ -1,8 +1,0 @@
-#!/bin/bash
-gdrive_status=$(systemctl is-active rclone-gdrive.service)
-gcrypt_status=$(systemctl is-active rclone-gcrypt.service)
-mergerfs_status=$(systemctl is-active merge-media.service)
-
-echo "Rclone GDrive is: $gdrive_status"
-echo "Rclone GCrypt is: $gcrypt_status"
-echo "Rclone MergerFS is: $mergerfs_status"
