@@ -178,7 +178,8 @@ Some apps are used in more than one host and some on only one.
 - MakeMKV - Video Editing (Ripping from Disks)
 - FileBot - File renamer
 - Tiny Media Manager - Media Files Management
-
+- [Decluttarr](https://github.com/ManiMatter/decluttarr/) - Queue cleaner for radarr/sonarr/lidarr/readarr
+  
 ### UTILITIES
 
 - Firefox - Web Broswerstack
